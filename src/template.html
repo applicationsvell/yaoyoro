@@ -145,10 +145,10 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
 /* ---------- タイトル ---------- */
 #scrTitle { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; }
 .t-stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; min-height: 0; }
-.t-title { margin: 0; display: flex; flex-direction: row-reverse; gap: clamp(8px, 3vw, 20px); font-family: var(--mincho); font-weight: 800; font-size: clamp(48px, min(14vw, 9vh), 96px); line-height: 1.08; letter-spacing: 0;
+.t-title { margin: 0; display: flex; flex-direction: row; align-items: baseline; gap: .06em; white-space: nowrap; font-family: var(--mincho); font-weight: 800; font-size: clamp(36px, min(13.5vw, 11vh), 100px); line-height: 1.15; letter-spacing: .02em;
   background: linear-gradient(180deg, #f3e1aa 0%, #c6a25a 48%, #8f6c2c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .55)); }
-.t-title .col { display: flex; flex-direction: column; }
-.t-title .col2 { padding-top: .6em; }
+/* 横書き：「ヤオヨロ」と「合戦」を1行に */
+.t-title .tt-b { letter-spacing: .04em; }
 .t-yomi { position: absolute; writing-mode: vertical-rl; font-size: 12px; letter-spacing: .5em; color: var(--text-3); }
 .t-five { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; }
 .t-five li { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ec); font-size: 22px; }
@@ -688,7 +688,7 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
   <!-- タイトル -->
   <section id="scrTitle" class="scr">
     <div class="t-stage">
-      <h1 class="t-title" aria-label="ヤオヨロ合戦（やおよろがっせん）"><span class="col" aria-hidden="true"><span>ヤ</span><span>オ</span><span>ヨ</span><span>ロ</span></span><span class="col col2" aria-hidden="true"><span>合</span><span>戦</span></span></h1>
+      <h1 class="t-title" aria-label="ヤオヨロ合戦（やおよろがっせん）"><span class="tt-a" aria-hidden="true">ヤオヨロ</span><span class="tt-b" aria-hidden="true">合戦</span></h1>
       <ul class="t-five" id="titleFive" aria-label="五つの属性"></ul>
       <p class="t-lead">式神と札で競う、五行の合戦</p>
     </div>
