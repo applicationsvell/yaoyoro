@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const SRC = __dirname, ROOT = path.join(__dirname, '..');
-const PARTS = ['part-engine.js', 'part-net.js', 'part-fx.js', 'part-art.js', 'part-beast.js', 'part-ui.js', 'part-game.js'];
+const PARTS = ['part-engine.js', 'part-net.js', 'part-mqtt.js', 'part-fx.js', 'part-art.js', 'part-beast.js', 'part-ui.js', 'part-game.js'];
 const S = f => fs.readFileSync(path.join(SRC, f), 'utf8');
 
 function buildBody() {

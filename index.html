@@ -187,6 +187,20 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
 .code-box { padding: 14px; border: 1px solid var(--line-2); border-radius: 4px; text-align: center; background: rgba(0, 0, 0, .2); }
 .code-box .cl { font-size: 12.5px; color: var(--text-2); }
 .code-box .cd { font: 800 48px/1.15 var(--mincho); letter-spacing: .2em; color: var(--kin-hi); font-variant-numeric: tabular-nums; padding-left: .2em; }
+/* 合言葉（長いので小さめ・折り返しあり） */
+.code-box .cd.pass { font-size: clamp(22px, 7vw, 34px); letter-spacing: .06em; padding: 2px 0; overflow-wrap: anywhere; line-height: 1.3; }
+.code-box .code-acts { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; }
+.code-box .link-st { font-size: 12px; color: var(--text-2); }
+.code-box .link-st .bad { color: #f0b9a6; }
+/* 合言葉のシート */
+.pass-row { display: flex; gap: 8px; align-items: center; }
+.pass-row .inp { flex: 1; min-width: 0; font-size: 20px; }
+.pass-row .btn { flex: none; min-height: 50px; }
+.warn.ok { color: var(--text-2); }
+/* 中継所とのつながりが切れているとき */
+#netBadge { position: absolute; left: 50%; top: calc(8px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 66; max-width: calc(100% - 32px); padding: 6px 12px; border-radius: 999px;
+  background: rgba(120, 36, 24, .92); color: #fff3ea; font: 700 12.5px/1.4 var(--gothic); text-align: center; box-shadow: 0 0 0 1px rgba(255, 200, 180, .4), 0 4px 14px rgba(0, 0, 0, .5); pointer-events: none; animation: nbPulse 1.6s ease-in-out infinite; }
+@keyframes nbPulse { 50% { opacity: .75; } }
 .seg-l { font-size: 12.5px; color: var(--text-2); font-weight: 700; margin-bottom: 5px; }
 .seg { display: flex; border: 1px solid var(--line-2); border-radius: 4px; overflow: hidden; }
 .seg button { flex: 1; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--text-2); border-left: 1px solid var(--line); text-align: center; }
@@ -760,6 +774,14 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
     <div class="res-btns" id="resBtns"></div>
   </section>
 
+  <!-- 合言葉（ホーム画面アプリ版） -->
+  <div class="ov" id="ovPass" hidden><div class="scrim" data-close="ovPass"></div><div class="sheet">
+    <div class="sh-t" id="passT">部屋をつくる</div>
+    <p class="sh-s" id="passS"></p>
+    <div class="pass-row"><input class="inp" id="passInp" maxlength="24" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="合言葉"><button class="btn btn-xs" id="passSuggest" type="button">ほかの案</button></div>
+    <p class="warn" id="passWarn"></p>
+    <div class="acts"><button class="btn" data-close="ovPass" type="button">やめる</button><button class="btn btn-gold" id="passGo" type="button">つくる</button></div>
+  </div></div>
   <!-- 部屋に入る -->
   <div class="ov" id="ovJoin" hidden><div class="scrim" data-close="ovJoin"></div><div class="sheet">
     <div class="sh-t">部屋に入る</div>
@@ -804,6 +826,7 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
   <canvas id="fxCanvas" aria-hidden="true"></canvas>
   <div id="telop" aria-hidden="true"></div>
   <div id="toast" aria-live="polite"></div>
+  <div id="netBadge" role="status" hidden></div>
 </div>
 <script type="application/json" id="card-data">{"version":4,"guardians":[{"id":"tengu","name":"天狗","yomi":"てんぐ","elem":"木","hp":30,"mp":25,"gold":20,"spellDiscount":2,"dodge":0.1,"skill":"神通力","text":"術に使う霊力が2少ない。武器で攻められたとき、10回に1回くらいひらりとかわす"},{"id":"kitsune","name":"九尾の狐","yomi":"きゅうびのきつね","elem":"火","hp":35,"mp":20,"gold":20,"atkBonus":3,"elemBonusOf":"火","elemBonus":5,"fireImmune":true,"skill":"狐火の化身","text":"攻撃と術のダメージ＋3。火の攻撃と術ならさらに＋5。火の攻撃ではダメージを受けない"},{"id":"gama","name":"大蝦蟇","yomi":"おおがま","elem":"土","hp":40,"mp":15,"gold":20,"armorBonus":3,"skill":"鉄壁の腹","text":"防具を出して守るとき、守り＋3"},{"id":"oni","name":"天邪鬼","yomi":"あまのじゃく","elem":"金","hp":30,"mp":25,"gold":20,"deflectRate":0.4,"skill":"幻惑","text":"武器で攻められたとき、40%の確率で攻撃を弾く（弾いた攻撃は流れ弾になって全員の中からランダムに1人に飛ぶ。飛んだ先の人は守札で守れる）"},{"id":"ryujin","name":"龍神","yomi":"りゅうじん","elem":"水","hp":60,"mp":15,"gold":20,"noSummon":true,"noMpGain":true,"weaponBonus":5,"armorHalf":true,"skill":"龍神の加護","text":"霊獣を呼べない。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる"}],"weathers":[{"id":"haru","name":"春一番","yomi":"はるいちばん","kind":"random","crest":"木","text":"攻める相手がランダムになる"},{"id":"enten","name":"炎天","yomi":"えんてん","kind":"power","bonus":2,"crest":"火","text":"攻撃と術のダメージ＋2"},{"id":"jinari","name":"地鳴り","yomi":"じなり","kind":"power","bonus":-2,"crest":"土","text":"攻撃と術のダメージ−2"},{"id":"shuso","name":"秋霜","yomi":"しゅうそう","kind":"onecard","crest":"金","text":"守るときに出せる札は1枚まで"},{"id":"tsuyu","name":"梅雨","yomi":"つゆ","kind":"nospell","crest":"水","text":"術が使えない"},{"id":"nagi","name":"凪","yomi":"なぎ","kind":"calm","text":"何も起きない、静かな巡"},{"id":"ennichi","name":"縁日","yomi":"えんにち","kind":"fair","shop":5,"text":"よろず屋の値段が半分。棚の札が5枚になる"},{"id":"mangetsu","name":"満月","yomi":"まんげつ","kind":"moon","cut":3,"text":"術に使う霊力が3少ない"},{"id":"arashi","name":"野分","yomi":"のわき","kind":"storm","text":"番のはじめに札を1枚引ける"}],"beasts":[{"id":"seiryu","name":"青龍","yomi":"せいりゅう","eff":"heal","val":4,"text":"持ち主の体力＋4","elem":"木"},{"id":"suzaku","name":"朱雀","yomi":"すざく","eff":"burn","val":3,"text":"相手1人（ランダム）に火の3ダメージ。守れない","elem":"火"},{"id":"byakko","name":"白虎","yomi":"びゃっこ","eff":"boost","val":4,"text":"持ち主の次の攻撃＋4","elem":"金"},{"id":"genbu","name":"玄武","yomi":"げんぶ","eff":"shell","val":5,"text":"持ち主に甲羅。次に受けるダメージ−5","elem":"水"},{"id":"kirin","name":"麒麟","yomi":"きりん","eff":"mp","val":5,"text":"持ち主の霊力＋5","elem":"土"},{"id":"yatagarasu","name":"八咫烏","yomi":"やたがらす","eff":"draw","val":1,"text":"持ち主が札を1枚引く"},{"id":"komainu","name":"狛犬","yomi":"こまいぬ","eff":"cleanse","val":5,"text":"持ち主の呪い・封印をはらう。なければ体力＋5","elem":"土"},{"id":"baku","name":"獏","yomi":"ばく","eff":"discard","val":1,"text":"相手1人（ランダム）の手札を1枚捨てさせる。まれに（5回に1回）自分の手札を捨ててしまう","elem":"水"},{"id":"kinkei","name":"金鶏","yomi":"きんけい","eff":"gold","val":6,"text":"持ち主の小判＋6両","elem":"金"},{"id":"shinigami","name":"死神","yomi":"しにがみ","eff":"reaper","val":5,"text":"相手全員に5ダメージ。自分にも5ダメージ。守れない"}],"cards":[{"id":"shuto","name":"手刀","yomi":"しゅとう","type":"weapon","atk":1,"price":1,"n":4},{"id":"bokken","name":"木刀","yomi":"ぼくとう","type":"weapon","atk":3,"price":1,"n":4},{"id":"dounokatana","name":"銅の刀","yomi":"どうのかたな","type":"weapon","atk":1,"price":10,"n":4},{"id":"ginnokatana","name":"銀の刀","yomi":"ぎんのかたな","type":"weapon","atk":1,"price":20,"n":4},{"id":"kinnokatana","name":"金の刀","yomi":"きんのかたな","type":"weapon","atk":1,"price":30,"n":4},{"id":"takeyari","name":"竹槍","yomi":"たけやり","type":"weapon","atk":2,"price":3,"n":4},{"id":"kama","name":"鎌","yomi":"かま","type":"weapon","atk":2,"price":2,"n":4},{"id":"kunai","name":"苦無","yomi":"くない","type":"weapon","atk":3,"price":4,"n":4},{"id":"hocho","name":"包丁","yomi":"ほうちょう","type":"weapon","atk":3,"price":3,"n":4},{"id":"konbo","name":"棍棒","yomi":"こんぼう","type":"weapon","atk":4,"price":5,"n":4},{"id":"jitte","name":"十手","yomi":"じって","type":"weapon","atk":4,"price":4,"n":4},{"id":"kusarigama","name":"鎖鎌","yomi":"くさりがま","type":"weapon","atk":4,"price":7,"n":4,"fx":"draw"},{"id":"wakizashi","name":"脇差","yomi":"わきざし","type":"weapon","atk":5,"price":7,"n":4},{"id":"shakujo","name":"錫杖","yomi":"しゃくじょう","type":"weapon","atk":5,"price":6,"n":4},{"id":"naginata","name":"薙刀","yomi":"なぎなた","type":"weapon","atk":6,"price":9,"n":4},{"id":"kodachi","name":"小太刀","yomi":"こだち","type":"weapon","atk":6,"price":8,"n":4},{"id":"katana","name":"太刀","yomi":"たち","type":"weapon","atk":7,"price":10,"n":4},{"id":"nagayari","name":"長槍","yomi":"ながやり","type":"weapon","atk":7,"price":9,"n":4},{"id":"jumonji","name":"十文字槍","yomi":"じゅうもんじやり","type":"weapon","atk":8,"price":11,"n":4},{"id":"uchigatana","name":"打刀","yomi":"うちがたな","type":"weapon","atk":8,"price":10,"n":4},{"id":"kanabo","name":"金棒","yomi":"かなぼう","type":"weapon","atk":9,"price":13,"n":4},{"id":"nodachi","name":"野太刀","yomi":"のだち","type":"weapon","atk":9,"price":12,"n":4},{"id":"odachi","name":"大太刀","yomi":"おおだち","type":"weapon","atk":10,"price":14,"n":4},{"id":"zanbato","name":"斬馬刀","yomi":"ざんばとう","type":"weapon","atk":11,"price":16,"n":4},{"id":"masakari","name":"大鉞","yomi":"おおまさかり","type":"weapon","atk":12,"price":17,"n":4},{"id":"yakumo","name":"神剣・八雲","yomi":"しんけん・やくも","type":"weapon","atk":13,"price":19,"n":4},{"id":"onikiri","name":"鬼斬り","yomi":"おにきり","type":"weapon","atk":14,"price":20,"n":4,"fx":"draw"},{"id":"habakiri","name":"天羽々斬","yomi":"あめのはばきり","type":"weapon","atk":15,"price":22,"n":4},{"id":"murakumo","name":"天叢雲剣","yomi":"あめのむらくものつるぎ","type":"weapon","atk":30,"price":30,"n":4},{"id":"yabusuma","name":"矢ぶすま","yomi":"やぶすま","type":"weapon","atk":3,"price":1,"n":4,"all":true},{"id":"horoku","name":"焙烙玉","yomi":"ほうろくだま","type":"weapon","atk":4,"price":8,"n":4,"all":true},{"id":"ozutsu","name":"大筒","yomi":"おおづつ","type":"weapon","atk":6,"price":1,"n":4,"all":true},{"id":"hinoko","name":"火の粉","yomi":"ひのこ","type":"weapon","atk":2,"price":3,"n":4,"elem":"火"},{"id":"hiya","name":"火矢","yomi":"ひや","type":"weapon","atk":4,"price":6,"n":4,"elem":"火"},{"id":"homura","name":"焔の太刀","yomi":"ほむらのたち","type":"weapon","atk":7,"price":11,"n":4,"elem":"火"},{"id":"kaensha","name":"火炎車","yomi":"かえんしゃ","type":"weapon","atk":5,"price":16,"n":4,"elem":"火","all":true},{"id":"mizutsubute","name":"水礫","yomi":"みずつぶて","type":"weapon","atk":2,"price":3,"n":4,"elem":"水"},{"id":"suijin","name":"水刃","yomi":"すいじん","type":"weapon","atk":4,"price":6,"n":4,"elem":"水"},{"id":"tsurara","name":"氷柱","yomi":"つらら","type":"weapon","atk":6,"price":9,"n":4,"elem":"水"},{"id":"mizuchi","name":"蛟の鉾","yomi":"みずちのほこ","type":"weapon","atk":7,"price":11,"n":4,"elem":"水"},{"id":"samidare","name":"五月雨の弓","yomi":"さみだれのゆみ","type":"weapon","atk":3,"price":9,"n":4,"elem":"水","all":true},{"id":"matsuba","name":"松葉針","yomi":"まつばばり","type":"weapon","atk":2,"price":3,"n":4,"elem":"木"},{"id":"ibara","name":"茨の鞭","yomi":"いばらのむち","type":"weapon","atk":3,"price":5,"n":4,"elem":"木","fx":"draw"},{"id":"kashi","name":"樫の棍","yomi":"かしのこん","type":"weapon","atk":6,"price":9,"n":4,"elem":"木"},{"id":"senpu","name":"旋風の扇","yomi":"せんぷうのおうぎ","type":"weapon","atk":4,"price":12,"n":4,"elem":"木","all":true},{"id":"sunakake","name":"砂かけ","yomi":"すなかけ","type":"weapon","atk":2,"price":3,"n":4,"elem":"土"},{"id":"ishi","name":"石つぶて","yomi":"いしつぶて","type":"weapon","atk":3,"price":5,"n":4,"elem":"土"},{"id":"iwakudaki","name":"岩砕き","yomi":"いわくだき","type":"weapon","atk":6,"price":9,"n":4,"elem":"土"},{"id":"jiware","name":"地割れの槌","yomi":"じわれのつち","type":"weapon","atk":4,"price":12,"n":4,"elem":"土","all":true},{"id":"kanzashi","name":"銀の簪","yomi":"ぎんのかんざし","type":"weapon","atk":2,"price":3,"n":4,"elem":"金"},{"id":"shuriken","name":"手裏剣","yomi":"しゅりけん","type":"weapon","atk":3,"price":5,"n":4,"elem":"金","fx":"draw"},{"id":"tessen","name":"鉄扇","yomi":"てっせん","type":"weapon","atk":5,"price":8,"n":4,"elem":"金"},{"id":"hagane","name":"鋼の矛","yomi":"はがねのほこ","type":"weapon","atk":7,"price":11,"n":4,"elem":"金"},{"id":"toishi","name":"砥石","yomi":"といし","type":"plus","atk":2,"price":3,"n":4},{"id":"kiai","name":"気合","yomi":"きあい","type":"plus","atk":3,"price":5,"n":4},{"id":"kairiki","name":"怪力","yomi":"かいりき","type":"plus","atk":5,"price":9,"n":4},{"id":"toshinki","name":"闘神気","yomi":"とうしんき","type":"plus","atk":10,"price":10,"n":4},{"id":"tenugui","name":"手ぬぐい","yomi":"てぬぐい","type":"armor","price":1,"n":4,"def":1},{"id":"nabebuta","name":"鍋のふた","yomi":"なべのふた","type":"armor","price":2,"n":4,"def":2},{"id":"amigasa","name":"編み笠","yomi":"あみがさ","type":"armor","price":4,"n":4,"def":3},{"id":"itadate","name":"板の盾","yomi":"いたのたて","type":"armor","price":5,"n":4,"def":4},{"id":"kote","name":"籠手","yomi":"こて","type":"armor","price":7,"n":4,"def":5},{"id":"domaru","name":"胴丸","yomi":"どうまる","type":"armor","price":8,"n":4,"def":6},{"id":"katabira","name":"鎖帷子","yomi":"くさりかたびら","type":"armor","price":9,"n":4,"def":7},{"id":"gusoku","name":"具足","yomi":"ぐそく","type":"armor","price":11,"n":4,"def":8},{"id":"ooyoroi","name":"大鎧","yomi":"おおよろい","type":"armor","price":12,"n":4,"def":9},{"id":"odate","name":"大盾","yomi":"おおだて","type":"armor","price":13,"n":4,"def":10},{"id":"jomon","name":"城門の扉","yomi":"じょうもんのとびら","type":"armor","price":15,"n":4,"def":11},{"id":"nanban","name":"南蛮胴","yomi":"なんばんどう","type":"armor","price":16,"n":4,"def":12},{"id":"ishigaki","name":"石垣","yomi":"いしがき","type":"armor","price":17,"n":4,"def":13},{"id":"tenshu","name":"天守の壁","yomi":"てんしゅのかべ","type":"armor","price":19,"n":4,"def":14},{"id":"kongo","name":"金剛の鎧","yomi":"こんごうのよろい","type":"armor","price":20,"n":4,"def":15},{"id":"iwato","name":"天岩戸","yomi":"あまのいわと","type":"armor","price":30,"n":4,"def":30},{"id":"hiyoke","name":"火除けの札","yomi":"ひよけのふだ","type":"armor","price":5,"n":4,"def":3,"elem":"火"},{"id":"hinezumi","name":"火鼠の衣","yomi":"ひねずみのころも","type":"armor","price":9,"n":4,"def":6,"elem":"火"},{"id":"namiyoke","name":"波除け","yomi":"なみよけ","type":"armor","price":5,"n":4,"def":3,"elem":"水"},{"id":"ryusui","name":"流水の帯","yomi":"りゅうすいのおび","type":"armor","price":9,"n":4,"def":6,"elem":"水"},{"id":"wara","name":"藁の束","yomi":"わらのたば","type":"armor","price":5,"n":4,"def":3,"elem":"木"},{"id":"takegaki","name":"竹垣","yomi":"たけがき","type":"armor","price":9,"n":4,"def":6,"elem":"木"},{"id":"donabe","name":"土鍋のふた","yomi":"どなべのふた","type":"armor","price":5,"n":4,"def":3,"elem":"土"},{"id":"dorui","name":"土塁","yomi":"どるい","type":"armor","price":9,"n":4,"def":6,"elem":"土"},{"id":"kabuto","name":"鉄兜","yomi":"てつかぶと","type":"armor","price":5,"n":4,"def":3,"elem":"金"},{"id":"haganetate","name":"鋼の盾","yomi":"はがねのたて","type":"armor","price":9,"n":4,"def":6,"elem":"金"},{"id":"kekkai","name":"結界札","yomi":"けっかいふだ","type":"armor","price":10,"n":4,"def":5,"magic":true},{"id":"kagami","name":"照魔の鏡","yomi":"しょうまのかがみ","type":"armor","price":20,"n":4,"special":"reflect"},{"id":"hauchiwa","name":"羽団扇","yomi":"はうちわ","type":"armor","price":16,"n":4,"special":"deflect"},{"id":"migawari","name":"身代わり人形","yomi":"みがわりにんぎょう","type":"armor","price":20,"n":4,"special":"null"},{"id":"minokasa","name":"隠れ蓑","yomi":"かくれみの","type":"armor","price":12,"n":4,"special":"dodge"},{"id":"kitsunebi","name":"狐火","yomi":"きつねび","type":"spell","mp":3,"eff":"dmg","val":6,"tgt":"enemy","price":8,"n":4,"elem":"火"},{"id":"kamaitachi","name":"鎌鼬","yomi":"かまいたち","type":"spell","mp":3,"eff":"dmg","val":5,"tgt":"enemy","price":8,"n":4,"elem":"木"},{"id":"raimei","name":"雷鳴","yomi":"らいめい","type":"spell","mp":5,"eff":"dmg","val":7,"tgt":"all","price":6,"n":4},{"id":"tsunami","name":"大津波","yomi":"おおつなみ","type":"spell","mp":7,"eff":"dmg","val":10,"tgt":"all","price":15,"n":4,"elem":"水"},{"id":"tamasui","name":"魂吸い","yomi":"たますい","type":"spell","mp":5,"eff":"drain","val":5,"tgt":"enemy","price":14,"n":4},{"id":"noroi","name":"呪いの藁人形","yomi":"のろいのわらにんぎょう","type":"spell","mp":4,"eff":"curse","val":3,"tgt":"enemy","price":10,"n":4},{"id":"fuin","name":"封印札","yomi":"ふういんふだ","type":"spell","mp":2,"eff":"seal","val":2,"tgt":"enemy","price":6,"n":4},{"id":"kamikakushi","name":"神隠し","yomi":"かみかくし","type":"spell","mp":4,"eff":"steal","val":1,"tgt":"enemy","price":10,"n":4,"nodef":true},{"id":"iyashi","name":"癒しの舞","yomi":"いやしのまい","type":"spell","mp":3,"eff":"heal","val":7,"tgt":"ally","price":9,"n":4},{"id":"kirigakure","name":"霧隠れの術","yomi":"きりがくれのじゅつ","type":"spell","mp":3,"eff":"mist","val":1,"tgt":"self","price":8,"n":4},{"id":"onigiri","name":"おにぎり","yomi":"おにぎり","type":"item","eff":"heal","val":5,"price":5,"n":20},{"id":"dango","name":"三色団子","yomi":"さんしょくだんご","type":"item","eff":"heal","val":10,"price":9,"n":20},{"id":"yakuto","name":"薬湯","yomi":"やくとう","type":"item","eff":"heal","val":15,"price":13,"n":10},{"id":"sento","name":"仙桃","yomi":"せんとう","type":"item","eff":"heal","val":20,"price":17,"n":10},{"id":"reisui","name":"霊水","yomi":"れいすい","type":"item","eff":"mp","val":5,"price":5,"n":20},{"id":"reiyaku","name":"霊薬","yomi":"れいやく","type":"item","eff":"mp","val":10,"price":9,"n":20},{"id":"magatama","name":"勾玉","yomi":"まがたま","type":"item","eff":"mp","val":15,"price":13,"n":10},{"id":"hoju","name":"宝珠","yomi":"ほうじゅ","type":"item","eff":"mp","val":20,"price":17,"n":10},{"id":"zenibukuro","name":"銭袋","yomi":"ぜにぶくろ","type":"item","eff":"gold","val":5,"price":4,"n":20},{"id":"koban","name":"小判袋","yomi":"こばんぶくろ","type":"item","eff":"gold","val":10,"price":8,"n":20},{"id":"senryobako","name":"千両箱","yomi":"せんりょうばこ","type":"item","eff":"gold","val":15,"price":12,"n":10},{"id":"kozuchi","name":"打ち出の小槌","yomi":"うちでのこづち","type":"item","eff":"gold","val":20,"price":16,"n":10},{"id":"omiki","name":"御神酒","yomi":"おみき","type":"item","eff":"kiai","val":5,"price":7,"n":5},{"id":"shio","name":"清めの塩","yomi":"きよめのしお","type":"item","eff":"cleanse","val":3,"price":5,"n":5},{"id":"maneki","name":"招き猫","yomi":"まねきねこ","type":"item","eff":"maneki","val":15,"price":16,"n":5},{"id":"jobutsu","name":"成仏札","yomi":"じょうぶつふだ","type":"item","eff":"jobutsu","val":50,"price":6,"n":5,"tgt":"beast"},{"id":"sandatsu","name":"簒奪札","yomi":"さんだつふだ","type":"item","eff":"usurp","val":0,"price":8,"n":5,"tgt":"enemy"},{"id":"oshiuri","name":"押し売り札","yomi":"おしうりふだ","type":"item","eff":"sell","val":0,"price":8,"n":5,"tgt":"foe"},{"id":"seiren","name":"精錬札","yomi":"せいれんふだ","type":"item","eff":"refine","val":5,"price":10,"n":5},{"id":"shokan","name":"召喚札","yomi":"しょうかんふだ","type":"summon","mp":3,"price":5,"n":20}]}</script>
 <script>
@@ -2190,6 +2213,358 @@ class DbNet {
     if (this.unsubRoom) this.unsubRoom(); if (this.unsubActs) this.unsubActs();
     if (this.host) this.host.stop();
     this.host = null; this.unsubRoom = null; this.unsubActs = null;
+  }
+}
+
+/* =====================================================================
+   合言葉のオンライン対戦（ホーム画面アプリ版）
+   だれでも使える無料の「中継所」（MQTTの公開ブローカー）を2か所同時に使う。
+   - 合言葉から「部屋の場所（トピック）」と「暗号のかぎ」を作る。合言葉を知らない人には中身が読めない
+   - 部屋をつくった人の画面が進行役（Host）。盤面は「s」に置き（中継所が最後の1つを覚えてくれる）、
+     参加者の操作は「a」で届き、進行役の生存確認は「p」で流れる
+   - 中継所が片方止まっても、もう片方で続く。切れたら自動でつなぎ直す
+   ===================================================================== */
+const MQTT_BROKERS = TEST.brokers || ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const HOSTED_KEY = 'yao-hosted' + TAG;
+const u8enc = new TextEncoder(), u8dec = new TextDecoder();
+const hexOf = b => Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+
+/* 合言葉の書き方のゆれをそろえる：全角半角・大文字小文字・カタカナとひらがな・空白や「-」のあるなし */
+function normPass(s) {
+  return String(s || '').normalize('NFKC').toLowerCase()
+    .replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s\-_.・,、。/]+/g, '');
+}
+const PASS_WORDS = ['さくら', 'もみじ', 'つばき', 'たぬき', 'きつね', 'うさぎ', 'からす', 'かえる', 'だんご', 'おにぎり', 'ちょうちん', 'ふうりん', 'かぶと', 'かたな', 'みこし',
+  'こばん', 'はなび', 'まつり', 'おばけ', 'てんぐ', 'かっぱ', 'たいこ', 'ひょうたん', 'まねきねこ', 'だるま', 'こけし', 'おみくじ', 'ほたる', 'すずめ', 'いなり'];
+function suggestPass() {
+  const p = () => PASS_WORDS[Math.floor(Math.random() * PASS_WORDS.length)];
+  let a = p(), b = p(); while (b === a) b = p();
+  return a + '-' + b + '-' + (10 + Math.floor(Math.random() * 90));
+}
+/* 合言葉 → 部屋の場所と暗号のかぎ */
+async function roomKeys(pass) {
+  if (!(window.crypto && crypto.subtle)) throw Object.assign(new Error('nocrypto'), { code: 'nocrypto' });
+  const norm = normPass(pass);
+  const h = new Uint8Array(await crypto.subtle.digest('SHA-256', u8enc.encode('yaoyoro-room:' + norm)));
+  const base = 'yaoyoro/v1/' + hexOf(h).slice(0, 32);
+  const km = await crypto.subtle.importKey('raw', u8enc.encode(norm), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: u8enc.encode('yaoyoro-salt-v1'), iterations: 40000, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  return { norm, base, key };
+}
+const canZip = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function';
+async function pipeBytes(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+/* 中身を縮めて（使えれば）暗号にする。先頭1バイト：1＝縮めた */
+async function sealMsg(key, obj) {
+  let data = u8enc.encode(JSON.stringify(obj)), flag = 0;
+  if (canZip && data.length > 600) { try { data = await pipeBytes(data, new CompressionStream('deflate-raw')); flag = 1; } catch (_) { data = u8enc.encode(JSON.stringify(obj)); flag = 0; } }
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data));
+  const out = new Uint8Array(13 + ct.length);
+  out[0] = flag; out.set(iv, 1); out.set(ct, 13);
+  return out;
+}
+async function openMsg(key, bytes) {
+  if (!bytes || bytes.length < 14) return null;
+  const flag = bytes[0];
+  let data = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(1, 13) }, key, bytes.slice(13)));
+  if (flag & 1) {
+    if (!canZip) throw Object.assign(new Error('nozip'), { code: 'nozip' });
+    data = await pipeBytes(data, new DecompressionStream('deflate-raw'));
+  }
+  return JSON.parse(u8dec.decode(data));
+}
+
+/* ---------- MQTT 3.1.1 の最小限（QoS 0・保持メッセージ） ---------- */
+function mqLen(n) { const out = []; do { let b = n % 128; n = Math.floor(n / 128); if (n > 0) b |= 128; out.push(b); } while (n > 0); return out; }
+function mqStr(s) { const b = u8enc.encode(s); return [b.length >> 8, b.length & 255, ...b]; }
+function mqPacket(first, body) { const head = [first, ...mqLen(body.length)]; const out = new Uint8Array(head.length + body.length); out.set(head, 0); out.set(body, head.length); return out; }
+class MqttConn {
+  constructor(url, onMsg, onState) {
+    this.url = url; this.onMsg = onMsg; this.onState = onState;
+    this.ws = null; this.ok = false; this.connecting = false; this.closed = false;
+    this.subs = new Set(); this.buf = new Uint8Array(0); this.pid = 1; this.retry = 0;
+    this.retryTimer = 0; this.pingTimer = 0; this.pongDue = 0;
+    this.id = 'yy' + Math.random().toString(36).slice(2, 12);
+    this.open();
+  }
+  open() {
+    if (this.closed || this.connecting || this.ok) return;
+    clearTimeout(this.retryTimer); this.retryTimer = 0;
+    this.connecting = true; this.buf = new Uint8Array(0);
+    let ws;
+    try { ws = new WebSocket(this.url, ['mqtt']); } catch (_) { this.connecting = false; this.later(); return; }
+    ws.binaryType = 'arraybuffer';
+    this.ws = ws;
+    const giveUp = setTimeout(() => { if (this.ws === ws && !this.ok) { try { ws.close(); } catch (_) { /* ignore */ } } }, 9000);
+    ws.onopen = () => {
+      /* CONNECT：clean session、keepalive 60秒 */
+      const body = [...mqStr('MQTT'), 4, 0x02, 0, 60, ...mqStr(this.id)];
+      this.raw(mqPacket(0x10, body));
+    };
+    ws.onmessage = ev => { if (this.ws === ws) this.feed(new Uint8Array(ev.data)); };
+    ws.onclose = () => { clearTimeout(giveUp); if (this.ws === ws) this.down(); };
+    ws.onerror = () => { /* onclose が続けて来る */ };
+  }
+  raw(bytes) { try { if (this.ws && this.ws.readyState === 1) { this.ws.send(bytes); return true; } } catch (_) { /* ignore */ } return false; }
+  feed(chunk) {
+    const b = new Uint8Array(this.buf.length + chunk.length); b.set(this.buf, 0); b.set(chunk, this.buf.length);
+    let i = 0;
+    for (;;) {
+      if (b.length - i < 2) break;
+      let len = 0, mul = 1, j = i + 1, okLen = false;
+      for (let k = 0; k < 4 && j < b.length; k++, j++) { len += (b[j] & 127) * mul; mul *= 128; if (!(b[j] & 128)) { okLen = true; j++; break; } }
+      if (!okLen || b.length - j < len) break;
+      this.handle(b[i] >> 4, b[i] & 15, b.subarray(j, j + len));
+      i = j + len;
+    }
+    this.buf = b.slice(i);
+  }
+  handle(type, flags, body) {
+    if (type === 2) {                        /* CONNACK */
+      if (body[1] !== 0) { try { this.ws.close(); } catch (_) { /* ignore */ } return; }
+      this.ok = true; this.connecting = false; this.retry = 0;
+      this.subs.forEach(t => this.subscribe(t));
+      clearInterval(this.pingTimer);
+      this.pingTimer = setInterval(() => this.ping(), 15000);
+      this.onState();
+    } else if (type === 3) {                 /* PUBLISH */
+      const tl = (body[0] << 8) | body[1];
+      const topic = u8dec.decode(body.subarray(2, 2 + tl));
+      const qos = (flags >> 1) & 3;
+      let p = 2 + tl;
+      if (qos) { const id = [body[p], body[p + 1]]; p += 2; if (qos === 1) this.raw(new Uint8Array([0x40, 2, ...id])); }
+      this.onMsg(topic, body.slice(p), !!(flags & 1));
+    } else if (type === 13) {                /* PINGRESP */
+      this.pongDue = 0;
+    }
+  }
+  subscribe(topic) {
+    const id = this.pid = (this.pid % 65000) + 1;
+    this.raw(mqPacket(0x82, [id >> 8, id & 255, ...mqStr(topic), 0]));
+  }
+  sub(topic) { this.subs.add(topic); if (this.ok) this.subscribe(topic); }
+  pub(topic, bytes, retain) {
+    if (!this.ok) return false;
+    const t = mqStr(topic), body = new Uint8Array(t.length + bytes.length);
+    body.set(t, 0); body.set(bytes, t.length);
+    return this.raw(mqPacket(0x30 | (retain ? 1 : 0), body));
+  }
+  /* 生きているか確かめる。返事がなければ切ってつなぎ直す */
+  ping(wait) {
+    if (!this.ok) return;
+    if (this.pongDue && Date.now() > this.pongDue) { try { this.ws.close(); } catch (_) { /* ignore */ } this.down(); return; }
+    this.raw(new Uint8Array([0xc0, 0]));
+    if (!this.pongDue) this.pongDue = Date.now() + (wait || 10000);
+    if (wait) setTimeout(() => { if (this.pongDue && Date.now() >= this.pongDue) { try { this.ws.close(); } catch (_) { /* ignore */ } this.down(); } }, wait + 50);
+  }
+  down() {
+    const was = this.ok;
+    this.ok = false; this.connecting = false; this.pongDue = 0;
+    clearInterval(this.pingTimer); this.pingTimer = 0;
+    if (this.ws) { const w = this.ws; this.ws = null; w.onmessage = w.onclose = w.onopen = null; try { w.close(); } catch (_) { /* ignore */ } }
+    if (was) this.onState();
+    this.later();
+  }
+  later() {
+    if (this.closed || this.retryTimer) return;
+    const ms = Math.min(15000, 600 * Math.pow(2, this.retry++)) + Math.random() * 400;
+    this.retryTimer = setTimeout(() => { this.retryTimer = 0; this.open(); }, ms);
+  }
+  /* 画面にもどってきたとき：すぐにつなぎ直す／生きているか確かめる */
+  wake() {
+    if (this.closed) return;
+    if (this.ok) this.ping(4000);
+    else { this.retry = 0; clearTimeout(this.retryTimer); this.retryTimer = 0; this.open(); }
+  }
+  close() {
+    this.closed = true;
+    clearTimeout(this.retryTimer); clearInterval(this.pingTimer);
+    if (this.ok) this.raw(new Uint8Array([0xe0, 0]));
+    const w = this.ws; this.ws = null; this.ok = false;
+    if (w) { w.onmessage = w.onclose = w.onopen = null; setTimeout(() => { try { w.close(); } catch (_) { /* ignore */ } }, 50); }
+  }
+}
+/* 中継所を2か所同時に使う */
+class MqttBus {
+  constructor(onMsg, onState) {
+    this.onState = onState;
+    this.conns = MQTT_BROKERS.map(u => new MqttConn(u, onMsg, () => this.onState && this.onState(this.up)));
+  }
+  get up() { return this.conns.filter(c => c.ok).length; }
+  sub(t) { this.conns.forEach(c => c.sub(t)); }
+  pub(t, bytes, retain) { let n = 0; this.conns.forEach(c => { if (c.pub(t, bytes, retain)) n++; }); return n; }
+  wake() { this.conns.forEach(c => c.wake()); }
+  close() { this.conns.forEach(c => c.close()); }
+  waitUp(ms) {
+    return new Promise(res => {
+      if (this.up) { res(true); return; }
+      const t0 = Date.now();
+      const iv = setInterval(() => { if (this.up || Date.now() - t0 > ms) { clearInterval(iv); res(!!this.up); } }, 100);
+    });
+  }
+}
+
+/* ---------- 合言葉の部屋 ---------- */
+class MqttNet {
+  constructor(pass) {
+    this.mode = 'mqtt'; this.pass = String(pass || '').trim();
+    this.host = null; this.listener = null; this.onError = null; this.onLink = null;
+    this.cur = null; this.lastHost = 0; this.hostPing = 0;
+    this.pend = new Map(); this.n = 0; this.done = new Map();
+    this.next = null; this.sealing = false; this.flushing = null;
+    this.timers = [];
+  }
+  async init() {
+    this.k = await roomKeys(this.pass);
+    this.code = this.pass;
+    const b = this.k.base;
+    this.T = { s: b + '/s', a: b + '/a', p: b + '/p' };
+    this.bus = new MqttBus((t, p, r) => this.msg(t, p, r), up => this.link(up));
+    this.bus.sub(this.T.s); this.bus.sub(this.T.p);
+    /* 届かなかった操作は送り直す。進行役は生存確認を流す */
+    this.timers.push(setInterval(() => this.tick(), 1000));
+    return this;
+  }
+  link(up) {
+    if (up && this.host) this.republish();      /* つなぎ直したら、最新の盤面を置き直す */
+    if (up) this.pend.forEach(it => this.sendAct(it));
+    if (this.onLink) this.onLink(up);
+  }
+  get up() { return this.bus ? this.bus.up : 0; }
+  async msg(topic, bytes, retained) {
+    if (!bytes.length) { if (topic === this.T.s && !this.host) this.gotRoom(null); return; }
+    let m;
+    try { m = await openMsg(this.k.key, bytes); }
+    catch (e) { if (e && e.code === 'nozip' && this.onError) this.onError(e); return; }
+    if (!m) return;
+    if (topic === this.T.s) { if (!this.host) this.gotRoom(m); else if (!retained) this.rival(m); }
+    else if (topic === this.T.p) { if (m.k === 'host' && (!this.host || m.cid !== myCid)) { this.hostPing = Date.now(); this.lastHost = Date.now(); } }
+    else if (topic === this.T.a && this.host) this.gotAct(m);
+  }
+  /* 進行役なのに、同じ合言葉で別の部屋の盤面が「いま」流れてきた（ほぼ同時に2人が部屋をつくったとき）。
+     先にできた部屋を残す：こちらが後なら身を引き、こちらが先なら自分の盤面を置き直す。
+     （中継所が覚えていた古い盤面＝retained は、ここには来ない） */
+  rival(r) {
+    const mine = this.host && this.host.room;
+    if (!mine || !r || r.closed || !r.created || r.created === mine.created) return;
+    if (r.created < mine.created) {
+      this.host.stop(); this.host = null;
+      const saved = lsGet(HOSTED_KEY, null);
+      if (saved && saved.norm === this.k.norm) lsSet(HOSTED_KEY, null);
+      if (this.onError) this.onError({ code: 'taken' });
+    } else {
+      clearTimeout(this.reclaim);
+      this.reclaim = setTimeout(() => this.republish(), 300);
+    }
+  }
+  gotRoom(r) {
+    if (!r) return;
+    const c = this.cur;
+    if (c && r.created === c.created && r.ver <= c.ver) return;     /* 古い盤面（もう1か所の中継所から遅れて来たもの）は捨てる */
+    this.cur = r; this.lastHost = Date.now();
+    const L = (r.acks && r.acks[myCid]) || [];
+    L.forEach(x => { const it = this.pend.get(x.id); if (it) { this.pend.delete(x.id); it.res(x.err || null); } });
+    if (this.listener) this.listener(clone(r));
+  }
+  watch(onRoom) { this.listener = onRoom; if (this.cur && !this.host) { const c = clone(this.cur); setTimeout(() => { if (this.listener === onRoom && !this.host) onRoom(c); }, 0); } }
+  /* 合言葉の部屋がいまあるか、進行役が起きているかを確かめる */
+  async probe(ms) {
+    const t0 = Date.now();
+    this.hostPing = 0;
+    const ask = () => sealMsg(this.k.key, { k: 'probe', cid: myCid, t: Date.now() }).then(b => this.bus.pub(this.T.a, b, false));
+    await ask();
+    await new Promise(res => {
+      const iv = setInterval(() => {
+        const el = Date.now() - t0;
+        if ((this.cur && this.hostPing) || el > ms || (!this.cur && el > ms * 0.6)) { clearInterval(iv); res(); }
+      }, 100);
+    });
+    return { room: this.cur ? clone(this.cur) : null, alive: !!this.hostPing };
+  }
+  /* ---------- 進行役 ---------- */
+  hostRoom(room) {
+    const h = this.host = new Host(room, r => { if (this.host === h) this.publish(r); });
+    this.bus.sub(this.T.a);
+    this.timers.push(setInterval(() => this.beat(), 10000));
+    this.beat();
+    this.host.changed();
+  }
+  beat() { if (this.host) sealMsg(this.k.key, { k: 'host', cid: myCid, ver: this.host.room.ver, t: Date.now() }).then(b => this.bus.pub(this.T.p, b, false)); }
+  publish(r) {
+    this.cur = clone(r);
+    if (this.listener) { const c = clone(r); setTimeout(() => this.listener && this.listener(c), 0); }
+    this.next = clone(r);
+    this.pump();
+    this.saveLater();
+  }
+  republish() { if (this.host) { this.next = clone(this.host.room); this.pump(); this.beat(); } }
+  pump() {
+    if (this.sealing) return;
+    this.sealing = true;
+    this.flushing = (async () => {
+      while (this.next) {
+        /* 続けざまに変わったときは、0.15秒ごとにまとめて送る（無料の中継所に負担をかけすぎない） */
+        const wait = 150 - (Date.now() - (this.lastPub || 0));
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+        const r = this.next; this.next = null;
+        if (!r) break;
+        try { const b = await sealMsg(this.k.key, r); this.bus.pub(this.T.s, b, true); this.lastPub = Date.now(); } catch (e) { console.error(e); }
+      }
+      this.sealing = false;
+    })();
+  }
+  /* 進行役の手元にも盤面を残しておく（中継所が忘れても、ここから再開できる） */
+  saveLater() {
+    if (this.saveTimer) return;
+    this.saveTimer = setTimeout(() => { this.saveTimer = 0; if (this.host) lsSet(HOSTED_KEY, { norm: this.k.norm, room: this.host.room }); }, 800);
+  }
+  gotAct(m) {
+    if (m.k === 'probe') { this.beat(); return; }
+    if (m.k !== 'act' || typeof m.cid !== 'string' || !m.id) return;
+    const seen = this.done.get(m.id);
+    if (seen) { if (Date.now() - seen > 1500) { this.done.set(m.id, Date.now()); this.host.changed(); } return; }   /* 同じ操作が2か所から届く／送り直し */
+    this.done.set(m.id, Date.now());
+    if (this.done.size > 400) { const old = [...this.done.keys()].slice(0, 200); old.forEach(k => this.done.delete(k)); }
+    this.handleAct(m.cid, m.a, m.id);
+  }
+  handleAct(cid, a, id) {
+    const R = this.host.room;
+    const ack = err => { R.acks = R.acks || {}; const L = (R.acks[cid] || []).filter(x => x.id !== id); L.push({ id, err: err || null }); R.acks[cid] = L.slice(-6); };
+    if (id) ack(null);
+    const v0 = R.ver;
+    let err = null;
+    try { err = this.host.handle(cid, a); } catch (e) { console.error(e); err = 'bad'; }
+    if (id && (err || R.ver === v0)) { if (err) ack(err); this.host.changed(); }
+    return err;
+  }
+  /* ---------- 参加者 ---------- */
+  send(a) {
+    if (this.host) return Promise.resolve(this.handleAct(myCid, a, null));
+    const id = myCid + '.' + (++this.n) + '.' + Date.now().toString(36);
+    return new Promise(res => { const it = { id, a, res, at: Date.now(), last: 0, tries: 0 }; this.pend.set(id, it); this.sendAct(it); });
+  }
+  sendAct(it) {
+    it.tries++; it.last = Date.now();
+    sealMsg(this.k.key, { k: 'act', cid: myCid, id: it.id, a: it.a, t: Date.now() }).then(b => this.bus.pub(this.T.a, b, false)).catch(() => {});
+  }
+  tick() {
+    const now = Date.now();
+    this.pend.forEach(it => {
+      if (now - it.at > 20000) { this.pend.delete(it.id); it.res('net'); }
+      else if (now - it.last > 3000 && this.up) this.sendAct(it);
+    });
+  }
+  /* 進行役から最後に便りがあってからの時間（ミリ秒） */
+  hostSilence() { return this.host ? 0 : (this.lastHost ? Date.now() - this.lastHost : 0); }
+  wake() { if (this.bus) this.bus.wake(); if (this.host) setTimeout(() => this.republish(), 600); }
+  async close() {
+    this.timers.forEach(t => clearInterval(t)); this.timers = [];
+    if (this.host) { this.host.stop(); }
+    this.listener = null;
+    try { await Promise.race([this.flushing || Promise.resolve(), new Promise(r => setTimeout(r, 1200))]); } catch (_) { /* ignore */ }
+    setTimeout(() => { if (this.bus) this.bus.close(); }, 150);
   }
 }
 
@@ -3767,13 +4142,12 @@ function renderTitle() {
   note.hidden = ok;
   note.textContent = onlineState === 'checking' ? 'オンライン対戦の準備をしています…'
     : onlineState === 'readonly' ? 'この開き方ではオンライン対戦の部屋に書き込めません。作った人に「編集できる」権限で招待してもらうと遊べます。ひとりで練習はいつでもできます。'
-      : APP_MODE ? 'オンライン対戦は準備中です。いまは「ひとりで練習」でCPUと対戦できます。'
-        : 'オンライン対戦は、Claudeにログインしてこのページを開いたときに使えます。いまは、ひとりで練習（CPUと対戦）ができます。';
+      : 'オンライン対戦は、Claudeにログインしてこのページを開いたときに使えます。いまは、ひとりで練習（CPUと対戦）ができます。';
   const local = ssGet(LOCAL_ROOM_KEY, null);
   const online = ok ? lsGet(ONLINE_KEY, null) : null;
   const rb = $('btnResume');
   if (local && local.game && local.game.phase !== 'over') { rb.hidden = false; rb.textContent = '練習の続きから'; rb.dataset.kind = 'local'; }
-  else if (online && online.code) { rb.hidden = false; rb.textContent = '部屋 ' + online.code + ' に戻る'; rb.dataset.kind = 'online'; }
+  else if (online && online.code) { rb.hidden = false; rb.textContent = online.kind === 'mqtt' ? '合言葉「' + online.code + '」の部屋に戻る' : '部屋 ' + online.code + ' に戻る'; rb.dataset.kind = 'online'; }
   else rb.hidden = true;
   renderSoundBtns();
 }
@@ -3843,6 +4217,7 @@ async function freeCode() {
 }
 function createRoom() {
   if (onlineState !== 'ok') return;
+  if (APP_MODE) { ensureProfile(() => openPass('create')); return; }
   ensureProfile(async () => {
     closeNet();
     showLobbyLoading('部屋をつくっています…');
@@ -3856,8 +4231,9 @@ function createRoom() {
     } catch (e) { netError(e); leaveToTitle(); }
   });
 }
-function openJoin() {
+function openJoin(pre) {
   if (onlineState !== 'ok') return;
+  if (APP_MODE) { ensureProfile(() => openPass('join', pre)); return; }
   ensureProfile(() => {
     if (screen !== 'title') { renderTitle(); showScreen('title'); }
     $('joinInp').value = ''; $('joinWarn').textContent = '';
@@ -3897,12 +4273,113 @@ function resume() {
     net.start(r, onRoom);
   } else {
     const o = lsGet(ONLINE_KEY, null);
-    if (o && o.code) ensureProfile(() => joinRoom(o.code, true));
+    if (o && o.code && o.kind === 'mqtt') ensureProfile(() => passEnter('join', o.code, true));
+    else if (o && o.code) ensureProfile(() => joinRoom(o.code, true));
   }
+}
+/* ---------- 合言葉（ホーム画面アプリ版） ---------- */
+let passMode = 'create', passBusy = false;
+function openPass(mode, pre) {
+  passMode = mode;
+  if (screen !== 'title') { renderTitle(); showScreen('title'); }
+  $('passT').textContent = mode === 'create' ? '部屋をつくる' : '部屋に入る';
+  $('passS').textContent = mode === 'create'
+    ? '合言葉を決めてください。友達が同じ合言葉を入れると、この部屋に入れます。ほかの人とかぶらない言葉にしましょう。'
+    : '部屋をつくった人から教えてもらった合言葉を入れてください。ひらがなとカタカナ、空白や「-」のちがいは気にしなくて大丈夫です。';
+  $('passInp').value = pre || (mode === 'create' ? suggestPass() : '');
+  $('passSuggest').hidden = mode !== 'create';
+  $('passGo').textContent = mode === 'create' ? 'つくる' : '入る';
+  passMsg('');
+  openOv('ovPass');
+  if (mode === 'join' && !pre) setTimeout(() => { try { $('passInp').focus(); } catch (_) { /* ignore */ } }, 60);
+}
+function passMsg(t, ok) { const w = $('passWarn'); w.textContent = t; w.classList.toggle('ok', !!ok); }
+/* 合言葉で部屋をつくる／入る。quiet＝「部屋に戻る」から（シートを出さずに入る） */
+async function passEnter(mode, pass, quiet) {
+  if (passBusy) return;
+  pass = String(pass || '').trim().slice(0, 24);
+  const say = (t, ok) => { if (quiet) { if (!ok) toast(t); } else passMsg(t, ok); };
+  if (normPass(pass).length < 3) { say('合言葉は3文字以上にしてください'); return; }
+  passBusy = true; $('passGo').disabled = true;
+  if (quiet) showLobbyLoading('合言葉「' + pass + '」の部屋をさがしています…');
+  let n = null;
+  try {
+    say('中継所につないでいます…', true);
+    n = new MqttNet(pass);
+    await n.init();
+    if (!(await n.bus.waitUp(9000))) { say('中継所につながりませんでした。電波のよいところで、もう一度ためしてください'); n.close(); if (quiet) leaveToTitle(true); return; }
+    say(mode === 'create' ? '合言葉が使われていないか確かめています…' : '部屋をさがしています…', true);
+    const pr = await n.probe(mode === 'create' ? 2200 : 3200);
+    const r = pr.room && !pr.room.closed ? pr.room : null;
+    const mine = !!r && r.host === myCid;
+    const saved = lsGet(HOSTED_KEY, null);
+    const backup = saved && saved.norm === n.k.norm && saved.room && !saved.room.closed && saved.room.host === myCid ? saved.room : null;
+    /* 自分が進行役の部屋なら、中継所の盤面か手元の控えの新しいほうから再開する */
+    const newer = (a, b) => (a && b && a.created === b.created && b.ver > a.ver ? b : a);
+    let hostFrom = null;
+    if (mine) hostFrom = newer(r, backup);
+    else if (mode === 'create') {
+      const stale = r && !pr.alive && Date.now() - (r.at || 0) > (r.phase === 'game' ? 30 : 10) * 60e3;
+      if (r && !stale) { say('この合言葉は、いまほかの部屋で使われています。ほかの合言葉にしてください'); n.close(); return; }
+    } else if (!r) {
+      if (backup) hostFrom = backup;
+      else { say('その合言葉の部屋は見つかりませんでした。合言葉が合っているか、部屋をつくった人に確かめてください'); n.close(); if (quiet) { lsSet(ONLINE_KEY, null); leaveToTitle(); } return; }
+    }
+    closeOv('ovPass');
+    closeNet();
+    net = n; n = null;
+    net.onError = netError;
+    net.onLink = () => updateLink();
+    const code = hostFrom ? hostFrom.code : mode === 'create' ? pass : r.code;
+    lsSet(ONLINE_KEY, { code, host: !!hostFrom || mode === 'create', kind: 'mqtt' });
+    /* 先に「つないでいます」を出してから盤面を受け取る（合戦中なら、そのまま対戦画面になる） */
+    showLobbyLoading(hostFrom || mode === 'create' ? '部屋をひらいています…' : '合言葉「' + code + '」の部屋に入っています…');
+    net.watch(onRoom);
+    if (hostFrom) net.hostRoom(hostFrom);
+    else if (mode === 'create') net.hostRoom(newRoom(pass, 'mqtt', profile));
+    else if (r.phase === 'lobby') net.send({ t: 'join', name: profile.name, guardian: profile.guardian }).then(err => { if (err) toast(errText(err)); });
+  } catch (e) {
+    console.error(e);
+    if (n) n.close();
+    say(e && e.code === 'nocrypto' ? 'このブラウザではオンライン対戦が使えません（https のページで開いてください）' : 'うまくつながりませんでした。もう一度ためしてください');
+    if (quiet) leaveToTitle(true);
+  } finally { passBusy = false; $('passGo').disabled = false; }
+}
+/* 合言葉を友達に送る（共有シート。使えなければコピー） */
+async function sharePass(code) {
+  if (!code) return;
+  const url = location.origin + location.pathname + '#join=' + encodeURIComponent(code);
+  const text = 'ヤオヨロ合戦で遊ぼう！ 合言葉は「' + code + '」。「部屋に入る」で合言葉を入れてね';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'ヤオヨロ合戦', text, url }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text + '\n' + url); toast('合言葉とURLをコピーしました'); }
+  catch (_) { toast('合言葉は「' + code + '」です'); }
+}
+/* 中継所とのつながりぐあい */
+function linkText() {
+  if (!net || net.mode !== 'mqtt') return '';
+  const up = net.up, total = MQTT_BROKERS.length;
+  if (!up) return '<span class="bad">つなぎなおしています…</span>';
+  if (!net.host && net.hostSilence() > 35000) return '<span class="bad">進行役と連絡がとれていません</span>';
+  return '中継所 ' + up + '／' + total + ' か所につながっています';
+}
+let linkBad = 0;
+function updateLink() {
+  const el = $('linkSt'); if (el) el.innerHTML = linkText();
+  const b = $('netBadge'); if (!b) return;
+  if (!net || net.mode !== 'mqtt' || screen === 'title') { b.hidden = true; linkBad = 0; return; }
+  const down = !net.up, silent = !net.host && net.hostSilence() > 35000;
+  if (down || silent) { if (!linkBad) linkBad = Date.now(); } else linkBad = 0;
+  const show = !!linkBad && Date.now() - linkBad > 2500;
+  b.hidden = !show;
+  if (show) b.textContent = down ? 'つなぎなおしています…' : '進行役と連絡がとれていません（進行役の画面が閉じているかもしれません）';
 }
 function netError(e) {
   const code = e && e.code;
-  if (code === 'quota_exceeded') toast('部屋の保存場所がいっぱいです。しばらくしてからためしてください');
+  if (code === 'nozip') toast('このスマホのブラウザが古いため、オンライン対戦の中身が読めません。iPhoneはiOS 16.4以上にしてください');
+  else if (code === 'taken') { toast('この合言葉の部屋は、ほかの人が使いはじめました'); leaveToTitle(); }
+  else if (code === 'quota_exceeded') toast('部屋の保存場所がいっぱいです。しばらくしてからためしてください');
   else if (code === 'revoked') { toast('この画面ではオンライン対戦が使えなくなりました'); leaveToTitle(); }
   else if (code === 'invalid_argument') toast('書き込みが許可されていません。作った人に「編集できる」権限で招待してもらってください');
   else toast('通信がうまくいきませんでした。電波のよいところでためしてください');
@@ -3910,13 +4387,13 @@ function netError(e) {
 function leaveToTitle(keepOnline) {
   closeNet();
   if (!keepOnline) lsSet(ONLINE_KEY, null);
-  ['ovDef', 'ovShop', 'ovMenu', 'ovAsk', 'ovLog', 'ovJoin'].forEach(closeOv);
+  ['ovDef', 'ovShop', 'ovMenu', 'ovAsk', 'ovLog', 'ovJoin', 'ovPass'].forEach(closeOv);
   renderTitle();
   showScreen('title');
 }
 /* the host closes the room for everyone */
 function closeRoomAndLeave() {
-  if (net && net.mode === 'db' && net.host) {
+  if (net && (net.mode === 'db' || net.mode === 'mqtt') && net.host) {
     net.host.room.closed = true;
     net.host.changed();
     const n = net; net = null;
@@ -3935,7 +4412,7 @@ function onRoom(r) {
     return;
   }
   if (r.closed && r.host !== myCid) { toast('進行役が部屋を閉じました'); leaveToTitle(); return; }
-  if (net.mode === 'db' && !net.host && r.at) skew = r.at - Date.now();
+  if ((net.mode === 'db' || net.mode === 'mqtt') && !net.host && r.at) skew = r.at - Date.now();
   else skew = 0;
   room = r;
   if (r.phase === 'lobby') {
@@ -3959,7 +4436,10 @@ function renderLobby() {
   const local = R.mode === 'local';
   $('codeBox').innerHTML = local
     ? '<div class="cl">練習</div><div class="h2" style="font-size:21px;margin-top:4px">CPUを相手に遊んでみよう</div>'
-    : '<div class="cl">部屋の番号</div><div class="cd">' + esc(R.code) + '</div><div class="cl">この番号を友達に伝えて「部屋に入る」から入ってもらいます</div>';
+    : R.mode === 'mqtt'
+      ? '<div class="cl">合言葉</div><div class="cd pass">' + esc(R.code) + '</div><div class="cl">友達に伝えて、「部屋に入る」で同じ合言葉を入れてもらいます</div>' +
+        '<div class="code-acts"><button class="btn btn-xs" id="passShare" type="button">合言葉を送る</button><span class="link-st" id="linkSt">' + linkText() + '</span></div>'
+      : '<div class="cl">部屋の番号</div><div class="cd">' + esc(R.code) + '</div><div class="cl">この番号を友達に伝えて「部屋に入る」から入ってもらいます</div>';
   const st = R.settings;
   if (host) {
     const teams = [[0, '個人戦'], [2, '2チーム'], [3, '3チーム'], [4, '4チーム']];
@@ -3992,7 +4472,8 @@ function renderLobby() {
     const seated = R.seats.some(s => s.cid === myCid);
     $('lobbyFoot').innerHTML = seated
       ? '<p class="note">進行役（' + esc(hs ? hs.name : '部屋をつくった人') + '）が始めるのを待っています…</p><button class="btn btn-s" id="lobbyProf" type="button">名前・式神を変える</button>'
-      : '<p class="warn">満員のため入れませんでした（8人まで）</p>';
+      : R.seats.length >= MAX_SEATS ? '<p class="warn">満員のため入れませんでした（8人まで）</p>'
+        : '<p class="note">進行役（' + esc(hs ? hs.name : '部屋をつくった人') + '）に、参加することを伝えています…</p><button class="btn btn-s" id="lobbyRejoin" type="button">もう一度伝える</button>';
   }
 }
 function lobbyTap(e) {
@@ -4004,6 +4485,8 @@ function lobbyTap(e) {
   else if (b.id === 'lobbyCpu') { sfx('tap'); net.send({ t: 'addCpu' }); }
   else if (b.id === 'lobbyStart') { sfx('tap'); SE.ensure(); net.send({ t: 'start' }).then(err => { if (err) toast(errText(err)); }); }
   else if (b.id === 'lobbyProf') { openProfile(() => { showScreen('lobby'); net && net.send({ t: 'join', name: profile.name, guardian: profile.guardian }); }); }
+  else if (b.id === 'lobbyRejoin') { sfx('tap'); net.send({ t: 'join', name: profile.name, guardian: profile.guardian }).then(err => { if (err) toast(errText(err)); }); }
+  else if (b.id === 'passShare') { sfx('tap'); sharePass(room && room.code); }
 }
 function lobbyBack() {
   if (!net) { leaveToTitle(); return; }
@@ -4046,8 +4529,8 @@ function resTap(e) {
   if (b.dataset.res === 'again' && net) net.send({ t: 'rematch' });
   else if (b.dataset.res === 'board') { showScreen('game'); renderGame(); }
   else if (b.dataset.res === 'title') {
-    if (net && net.mode === 'db' && net.host) ask('部屋を閉じますか？', '入っている人もタイトルにもどります。', '部屋を閉じる', closeRoomAndLeave);
-    else { if (net && net.mode === 'db') net.send({ t: 'leave' }); leaveToTitle(); }
+    if (net && net.mode !== 'local' && net.host) ask('部屋を閉じますか？', '入っている人もタイトルにもどります。', '部屋を閉じる', closeRoomAndLeave);
+    else { if (net && net.mode !== 'local') net.send({ t: 'leave' }); setTimeout(() => leaveToTitle(), net && net.mode === 'mqtt' ? 400 : 0); }
   }
 }
 
@@ -4138,10 +4621,13 @@ function howHTML(k) {
       return '<p>山札は全部で' + total + '枚。「枚」は山札に入っている数、「両」はよろず屋での値段です。</p>' + groups.map(([t, l]) => '<h3>' + l + '</h3><div class="catalog">' +
         CARD_LIST.filter(c => c.type === t).map(c => '<div class="cat-i">' + fudaHTML(c.id) + '<div><b>' + esc(c.name) + '</b>' + esc(cardText(c)) + '<br><span class="cnt">' + c.n + '枚　' + c.price + '両</span></div></div>').join('') + '</div>').join('');
     }
-    case 'online': return '<h3>友達と遊ぶ</h3><ol><li>ひとりが「部屋をつくる」を押すと、4けたの番号が出ます</li><li>友達は「部屋に入る」で番号を入れます</li><li>人数が足りないときはCPUを足せます（8人まで）。チーム戦は待合室でチームの札をタップして分けます</li></ol>' +
+    case 'online': return (APP_MODE
+      ? '<h3>友達と遊ぶ（合言葉）</h3><ol><li>ひとりが「部屋をつくる」を押して、<b>合言葉</b>を決めます（おすすめの合言葉も出ます）</li><li>友達は「部屋に入る」で、<b>同じ合言葉</b>を入れます。待合室の「合言葉を送る」から、LINEなどで送ることもできます</li><li>人数が足りないときはCPUを足せます（8人まで）。チーム戦は待合室でチームの札をタップして分けます</li></ol>' +
+        '<p>ひらがなとカタカナ、空白や「-」のちがいは、同じ合言葉として扱います。合言葉を知らない人には、部屋の中身は読めません（暗号にして送っています）。</p>'
+      : '<h3>友達と遊ぶ</h3><ol><li>ひとりが「部屋をつくる」を押すと、4けたの番号が出ます</li><li>友達は「部屋に入る」で番号を入れます</li><li>人数が足りないときはCPUを足せます（8人まで）。チーム戦は待合室でチームの札をタップして分けます</li></ol>') +
       '<h3>進行役</h3><p>部屋をつくった人の画面が「進行役」になって合戦を進めます。<b>進行役の画面を閉じると合戦が止まります</b>。閉じてしまったら、もう一度開いて「部屋に戻る」で再開できます。</p>' +
       '<h3>持ち時間</h3><p>自分の番の時間が切れると自動で「おみくじ」、守りの時間が切れると「受ける」になります。抜けた人の席はCPUが代わりに戦います。</p>' +
-      (APP_MODE ? '<h3>遊べる人</h3><p>このアプリ版では、いまは<b>ひとりで練習（CPUと対戦）</b>が遊べます。オンライン対戦は準備中です。</p>'
+      (APP_MODE ? '<h3>つながるしくみ</h3><p>だれでも使える無料の「中継所」を2か所同時に使っています。片方が止まっても、もう片方で続けられます。電波が切れたり、画面を閉じたりしても、もどってくると自動でつなぎ直します。<b>進行役（部屋をつくった人）は、合戦のあいだアプリを開いたままにしてください</b>。</p>'
         : '<h3>遊べる人</h3><p>いまはClaudeの中で動いているので、オンライン対戦は<b>Claudeにログインして、このページを開ける人どうし</b>で遊べます（作った人から「編集できる」権限で招待された人）。ひとりで練習はだれでもできます。</p>');
   }
   return '';
@@ -4166,6 +4652,16 @@ function gogyoSVG() {
    BOOT
    ===================================================================== */
 async function initOnline() {
+  if (APP_MODE) {
+    onlineState = 'ok'; renderTitle();
+    const m = /[#&]join=([^&]+)/.exec(location.hash || '');
+    if (m) {
+      let code = ''; try { code = decodeURIComponent(m[1]); } catch (_) { code = ''; }
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (_) { /* ignore */ }
+      if (code) setTimeout(() => openJoin(code), 300);
+    }
+    return;
+  }
   const Cl = window.claude;
   if (!Cl || typeof Cl.use !== 'function') { onlineState = 'none'; renderTitle(); return; }
   try { DB = await Cl.use('db'); } catch (_) { DB = null; }
@@ -4195,6 +4691,9 @@ function bind() {
   on('nameInp', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
   on('glist', 'click', e => { const b = e.target.closest('[data-g]'); if (!b) return; sfx('select'); profDraft.guardian = b.dataset.g; profDraft.name = $('nameInp').value; renderProfile(); });
   on('joinGo', 'click', () => { sfx('tap'); joinRoom($('joinInp').value); });
+  on('passGo', 'click', () => { sfx('tap'); SE.ensure(); passEnter(passMode, $('passInp').value); });
+  on('passInp', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); passEnter(passMode, $('passInp').value); } });
+  on('passSuggest', 'click', () => { sfx('select'); $('passInp').value = suggestPass(); passMsg(''); });
   on('joinInp', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); joinRoom($('joinInp').value); } });
   on('lobbyBack', 'click', () => { sfx('tap'); lobbyBack(); });
   on('scrLobby', 'click', lobbyTap);
@@ -4216,7 +4715,9 @@ function bind() {
   document.addEventListener('visibilitychange', () => {
     try { if (SE.A) { if (document.visibilityState === 'hidden') SE.A.c.suspend(); else SE.A.c.resume(); } } catch (_) { /* ignore */ }
     if (document.visibilityState === 'visible' && screen === 'game') keepAwake();
+    if (document.visibilityState === 'visible' && net && net.wake) net.wake();
   });
+  window.addEventListener('online', () => { if (net && net.wake) net.wake(); });
   window.addEventListener('resize', () => { if (FXC.cv) FXC.size(); });
 }
 function boot() {
@@ -4229,9 +4730,17 @@ function boot() {
   renderTitle();
   showScreen('title');
   setInterval(() => { try { updateTimer(); } catch (_) { /* ignore */ } }, 250);
+  setInterval(() => { try { updateLink(); } catch (_) { /* ignore */ } }, 1000);
   initOnline();
   /* 自動テスト用の入口（ふつうに開いたときは何もしない） */
-  if (TEST.hook) window.__yao = { G: () => net && net.host && net.host.room.game, changed: () => net && net.host && net.host.changed(), GUARD, CARD, BEAST, fuda: (id, o) => fudaHTML(id, o), koFx, stampAt, cutIn, relPos, embHTML, shownSeq: () => (shown && shown.game ? shown.game.seq : -1), busy: () => pres.busy || pres.q.length > 0, assist: pid => { const G = net && net.host && net.host.room.game; if (G) assist(G, G.players[pid]); } };
+  if (TEST.hook) window.__yao = { G: () => net && net.host && net.host.room.game, changed: () => net && net.host && net.host.changed(), GUARD, CARD, BEAST, fuda: (id, o) => fudaHTML(id, o), koFx, stampAt, cutIn, relPos, embHTML, shownSeq: () => (shown && shown.game ? shown.game.seq : -1), busy: () => pres.busy || pres.q.length > 0, assist: pid => { const G = net && net.host && net.host.room.game; if (G) assist(G, G.players[pid]); },
+    /* 確かめをせずに合言葉の部屋の進行役になる（ほぼ同時に部屋ができたときのテスト用） */
+    hostNow: async rp => {
+      const n = new MqttNet(rp); await n.init(); await n.bus.waitUp(5000);
+      await new Promise(r => setTimeout(r, 600));
+      closeNet(); net = n; net.onError = netError; net.onLink = () => updateLink();
+      showLobbyLoading('部屋をひらいています…'); net.watch(onRoom); net.hostRoom(newRoom(rp, 'mqtt', profile));
+    } };
 }
 
 /* =====================================================================
@@ -6024,7 +6533,7 @@ function updateTimer() {
   const me = mePlayer(room);
   const mine = (G.phase === 'act' && me && G.cur === me.pid) || myDefPending(G, me) || myUsurp(G, me) || mySwap(G, me);
   if (mine && sec <= 5 && sec > 0 && sec !== lastTickSec) { lastTickSec = sec; sfx('tick'); }
-  if (net && net.mode === 'db' && !net.host && left === 0 && Date.now() + skew > G.deadline + 9000 && stallWarned !== G.deadline) {
+  if (net && (net.mode === 'db' || net.mode === 'mqtt') && !net.host && left === 0 && Date.now() + skew > G.deadline + 9000 && stallWarned !== G.deadline) {
     stallWarned = G.deadline;
     toast('進行役（部屋をつくった人）の画面が閉じているかもしれません');
   }

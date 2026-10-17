@@ -1788,7 +1788,7 @@ function updateTimer() {
   const me = mePlayer(room);
   const mine = (G.phase === 'act' && me && G.cur === me.pid) || myDefPending(G, me) || myUsurp(G, me) || mySwap(G, me);
   if (mine && sec <= 5 && sec > 0 && sec !== lastTickSec) { lastTickSec = sec; sfx('tick'); }
-  if (net && net.mode === 'db' && !net.host && left === 0 && Date.now() + skew > G.deadline + 9000 && stallWarned !== G.deadline) {
+  if (net && (net.mode === 'db' || net.mode === 'mqtt') && !net.host && left === 0 && Date.now() + skew > G.deadline + 9000 && stallWarned !== G.deadline) {
     stallWarned = G.deadline;
     toast('進行役（部屋をつくった人）の画面が閉じているかもしれません');
   }

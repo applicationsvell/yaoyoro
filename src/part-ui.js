@@ -56,13 +56,12 @@ function renderTitle() {
   note.hidden = ok;
   note.textContent = onlineState === 'checking' ? 'オンライン対戦の準備をしています…'
     : onlineState === 'readonly' ? 'この開き方ではオンライン対戦の部屋に書き込めません。作った人に「編集できる」権限で招待してもらうと遊べます。ひとりで練習はいつでもできます。'
-      : APP_MODE ? 'オンライン対戦は準備中です。いまは「ひとりで練習」でCPUと対戦できます。'
-        : 'オンライン対戦は、Claudeにログインしてこのページを開いたときに使えます。いまは、ひとりで練習（CPUと対戦）ができます。';
+      : 'オンライン対戦は、Claudeにログインしてこのページを開いたときに使えます。いまは、ひとりで練習（CPUと対戦）ができます。';
   const local = ssGet(LOCAL_ROOM_KEY, null);
   const online = ok ? lsGet(ONLINE_KEY, null) : null;
   const rb = $('btnResume');
   if (local && local.game && local.game.phase !== 'over') { rb.hidden = false; rb.textContent = '練習の続きから'; rb.dataset.kind = 'local'; }
-  else if (online && online.code) { rb.hidden = false; rb.textContent = '部屋 ' + online.code + ' に戻る'; rb.dataset.kind = 'online'; }
+  else if (online && online.code) { rb.hidden = false; rb.textContent = online.kind === 'mqtt' ? '合言葉「' + online.code + '」の部屋に戻る' : '部屋 ' + online.code + ' に戻る'; rb.dataset.kind = 'online'; }
   else rb.hidden = true;
   renderSoundBtns();
 }
@@ -132,6 +131,7 @@ async function freeCode() {
 }
 function createRoom() {
   if (onlineState !== 'ok') return;
+  if (APP_MODE) { ensureProfile(() => openPass('create')); return; }
   ensureProfile(async () => {
     closeNet();
     showLobbyLoading('部屋をつくっています…');
@@ -145,8 +145,9 @@ function createRoom() {
     } catch (e) { netError(e); leaveToTitle(); }
   });
 }
-function openJoin() {
+function openJoin(pre) {
   if (onlineState !== 'ok') return;
+  if (APP_MODE) { ensureProfile(() => openPass('join', pre)); return; }
   ensureProfile(() => {
     if (screen !== 'title') { renderTitle(); showScreen('title'); }
     $('joinInp').value = ''; $('joinWarn').textContent = '';
@@ -186,12 +187,113 @@ function resume() {
     net.start(r, onRoom);
   } else {
     const o = lsGet(ONLINE_KEY, null);
-    if (o && o.code) ensureProfile(() => joinRoom(o.code, true));
+    if (o && o.code && o.kind === 'mqtt') ensureProfile(() => passEnter('join', o.code, true));
+    else if (o && o.code) ensureProfile(() => joinRoom(o.code, true));
   }
+}
+/* ---------- 合言葉（ホーム画面アプリ版） ---------- */
+let passMode = 'create', passBusy = false;
+function openPass(mode, pre) {
+  passMode = mode;
+  if (screen !== 'title') { renderTitle(); showScreen('title'); }
+  $('passT').textContent = mode === 'create' ? '部屋をつくる' : '部屋に入る';
+  $('passS').textContent = mode === 'create'
+    ? '合言葉を決めてください。友達が同じ合言葉を入れると、この部屋に入れます。ほかの人とかぶらない言葉にしましょう。'
+    : '部屋をつくった人から教えてもらった合言葉を入れてください。ひらがなとカタカナ、空白や「-」のちがいは気にしなくて大丈夫です。';
+  $('passInp').value = pre || (mode === 'create' ? suggestPass() : '');
+  $('passSuggest').hidden = mode !== 'create';
+  $('passGo').textContent = mode === 'create' ? 'つくる' : '入る';
+  passMsg('');
+  openOv('ovPass');
+  if (mode === 'join' && !pre) setTimeout(() => { try { $('passInp').focus(); } catch (_) { /* ignore */ } }, 60);
+}
+function passMsg(t, ok) { const w = $('passWarn'); w.textContent = t; w.classList.toggle('ok', !!ok); }
+/* 合言葉で部屋をつくる／入る。quiet＝「部屋に戻る」から（シートを出さずに入る） */
+async function passEnter(mode, pass, quiet) {
+  if (passBusy) return;
+  pass = String(pass || '').trim().slice(0, 24);
+  const say = (t, ok) => { if (quiet) { if (!ok) toast(t); } else passMsg(t, ok); };
+  if (normPass(pass).length < 3) { say('合言葉は3文字以上にしてください'); return; }
+  passBusy = true; $('passGo').disabled = true;
+  if (quiet) showLobbyLoading('合言葉「' + pass + '」の部屋をさがしています…');
+  let n = null;
+  try {
+    say('中継所につないでいます…', true);
+    n = new MqttNet(pass);
+    await n.init();
+    if (!(await n.bus.waitUp(9000))) { say('中継所につながりませんでした。電波のよいところで、もう一度ためしてください'); n.close(); if (quiet) leaveToTitle(true); return; }
+    say(mode === 'create' ? '合言葉が使われていないか確かめています…' : '部屋をさがしています…', true);
+    const pr = await n.probe(mode === 'create' ? 2200 : 3200);
+    const r = pr.room && !pr.room.closed ? pr.room : null;
+    const mine = !!r && r.host === myCid;
+    const saved = lsGet(HOSTED_KEY, null);
+    const backup = saved && saved.norm === n.k.norm && saved.room && !saved.room.closed && saved.room.host === myCid ? saved.room : null;
+    /* 自分が進行役の部屋なら、中継所の盤面か手元の控えの新しいほうから再開する */
+    const newer = (a, b) => (a && b && a.created === b.created && b.ver > a.ver ? b : a);
+    let hostFrom = null;
+    if (mine) hostFrom = newer(r, backup);
+    else if (mode === 'create') {
+      const stale = r && !pr.alive && Date.now() - (r.at || 0) > (r.phase === 'game' ? 30 : 10) * 60e3;
+      if (r && !stale) { say('この合言葉は、いまほかの部屋で使われています。ほかの合言葉にしてください'); n.close(); return; }
+    } else if (!r) {
+      if (backup) hostFrom = backup;
+      else { say('その合言葉の部屋は見つかりませんでした。合言葉が合っているか、部屋をつくった人に確かめてください'); n.close(); if (quiet) { lsSet(ONLINE_KEY, null); leaveToTitle(); } return; }
+    }
+    closeOv('ovPass');
+    closeNet();
+    net = n; n = null;
+    net.onError = netError;
+    net.onLink = () => updateLink();
+    const code = hostFrom ? hostFrom.code : mode === 'create' ? pass : r.code;
+    lsSet(ONLINE_KEY, { code, host: !!hostFrom || mode === 'create', kind: 'mqtt' });
+    /* 先に「つないでいます」を出してから盤面を受け取る（合戦中なら、そのまま対戦画面になる） */
+    showLobbyLoading(hostFrom || mode === 'create' ? '部屋をひらいています…' : '合言葉「' + code + '」の部屋に入っています…');
+    net.watch(onRoom);
+    if (hostFrom) net.hostRoom(hostFrom);
+    else if (mode === 'create') net.hostRoom(newRoom(pass, 'mqtt', profile));
+    else if (r.phase === 'lobby') net.send({ t: 'join', name: profile.name, guardian: profile.guardian }).then(err => { if (err) toast(errText(err)); });
+  } catch (e) {
+    console.error(e);
+    if (n) n.close();
+    say(e && e.code === 'nocrypto' ? 'このブラウザではオンライン対戦が使えません（https のページで開いてください）' : 'うまくつながりませんでした。もう一度ためしてください');
+    if (quiet) leaveToTitle(true);
+  } finally { passBusy = false; $('passGo').disabled = false; }
+}
+/* 合言葉を友達に送る（共有シート。使えなければコピー） */
+async function sharePass(code) {
+  if (!code) return;
+  const url = location.origin + location.pathname + '#join=' + encodeURIComponent(code);
+  const text = 'ヤオヨロ合戦で遊ぼう！ 合言葉は「' + code + '」。「部屋に入る」で合言葉を入れてね';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'ヤオヨロ合戦', text, url }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text + '\n' + url); toast('合言葉とURLをコピーしました'); }
+  catch (_) { toast('合言葉は「' + code + '」です'); }
+}
+/* 中継所とのつながりぐあい */
+function linkText() {
+  if (!net || net.mode !== 'mqtt') return '';
+  const up = net.up, total = MQTT_BROKERS.length;
+  if (!up) return '<span class="bad">つなぎなおしています…</span>';
+  if (!net.host && net.hostSilence() > 35000) return '<span class="bad">進行役と連絡がとれていません</span>';
+  return '中継所 ' + up + '／' + total + ' か所につながっています';
+}
+let linkBad = 0;
+function updateLink() {
+  const el = $('linkSt'); if (el) el.innerHTML = linkText();
+  const b = $('netBadge'); if (!b) return;
+  if (!net || net.mode !== 'mqtt' || screen === 'title') { b.hidden = true; linkBad = 0; return; }
+  const down = !net.up, silent = !net.host && net.hostSilence() > 35000;
+  if (down || silent) { if (!linkBad) linkBad = Date.now(); } else linkBad = 0;
+  const show = !!linkBad && Date.now() - linkBad > 2500;
+  b.hidden = !show;
+  if (show) b.textContent = down ? 'つなぎなおしています…' : '進行役と連絡がとれていません（進行役の画面が閉じているかもしれません）';
 }
 function netError(e) {
   const code = e && e.code;
-  if (code === 'quota_exceeded') toast('部屋の保存場所がいっぱいです。しばらくしてからためしてください');
+  if (code === 'nozip') toast('このスマホのブラウザが古いため、オンライン対戦の中身が読めません。iPhoneはiOS 16.4以上にしてください');
+  else if (code === 'taken') { toast('この合言葉の部屋は、ほかの人が使いはじめました'); leaveToTitle(); }
+  else if (code === 'quota_exceeded') toast('部屋の保存場所がいっぱいです。しばらくしてからためしてください');
   else if (code === 'revoked') { toast('この画面ではオンライン対戦が使えなくなりました'); leaveToTitle(); }
   else if (code === 'invalid_argument') toast('書き込みが許可されていません。作った人に「編集できる」権限で招待してもらってください');
   else toast('通信がうまくいきませんでした。電波のよいところでためしてください');
@@ -199,13 +301,13 @@ function netError(e) {
 function leaveToTitle(keepOnline) {
   closeNet();
   if (!keepOnline) lsSet(ONLINE_KEY, null);
-  ['ovDef', 'ovShop', 'ovMenu', 'ovAsk', 'ovLog', 'ovJoin'].forEach(closeOv);
+  ['ovDef', 'ovShop', 'ovMenu', 'ovAsk', 'ovLog', 'ovJoin', 'ovPass'].forEach(closeOv);
   renderTitle();
   showScreen('title');
 }
 /* the host closes the room for everyone */
 function closeRoomAndLeave() {
-  if (net && net.mode === 'db' && net.host) {
+  if (net && (net.mode === 'db' || net.mode === 'mqtt') && net.host) {
     net.host.room.closed = true;
     net.host.changed();
     const n = net; net = null;
@@ -224,7 +326,7 @@ function onRoom(r) {
     return;
   }
   if (r.closed && r.host !== myCid) { toast('進行役が部屋を閉じました'); leaveToTitle(); return; }
-  if (net.mode === 'db' && !net.host && r.at) skew = r.at - Date.now();
+  if ((net.mode === 'db' || net.mode === 'mqtt') && !net.host && r.at) skew = r.at - Date.now();
   else skew = 0;
   room = r;
   if (r.phase === 'lobby') {
@@ -248,7 +350,10 @@ function renderLobby() {
   const local = R.mode === 'local';
   $('codeBox').innerHTML = local
     ? '<div class="cl">練習</div><div class="h2" style="font-size:21px;margin-top:4px">CPUを相手に遊んでみよう</div>'
-    : '<div class="cl">部屋の番号</div><div class="cd">' + esc(R.code) + '</div><div class="cl">この番号を友達に伝えて「部屋に入る」から入ってもらいます</div>';
+    : R.mode === 'mqtt'
+      ? '<div class="cl">合言葉</div><div class="cd pass">' + esc(R.code) + '</div><div class="cl">友達に伝えて、「部屋に入る」で同じ合言葉を入れてもらいます</div>' +
+        '<div class="code-acts"><button class="btn btn-xs" id="passShare" type="button">合言葉を送る</button><span class="link-st" id="linkSt">' + linkText() + '</span></div>'
+      : '<div class="cl">部屋の番号</div><div class="cd">' + esc(R.code) + '</div><div class="cl">この番号を友達に伝えて「部屋に入る」から入ってもらいます</div>';
   const st = R.settings;
   if (host) {
     const teams = [[0, '個人戦'], [2, '2チーム'], [3, '3チーム'], [4, '4チーム']];
@@ -281,7 +386,8 @@ function renderLobby() {
     const seated = R.seats.some(s => s.cid === myCid);
     $('lobbyFoot').innerHTML = seated
       ? '<p class="note">進行役（' + esc(hs ? hs.name : '部屋をつくった人') + '）が始めるのを待っています…</p><button class="btn btn-s" id="lobbyProf" type="button">名前・式神を変える</button>'
-      : '<p class="warn">満員のため入れませんでした（8人まで）</p>';
+      : R.seats.length >= MAX_SEATS ? '<p class="warn">満員のため入れませんでした（8人まで）</p>'
+        : '<p class="note">進行役（' + esc(hs ? hs.name : '部屋をつくった人') + '）に、参加することを伝えています…</p><button class="btn btn-s" id="lobbyRejoin" type="button">もう一度伝える</button>';
   }
 }
 function lobbyTap(e) {
@@ -293,6 +399,8 @@ function lobbyTap(e) {
   else if (b.id === 'lobbyCpu') { sfx('tap'); net.send({ t: 'addCpu' }); }
   else if (b.id === 'lobbyStart') { sfx('tap'); SE.ensure(); net.send({ t: 'start' }).then(err => { if (err) toast(errText(err)); }); }
   else if (b.id === 'lobbyProf') { openProfile(() => { showScreen('lobby'); net && net.send({ t: 'join', name: profile.name, guardian: profile.guardian }); }); }
+  else if (b.id === 'lobbyRejoin') { sfx('tap'); net.send({ t: 'join', name: profile.name, guardian: profile.guardian }).then(err => { if (err) toast(errText(err)); }); }
+  else if (b.id === 'passShare') { sfx('tap'); sharePass(room && room.code); }
 }
 function lobbyBack() {
   if (!net) { leaveToTitle(); return; }
@@ -335,8 +443,8 @@ function resTap(e) {
   if (b.dataset.res === 'again' && net) net.send({ t: 'rematch' });
   else if (b.dataset.res === 'board') { showScreen('game'); renderGame(); }
   else if (b.dataset.res === 'title') {
-    if (net && net.mode === 'db' && net.host) ask('部屋を閉じますか？', '入っている人もタイトルにもどります。', '部屋を閉じる', closeRoomAndLeave);
-    else { if (net && net.mode === 'db') net.send({ t: 'leave' }); leaveToTitle(); }
+    if (net && net.mode !== 'local' && net.host) ask('部屋を閉じますか？', '入っている人もタイトルにもどります。', '部屋を閉じる', closeRoomAndLeave);
+    else { if (net && net.mode !== 'local') net.send({ t: 'leave' }); setTimeout(() => leaveToTitle(), net && net.mode === 'mqtt' ? 400 : 0); }
   }
 }
 
@@ -427,10 +535,13 @@ function howHTML(k) {
       return '<p>山札は全部で' + total + '枚。「枚」は山札に入っている数、「両」はよろず屋での値段です。</p>' + groups.map(([t, l]) => '<h3>' + l + '</h3><div class="catalog">' +
         CARD_LIST.filter(c => c.type === t).map(c => '<div class="cat-i">' + fudaHTML(c.id) + '<div><b>' + esc(c.name) + '</b>' + esc(cardText(c)) + '<br><span class="cnt">' + c.n + '枚　' + c.price + '両</span></div></div>').join('') + '</div>').join('');
     }
-    case 'online': return '<h3>友達と遊ぶ</h3><ol><li>ひとりが「部屋をつくる」を押すと、4けたの番号が出ます</li><li>友達は「部屋に入る」で番号を入れます</li><li>人数が足りないときはCPUを足せます（8人まで）。チーム戦は待合室でチームの札をタップして分けます</li></ol>' +
+    case 'online': return (APP_MODE
+      ? '<h3>友達と遊ぶ（合言葉）</h3><ol><li>ひとりが「部屋をつくる」を押して、<b>合言葉</b>を決めます（おすすめの合言葉も出ます）</li><li>友達は「部屋に入る」で、<b>同じ合言葉</b>を入れます。待合室の「合言葉を送る」から、LINEなどで送ることもできます</li><li>人数が足りないときはCPUを足せます（8人まで）。チーム戦は待合室でチームの札をタップして分けます</li></ol>' +
+        '<p>ひらがなとカタカナ、空白や「-」のちがいは、同じ合言葉として扱います。合言葉を知らない人には、部屋の中身は読めません（暗号にして送っています）。</p>'
+      : '<h3>友達と遊ぶ</h3><ol><li>ひとりが「部屋をつくる」を押すと、4けたの番号が出ます</li><li>友達は「部屋に入る」で番号を入れます</li><li>人数が足りないときはCPUを足せます（8人まで）。チーム戦は待合室でチームの札をタップして分けます</li></ol>') +
       '<h3>進行役</h3><p>部屋をつくった人の画面が「進行役」になって合戦を進めます。<b>進行役の画面を閉じると合戦が止まります</b>。閉じてしまったら、もう一度開いて「部屋に戻る」で再開できます。</p>' +
       '<h3>持ち時間</h3><p>自分の番の時間が切れると自動で「おみくじ」、守りの時間が切れると「受ける」になります。抜けた人の席はCPUが代わりに戦います。</p>' +
-      (APP_MODE ? '<h3>遊べる人</h3><p>このアプリ版では、いまは<b>ひとりで練習（CPUと対戦）</b>が遊べます。オンライン対戦は準備中です。</p>'
+      (APP_MODE ? '<h3>つながるしくみ</h3><p>だれでも使える無料の「中継所」を2か所同時に使っています。片方が止まっても、もう片方で続けられます。電波が切れたり、画面を閉じたりしても、もどってくると自動でつなぎ直します。<b>進行役（部屋をつくった人）は、合戦のあいだアプリを開いたままにしてください</b>。</p>'
         : '<h3>遊べる人</h3><p>いまはClaudeの中で動いているので、オンライン対戦は<b>Claudeにログインして、このページを開ける人どうし</b>で遊べます（作った人から「編集できる」権限で招待された人）。ひとりで練習はだれでもできます。</p>');
   }
   return '';
@@ -455,6 +566,16 @@ function gogyoSVG() {
    BOOT
    ===================================================================== */
 async function initOnline() {
+  if (APP_MODE) {
+    onlineState = 'ok'; renderTitle();
+    const m = /[#&]join=([^&]+)/.exec(location.hash || '');
+    if (m) {
+      let code = ''; try { code = decodeURIComponent(m[1]); } catch (_) { code = ''; }
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (_) { /* ignore */ }
+      if (code) setTimeout(() => openJoin(code), 300);
+    }
+    return;
+  }
   const Cl = window.claude;
   if (!Cl || typeof Cl.use !== 'function') { onlineState = 'none'; renderTitle(); return; }
   try { DB = await Cl.use('db'); } catch (_) { DB = null; }
@@ -484,6 +605,9 @@ function bind() {
   on('nameInp', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
   on('glist', 'click', e => { const b = e.target.closest('[data-g]'); if (!b) return; sfx('select'); profDraft.guardian = b.dataset.g; profDraft.name = $('nameInp').value; renderProfile(); });
   on('joinGo', 'click', () => { sfx('tap'); joinRoom($('joinInp').value); });
+  on('passGo', 'click', () => { sfx('tap'); SE.ensure(); passEnter(passMode, $('passInp').value); });
+  on('passInp', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); passEnter(passMode, $('passInp').value); } });
+  on('passSuggest', 'click', () => { sfx('select'); $('passInp').value = suggestPass(); passMsg(''); });
   on('joinInp', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); joinRoom($('joinInp').value); } });
   on('lobbyBack', 'click', () => { sfx('tap'); lobbyBack(); });
   on('scrLobby', 'click', lobbyTap);
@@ -505,7 +629,9 @@ function bind() {
   document.addEventListener('visibilitychange', () => {
     try { if (SE.A) { if (document.visibilityState === 'hidden') SE.A.c.suspend(); else SE.A.c.resume(); } } catch (_) { /* ignore */ }
     if (document.visibilityState === 'visible' && screen === 'game') keepAwake();
+    if (document.visibilityState === 'visible' && net && net.wake) net.wake();
   });
+  window.addEventListener('online', () => { if (net && net.wake) net.wake(); });
   window.addEventListener('resize', () => { if (FXC.cv) FXC.size(); });
 }
 function boot() {
@@ -518,7 +644,15 @@ function boot() {
   renderTitle();
   showScreen('title');
   setInterval(() => { try { updateTimer(); } catch (_) { /* ignore */ } }, 250);
+  setInterval(() => { try { updateLink(); } catch (_) { /* ignore */ } }, 1000);
   initOnline();
   /* 自動テスト用の入口（ふつうに開いたときは何もしない） */
-  if (TEST.hook) window.__yao = { G: () => net && net.host && net.host.room.game, changed: () => net && net.host && net.host.changed(), GUARD, CARD, BEAST, fuda: (id, o) => fudaHTML(id, o), koFx, stampAt, cutIn, relPos, embHTML, shownSeq: () => (shown && shown.game ? shown.game.seq : -1), busy: () => pres.busy || pres.q.length > 0, assist: pid => { const G = net && net.host && net.host.room.game; if (G) assist(G, G.players[pid]); } };
+  if (TEST.hook) window.__yao = { G: () => net && net.host && net.host.room.game, changed: () => net && net.host && net.host.changed(), GUARD, CARD, BEAST, fuda: (id, o) => fudaHTML(id, o), koFx, stampAt, cutIn, relPos, embHTML, shownSeq: () => (shown && shown.game ? shown.game.seq : -1), busy: () => pres.busy || pres.q.length > 0, assist: pid => { const G = net && net.host && net.host.room.game; if (G) assist(G, G.players[pid]); },
+    /* 確かめをせずに合言葉の部屋の進行役になる（ほぼ同時に部屋ができたときのテスト用） */
+    hostNow: async rp => {
+      const n = new MqttNet(rp); await n.init(); await n.bus.waitUp(5000);
+      await new Promise(r => setTimeout(r, 600));
+      closeNet(); net = n; net.onError = netError; net.onLink = () => updateLink();
+      showLobbyLoading('部屋をひらいています…'); net.watch(onRoom); net.hostRoom(newRoom(rp, 'mqtt', profile));
+    } };
 }

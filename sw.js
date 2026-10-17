@@ -1,5 +1,5 @@
 /* ヤオヨロ合戦：オフラインでも開けるようにする（build-app.js がビルドごとに VERSION を入れる） */
-const VERSION = '51b4cb9d47';
+const VERSION = '0a2423c347';
 const CACHE = 'yaoyoro-' + VERSION;
 const FONTS = 'yaoyoro-fonts';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png'];
