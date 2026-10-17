@@ -1,0 +1,1399 @@
+{
+"version": 4,
+"guardians": [
+{
+"id": "tengu",
+"name": "天狗",
+"yomi": "てんぐ",
+"elem": "木",
+"hp": 30,
+"mp": 25,
+"gold": 20,
+"spellDiscount": 2,
+"dodge": 0.1,
+"skill": "神通力",
+"text": "術に使う霊力が2少ない。武器で攻められたとき、10回に1回くらいひらりとかわす"
+},
+{
+"id": "kitsune",
+"name": "九尾の狐",
+"yomi": "きゅうびのきつね",
+"elem": "火",
+"hp": 35,
+"mp": 20,
+"gold": 20,
+"atkBonus": 3,
+"elemBonusOf": "火",
+"elemBonus": 5,
+"fireImmune": true,
+"skill": "狐火の化身",
+"text": "攻撃と術のダメージ＋3。火の攻撃と術ならさらに＋5。火の攻撃ではダメージを受けない"
+},
+{
+"id": "gama",
+"name": "大蝦蟇",
+"yomi": "おおがま",
+"elem": "土",
+"hp": 40,
+"mp": 15,
+"gold": 20,
+"armorBonus": 3,
+"skill": "鉄壁の腹",
+"text": "防具を出して守るとき、守り＋3"
+},
+{
+"id": "oni",
+"name": "天邪鬼",
+"yomi": "あまのじゃく",
+"elem": "金",
+"hp": 30,
+"mp": 25,
+"gold": 20,
+"deflectRate": 0.4,
+"skill": "幻惑",
+"text": "武器で攻められたとき、40%の確率で攻撃を弾く（弾いた攻撃は流れ弾になって全員の中からランダムに1人に飛ぶ。飛んだ先の人は守札で守れる）"
+},
+{
+"id": "ryujin",
+"name": "龍神",
+"yomi": "りゅうじん",
+"elem": "水",
+"hp": 60,
+"mp": 15,
+"gold": 20,
+"noSummon": true,
+"noMpGain": true,
+"weaponBonus": 5,
+"armorHalf": true,
+"skill": "龍神の加護",
+"text": "霊獣を呼べない。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる"
+}
+],
+"weathers": [
+{
+"id": "haru",
+"name": "春一番",
+"yomi": "はるいちばん",
+"kind": "random",
+"crest": "木",
+"text": "攻める相手がランダムになる"
+},
+{
+"id": "enten",
+"name": "炎天",
+"yomi": "えんてん",
+"kind": "power",
+"bonus": 2,
+"crest": "火",
+"text": "攻撃と術のダメージ＋2"
+},
+{
+"id": "jinari",
+"name": "地鳴り",
+"yomi": "じなり",
+"kind": "power",
+"bonus": -2,
+"crest": "土",
+"text": "攻撃と術のダメージ−2"
+},
+{
+"id": "shuso",
+"name": "秋霜",
+"yomi": "しゅうそう",
+"kind": "onecard",
+"crest": "金",
+"text": "守るときに出せる札は1枚まで"
+},
+{
+"id": "tsuyu",
+"name": "梅雨",
+"yomi": "つゆ",
+"kind": "nospell",
+"crest": "水",
+"text": "術が使えない"
+},
+{
+"id": "nagi",
+"name": "凪",
+"yomi": "なぎ",
+"kind": "calm",
+"text": "何も起きない、静かな巡"
+},
+{
+"id": "ennichi",
+"name": "縁日",
+"yomi": "えんにち",
+"kind": "fair",
+"shop": 5,
+"text": "よろず屋の値段が半分。棚の札が5枚になる"
+},
+{
+"id": "mangetsu",
+"name": "満月",
+"yomi": "まんげつ",
+"kind": "moon",
+"cut": 3,
+"text": "術に使う霊力が3少ない"
+},
+{
+"id": "arashi",
+"name": "野分",
+"yomi": "のわき",
+"kind": "storm",
+"text": "番のはじめに札を1枚引ける"
+}
+],
+"beasts": [
+{
+"id": "seiryu",
+"name": "青龍",
+"yomi": "せいりゅう",
+"eff": "heal",
+"val": 4,
+"text": "持ち主の体力＋4",
+"elem": "木"
+},
+{
+"id": "suzaku",
+"name": "朱雀",
+"yomi": "すざく",
+"eff": "burn",
+"val": 3,
+"text": "相手1人（ランダム）に火の3ダメージ。守れない",
+"elem": "火"
+},
+{
+"id": "byakko",
+"name": "白虎",
+"yomi": "びゃっこ",
+"eff": "boost",
+"val": 4,
+"text": "持ち主の次の攻撃＋4",
+"elem": "金"
+},
+{
+"id": "genbu",
+"name": "玄武",
+"yomi": "げんぶ",
+"eff": "shell",
+"val": 5,
+"text": "持ち主に甲羅。次に受けるダメージ−5",
+"elem": "水"
+},
+{
+"id": "kirin",
+"name": "麒麟",
+"yomi": "きりん",
+"eff": "mp",
+"val": 5,
+"text": "持ち主の霊力＋5",
+"elem": "土"
+},
+{
+"id": "yatagarasu",
+"name": "八咫烏",
+"yomi": "やたがらす",
+"eff": "draw",
+"val": 1,
+"text": "持ち主が札を1枚引く"
+},
+{
+"id": "komainu",
+"name": "狛犬",
+"yomi": "こまいぬ",
+"eff": "cleanse",
+"val": 5,
+"text": "持ち主の呪い・封印をはらう。なければ体力＋5",
+"elem": "土"
+},
+{
+"id": "baku",
+"name": "獏",
+"yomi": "ばく",
+"eff": "discard",
+"val": 1,
+"text": "相手1人（ランダム）の手札を1枚捨てさせる。まれに（5回に1回）自分の手札を捨ててしまう",
+"elem": "水"
+},
+{
+"id": "kinkei",
+"name": "金鶏",
+"yomi": "きんけい",
+"eff": "gold",
+"val": 6,
+"text": "持ち主の小判＋6両",
+"elem": "金"
+},
+{
+"id": "shinigami",
+"name": "死神",
+"yomi": "しにがみ",
+"eff": "reaper",
+"val": 5,
+"text": "相手全員に5ダメージ。自分にも5ダメージ。守れない"
+}
+],
+"cards": [
+{
+"id": "shuto",
+"name": "手刀",
+"yomi": "しゅとう",
+"type": "weapon",
+"atk": 1,
+"price": 1,
+"n": 4
+},
+{
+"id": "bokken",
+"name": "木刀",
+"yomi": "ぼくとう",
+"type": "weapon",
+"atk": 3,
+"price": 1,
+"n": 4
+},
+{
+"id": "dounokatana",
+"name": "銅の刀",
+"yomi": "どうのかたな",
+"type": "weapon",
+"atk": 1,
+"price": 10,
+"n": 4
+},
+{
+"id": "ginnokatana",
+"name": "銀の刀",
+"yomi": "ぎんのかたな",
+"type": "weapon",
+"atk": 1,
+"price": 20,
+"n": 4
+},
+{
+"id": "kinnokatana",
+"name": "金の刀",
+"yomi": "きんのかたな",
+"type": "weapon",
+"atk": 1,
+"price": 30,
+"n": 4
+},
+{
+"id": "takeyari",
+"name": "竹槍",
+"yomi": "たけやり",
+"type": "weapon",
+"atk": 2,
+"price": 3,
+"n": 4
+},
+{
+"id": "kama",
+"name": "鎌",
+"yomi": "かま",
+"type": "weapon",
+"atk": 2,
+"price": 2,
+"n": 4
+},
+{
+"id": "kunai",
+"name": "苦無",
+"yomi": "くない",
+"type": "weapon",
+"atk": 3,
+"price": 4,
+"n": 4
+},
+{
+"id": "hocho",
+"name": "包丁",
+"yomi": "ほうちょう",
+"type": "weapon",
+"atk": 3,
+"price": 3,
+"n": 4
+},
+{
+"id": "konbo",
+"name": "棍棒",
+"yomi": "こんぼう",
+"type": "weapon",
+"atk": 4,
+"price": 5,
+"n": 4
+},
+{
+"id": "jitte",
+"name": "十手",
+"yomi": "じって",
+"type": "weapon",
+"atk": 4,
+"price": 4,
+"n": 4
+},
+{
+"id": "kusarigama",
+"name": "鎖鎌",
+"yomi": "くさりがま",
+"type": "weapon",
+"atk": 4,
+"price": 7,
+"n": 4,
+"fx": "draw"
+},
+{
+"id": "wakizashi",
+"name": "脇差",
+"yomi": "わきざし",
+"type": "weapon",
+"atk": 5,
+"price": 7,
+"n": 4
+},
+{
+"id": "shakujo",
+"name": "錫杖",
+"yomi": "しゃくじょう",
+"type": "weapon",
+"atk": 5,
+"price": 6,
+"n": 4
+},
+{
+"id": "naginata",
+"name": "薙刀",
+"yomi": "なぎなた",
+"type": "weapon",
+"atk": 6,
+"price": 9,
+"n": 4
+},
+{
+"id": "kodachi",
+"name": "小太刀",
+"yomi": "こだち",
+"type": "weapon",
+"atk": 6,
+"price": 8,
+"n": 4
+},
+{
+"id": "katana",
+"name": "太刀",
+"yomi": "たち",
+"type": "weapon",
+"atk": 7,
+"price": 10,
+"n": 4
+},
+{
+"id": "nagayari",
+"name": "長槍",
+"yomi": "ながやり",
+"type": "weapon",
+"atk": 7,
+"price": 9,
+"n": 4
+},
+{
+"id": "jumonji",
+"name": "十文字槍",
+"yomi": "じゅうもんじやり",
+"type": "weapon",
+"atk": 8,
+"price": 11,
+"n": 4
+},
+{
+"id": "uchigatana",
+"name": "打刀",
+"yomi": "うちがたな",
+"type": "weapon",
+"atk": 8,
+"price": 10,
+"n": 4
+},
+{
+"id": "kanabo",
+"name": "金棒",
+"yomi": "かなぼう",
+"type": "weapon",
+"atk": 9,
+"price": 13,
+"n": 4
+},
+{
+"id": "nodachi",
+"name": "野太刀",
+"yomi": "のだち",
+"type": "weapon",
+"atk": 9,
+"price": 12,
+"n": 4
+},
+{
+"id": "odachi",
+"name": "大太刀",
+"yomi": "おおだち",
+"type": "weapon",
+"atk": 10,
+"price": 14,
+"n": 4
+},
+{
+"id": "zanbato",
+"name": "斬馬刀",
+"yomi": "ざんばとう",
+"type": "weapon",
+"atk": 11,
+"price": 16,
+"n": 4
+},
+{
+"id": "masakari",
+"name": "大鉞",
+"yomi": "おおまさかり",
+"type": "weapon",
+"atk": 12,
+"price": 17,
+"n": 4
+},
+{
+"id": "yakumo",
+"name": "神剣・八雲",
+"yomi": "しんけん・やくも",
+"type": "weapon",
+"atk": 13,
+"price": 19,
+"n": 4
+},
+{
+"id": "onikiri",
+"name": "鬼斬り",
+"yomi": "おにきり",
+"type": "weapon",
+"atk": 14,
+"price": 20,
+"n": 4,
+"fx": "draw"
+},
+{
+"id": "habakiri",
+"name": "天羽々斬",
+"yomi": "あめのはばきり",
+"type": "weapon",
+"atk": 15,
+"price": 22,
+"n": 4
+},
+{
+"id": "murakumo",
+"name": "天叢雲剣",
+"yomi": "あめのむらくものつるぎ",
+"type": "weapon",
+"atk": 30,
+"price": 30,
+"n": 4
+},
+{
+"id": "yabusuma",
+"name": "矢ぶすま",
+"yomi": "やぶすま",
+"type": "weapon",
+"atk": 3,
+"price": 1,
+"n": 4,
+"all": true
+},
+{
+"id": "horoku",
+"name": "焙烙玉",
+"yomi": "ほうろくだま",
+"type": "weapon",
+"atk": 4,
+"price": 8,
+"n": 4,
+"all": true
+},
+{
+"id": "ozutsu",
+"name": "大筒",
+"yomi": "おおづつ",
+"type": "weapon",
+"atk": 6,
+"price": 1,
+"n": 4,
+"all": true
+},
+{
+"id": "hinoko",
+"name": "火の粉",
+"yomi": "ひのこ",
+"type": "weapon",
+"atk": 2,
+"price": 3,
+"n": 4,
+"elem": "火"
+},
+{
+"id": "hiya",
+"name": "火矢",
+"yomi": "ひや",
+"type": "weapon",
+"atk": 4,
+"price": 6,
+"n": 4,
+"elem": "火"
+},
+{
+"id": "homura",
+"name": "焔の太刀",
+"yomi": "ほむらのたち",
+"type": "weapon",
+"atk": 7,
+"price": 11,
+"n": 4,
+"elem": "火"
+},
+{
+"id": "kaensha",
+"name": "火炎車",
+"yomi": "かえんしゃ",
+"type": "weapon",
+"atk": 5,
+"price": 16,
+"n": 4,
+"elem": "火",
+"all": true
+},
+{
+"id": "mizutsubute",
+"name": "水礫",
+"yomi": "みずつぶて",
+"type": "weapon",
+"atk": 2,
+"price": 3,
+"n": 4,
+"elem": "水"
+},
+{
+"id": "suijin",
+"name": "水刃",
+"yomi": "すいじん",
+"type": "weapon",
+"atk": 4,
+"price": 6,
+"n": 4,
+"elem": "水"
+},
+{
+"id": "tsurara",
+"name": "氷柱",
+"yomi": "つらら",
+"type": "weapon",
+"atk": 6,
+"price": 9,
+"n": 4,
+"elem": "水"
+},
+{
+"id": "mizuchi",
+"name": "蛟の鉾",
+"yomi": "みずちのほこ",
+"type": "weapon",
+"atk": 7,
+"price": 11,
+"n": 4,
+"elem": "水"
+},
+{
+"id": "samidare",
+"name": "五月雨の弓",
+"yomi": "さみだれのゆみ",
+"type": "weapon",
+"atk": 3,
+"price": 9,
+"n": 4,
+"elem": "水",
+"all": true
+},
+{
+"id": "matsuba",
+"name": "松葉針",
+"yomi": "まつばばり",
+"type": "weapon",
+"atk": 2,
+"price": 3,
+"n": 4,
+"elem": "木"
+},
+{
+"id": "ibara",
+"name": "茨の鞭",
+"yomi": "いばらのむち",
+"type": "weapon",
+"atk": 3,
+"price": 5,
+"n": 4,
+"elem": "木",
+"fx": "draw"
+},
+{
+"id": "kashi",
+"name": "樫の棍",
+"yomi": "かしのこん",
+"type": "weapon",
+"atk": 6,
+"price": 9,
+"n": 4,
+"elem": "木"
+},
+{
+"id": "senpu",
+"name": "旋風の扇",
+"yomi": "せんぷうのおうぎ",
+"type": "weapon",
+"atk": 4,
+"price": 12,
+"n": 4,
+"elem": "木",
+"all": true
+},
+{
+"id": "sunakake",
+"name": "砂かけ",
+"yomi": "すなかけ",
+"type": "weapon",
+"atk": 2,
+"price": 3,
+"n": 4,
+"elem": "土"
+},
+{
+"id": "ishi",
+"name": "石つぶて",
+"yomi": "いしつぶて",
+"type": "weapon",
+"atk": 3,
+"price": 5,
+"n": 4,
+"elem": "土"
+},
+{
+"id": "iwakudaki",
+"name": "岩砕き",
+"yomi": "いわくだき",
+"type": "weapon",
+"atk": 6,
+"price": 9,
+"n": 4,
+"elem": "土"
+},
+{
+"id": "jiware",
+"name": "地割れの槌",
+"yomi": "じわれのつち",
+"type": "weapon",
+"atk": 4,
+"price": 12,
+"n": 4,
+"elem": "土",
+"all": true
+},
+{
+"id": "kanzashi",
+"name": "銀の簪",
+"yomi": "ぎんのかんざし",
+"type": "weapon",
+"atk": 2,
+"price": 3,
+"n": 4,
+"elem": "金"
+},
+{
+"id": "shuriken",
+"name": "手裏剣",
+"yomi": "しゅりけん",
+"type": "weapon",
+"atk": 3,
+"price": 5,
+"n": 4,
+"elem": "金",
+"fx": "draw"
+},
+{
+"id": "tessen",
+"name": "鉄扇",
+"yomi": "てっせん",
+"type": "weapon",
+"atk": 5,
+"price": 8,
+"n": 4,
+"elem": "金"
+},
+{
+"id": "hagane",
+"name": "鋼の矛",
+"yomi": "はがねのほこ",
+"type": "weapon",
+"atk": 7,
+"price": 11,
+"n": 4,
+"elem": "金"
+},
+{
+"id": "toishi",
+"name": "砥石",
+"yomi": "といし",
+"type": "plus",
+"atk": 2,
+"price": 3,
+"n": 4
+},
+{
+"id": "kiai",
+"name": "気合",
+"yomi": "きあい",
+"type": "plus",
+"atk": 3,
+"price": 5,
+"n": 4
+},
+{
+"id": "kairiki",
+"name": "怪力",
+"yomi": "かいりき",
+"type": "plus",
+"atk": 5,
+"price": 9,
+"n": 4
+},
+{
+"id": "toshinki",
+"name": "闘神気",
+"yomi": "とうしんき",
+"type": "plus",
+"atk": 10,
+"price": 10,
+"n": 4
+},
+{
+"id": "tenugui",
+"name": "手ぬぐい",
+"yomi": "てぬぐい",
+"type": "armor",
+"price": 1,
+"n": 4,
+"def": 1
+},
+{
+"id": "nabebuta",
+"name": "鍋のふた",
+"yomi": "なべのふた",
+"type": "armor",
+"price": 2,
+"n": 4,
+"def": 2
+},
+{
+"id": "amigasa",
+"name": "編み笠",
+"yomi": "あみがさ",
+"type": "armor",
+"price": 4,
+"n": 4,
+"def": 3
+},
+{
+"id": "itadate",
+"name": "板の盾",
+"yomi": "いたのたて",
+"type": "armor",
+"price": 5,
+"n": 4,
+"def": 4
+},
+{
+"id": "kote",
+"name": "籠手",
+"yomi": "こて",
+"type": "armor",
+"price": 7,
+"n": 4,
+"def": 5
+},
+{
+"id": "domaru",
+"name": "胴丸",
+"yomi": "どうまる",
+"type": "armor",
+"price": 8,
+"n": 4,
+"def": 6
+},
+{
+"id": "katabira",
+"name": "鎖帷子",
+"yomi": "くさりかたびら",
+"type": "armor",
+"price": 9,
+"n": 4,
+"def": 7
+},
+{
+"id": "gusoku",
+"name": "具足",
+"yomi": "ぐそく",
+"type": "armor",
+"price": 11,
+"n": 4,
+"def": 8
+},
+{
+"id": "ooyoroi",
+"name": "大鎧",
+"yomi": "おおよろい",
+"type": "armor",
+"price": 12,
+"n": 4,
+"def": 9
+},
+{
+"id": "odate",
+"name": "大盾",
+"yomi": "おおだて",
+"type": "armor",
+"price": 13,
+"n": 4,
+"def": 10
+},
+{
+"id": "jomon",
+"name": "城門の扉",
+"yomi": "じょうもんのとびら",
+"type": "armor",
+"price": 15,
+"n": 4,
+"def": 11
+},
+{
+"id": "nanban",
+"name": "南蛮胴",
+"yomi": "なんばんどう",
+"type": "armor",
+"price": 16,
+"n": 4,
+"def": 12
+},
+{
+"id": "ishigaki",
+"name": "石垣",
+"yomi": "いしがき",
+"type": "armor",
+"price": 17,
+"n": 4,
+"def": 13
+},
+{
+"id": "tenshu",
+"name": "天守の壁",
+"yomi": "てんしゅのかべ",
+"type": "armor",
+"price": 19,
+"n": 4,
+"def": 14
+},
+{
+"id": "kongo",
+"name": "金剛の鎧",
+"yomi": "こんごうのよろい",
+"type": "armor",
+"price": 20,
+"n": 4,
+"def": 15
+},
+{
+"id": "iwato",
+"name": "天岩戸",
+"yomi": "あまのいわと",
+"type": "armor",
+"price": 30,
+"n": 4,
+"def": 30
+},
+{
+"id": "hiyoke",
+"name": "火除けの札",
+"yomi": "ひよけのふだ",
+"type": "armor",
+"price": 5,
+"n": 4,
+"def": 3,
+"elem": "火"
+},
+{
+"id": "hinezumi",
+"name": "火鼠の衣",
+"yomi": "ひねずみのころも",
+"type": "armor",
+"price": 9,
+"n": 4,
+"def": 6,
+"elem": "火"
+},
+{
+"id": "namiyoke",
+"name": "波除け",
+"yomi": "なみよけ",
+"type": "armor",
+"price": 5,
+"n": 4,
+"def": 3,
+"elem": "水"
+},
+{
+"id": "ryusui",
+"name": "流水の帯",
+"yomi": "りゅうすいのおび",
+"type": "armor",
+"price": 9,
+"n": 4,
+"def": 6,
+"elem": "水"
+},
+{
+"id": "wara",
+"name": "藁の束",
+"yomi": "わらのたば",
+"type": "armor",
+"price": 5,
+"n": 4,
+"def": 3,
+"elem": "木"
+},
+{
+"id": "takegaki",
+"name": "竹垣",
+"yomi": "たけがき",
+"type": "armor",
+"price": 9,
+"n": 4,
+"def": 6,
+"elem": "木"
+},
+{
+"id": "donabe",
+"name": "土鍋のふた",
+"yomi": "どなべのふた",
+"type": "armor",
+"price": 5,
+"n": 4,
+"def": 3,
+"elem": "土"
+},
+{
+"id": "dorui",
+"name": "土塁",
+"yomi": "どるい",
+"type": "armor",
+"price": 9,
+"n": 4,
+"def": 6,
+"elem": "土"
+},
+{
+"id": "kabuto",
+"name": "鉄兜",
+"yomi": "てつかぶと",
+"type": "armor",
+"price": 5,
+"n": 4,
+"def": 3,
+"elem": "金"
+},
+{
+"id": "haganetate",
+"name": "鋼の盾",
+"yomi": "はがねのたて",
+"type": "armor",
+"price": 9,
+"n": 4,
+"def": 6,
+"elem": "金"
+},
+{
+"id": "kekkai",
+"name": "結界札",
+"yomi": "けっかいふだ",
+"type": "armor",
+"price": 10,
+"n": 4,
+"def": 5,
+"magic": true
+},
+{
+"id": "kagami",
+"name": "照魔の鏡",
+"yomi": "しょうまのかがみ",
+"type": "armor",
+"price": 20,
+"n": 4,
+"special": "reflect"
+},
+{
+"id": "hauchiwa",
+"name": "羽団扇",
+"yomi": "はうちわ",
+"type": "armor",
+"price": 16,
+"n": 4,
+"special": "deflect"
+},
+{
+"id": "migawari",
+"name": "身代わり人形",
+"yomi": "みがわりにんぎょう",
+"type": "armor",
+"price": 20,
+"n": 4,
+"special": "null"
+},
+{
+"id": "minokasa",
+"name": "隠れ蓑",
+"yomi": "かくれみの",
+"type": "armor",
+"price": 12,
+"n": 4,
+"special": "dodge"
+},
+{
+"id": "kitsunebi",
+"name": "狐火",
+"yomi": "きつねび",
+"type": "spell",
+"mp": 3,
+"eff": "dmg",
+"val": 6,
+"tgt": "enemy",
+"price": 8,
+"n": 4,
+"elem": "火"
+},
+{
+"id": "kamaitachi",
+"name": "鎌鼬",
+"yomi": "かまいたち",
+"type": "spell",
+"mp": 3,
+"eff": "dmg",
+"val": 5,
+"tgt": "enemy",
+"price": 8,
+"n": 4,
+"elem": "木"
+},
+{
+"id": "raimei",
+"name": "雷鳴",
+"yomi": "らいめい",
+"type": "spell",
+"mp": 5,
+"eff": "dmg",
+"val": 7,
+"tgt": "all",
+"price": 6,
+"n": 4
+},
+{
+"id": "tsunami",
+"name": "大津波",
+"yomi": "おおつなみ",
+"type": "spell",
+"mp": 7,
+"eff": "dmg",
+"val": 10,
+"tgt": "all",
+"price": 15,
+"n": 4,
+"elem": "水"
+},
+{
+"id": "tamasui",
+"name": "魂吸い",
+"yomi": "たますい",
+"type": "spell",
+"mp": 5,
+"eff": "drain",
+"val": 5,
+"tgt": "enemy",
+"price": 14,
+"n": 4
+},
+{
+"id": "noroi",
+"name": "呪いの藁人形",
+"yomi": "のろいのわらにんぎょう",
+"type": "spell",
+"mp": 4,
+"eff": "curse",
+"val": 3,
+"tgt": "enemy",
+"price": 10,
+"n": 4
+},
+{
+"id": "fuin",
+"name": "封印札",
+"yomi": "ふういんふだ",
+"type": "spell",
+"mp": 2,
+"eff": "seal",
+"val": 2,
+"tgt": "enemy",
+"price": 6,
+"n": 4
+},
+{
+"id": "kamikakushi",
+"name": "神隠し",
+"yomi": "かみかくし",
+"type": "spell",
+"mp": 4,
+"eff": "steal",
+"val": 1,
+"tgt": "enemy",
+"price": 10,
+"n": 4,
+"nodef": true
+},
+{
+"id": "iyashi",
+"name": "癒しの舞",
+"yomi": "いやしのまい",
+"type": "spell",
+"mp": 3,
+"eff": "heal",
+"val": 7,
+"tgt": "ally",
+"price": 9,
+"n": 4
+},
+{
+"id": "kirigakure",
+"name": "霧隠れの術",
+"yomi": "きりがくれのじゅつ",
+"type": "spell",
+"mp": 3,
+"eff": "mist",
+"val": 1,
+"tgt": "self",
+"price": 8,
+"n": 4
+},
+{
+"id": "onigiri",
+"name": "おにぎり",
+"yomi": "おにぎり",
+"type": "item",
+"eff": "heal",
+"val": 5,
+"price": 5,
+"n": 20
+},
+{
+"id": "dango",
+"name": "三色団子",
+"yomi": "さんしょくだんご",
+"type": "item",
+"eff": "heal",
+"val": 10,
+"price": 9,
+"n": 20
+},
+{
+"id": "yakuto",
+"name": "薬湯",
+"yomi": "やくとう",
+"type": "item",
+"eff": "heal",
+"val": 15,
+"price": 13,
+"n": 10
+},
+{
+"id": "sento",
+"name": "仙桃",
+"yomi": "せんとう",
+"type": "item",
+"eff": "heal",
+"val": 20,
+"price": 17,
+"n": 10
+},
+{
+"id": "reisui",
+"name": "霊水",
+"yomi": "れいすい",
+"type": "item",
+"eff": "mp",
+"val": 5,
+"price": 5,
+"n": 20
+},
+{
+"id": "reiyaku",
+"name": "霊薬",
+"yomi": "れいやく",
+"type": "item",
+"eff": "mp",
+"val": 10,
+"price": 9,
+"n": 20
+},
+{
+"id": "magatama",
+"name": "勾玉",
+"yomi": "まがたま",
+"type": "item",
+"eff": "mp",
+"val": 15,
+"price": 13,
+"n": 10
+},
+{
+"id": "hoju",
+"name": "宝珠",
+"yomi": "ほうじゅ",
+"type": "item",
+"eff": "mp",
+"val": 20,
+"price": 17,
+"n": 10
+},
+{
+"id": "zenibukuro",
+"name": "銭袋",
+"yomi": "ぜにぶくろ",
+"type": "item",
+"eff": "gold",
+"val": 5,
+"price": 4,
+"n": 20
+},
+{
+"id": "koban",
+"name": "小判袋",
+"yomi": "こばんぶくろ",
+"type": "item",
+"eff": "gold",
+"val": 10,
+"price": 8,
+"n": 20
+},
+{
+"id": "senryobako",
+"name": "千両箱",
+"yomi": "せんりょうばこ",
+"type": "item",
+"eff": "gold",
+"val": 15,
+"price": 12,
+"n": 10
+},
+{
+"id": "kozuchi",
+"name": "打ち出の小槌",
+"yomi": "うちでのこづち",
+"type": "item",
+"eff": "gold",
+"val": 20,
+"price": 16,
+"n": 10
+},
+{
+"id": "omiki",
+"name": "御神酒",
+"yomi": "おみき",
+"type": "item",
+"eff": "kiai",
+"val": 5,
+"price": 7,
+"n": 5
+},
+{
+"id": "shio",
+"name": "清めの塩",
+"yomi": "きよめのしお",
+"type": "item",
+"eff": "cleanse",
+"val": 3,
+"price": 5,
+"n": 5
+},
+{
+"id": "maneki",
+"name": "招き猫",
+"yomi": "まねきねこ",
+"type": "item",
+"eff": "maneki",
+"val": 15,
+"price": 16,
+"n": 5
+},
+{
+"id": "jobutsu",
+"name": "成仏札",
+"yomi": "じょうぶつふだ",
+"type": "item",
+"eff": "jobutsu",
+"val": 50,
+"price": 6,
+"n": 5,
+"tgt": "beast"
+},
+{
+"id": "sandatsu",
+"name": "簒奪札",
+"yomi": "さんだつふだ",
+"type": "item",
+"eff": "usurp",
+"val": 0,
+"price": 8,
+"n": 5,
+"tgt": "enemy"
+},
+{
+"id": "oshiuri",
+"name": "押し売り札",
+"yomi": "おしうりふだ",
+"type": "item",
+"eff": "sell",
+"val": 0,
+"price": 8,
+"n": 5,
+"tgt": "foe"
+},
+{
+"id": "seiren",
+"name": "精錬札",
+"yomi": "せいれんふだ",
+"type": "item",
+"eff": "refine",
+"val": 5,
+"price": 10,
+"n": 5
+},
+{
+"id": "shokan",
+"name": "召喚札",
+"yomi": "しょうかんふだ",
+"type": "summon",
+"mp": 3,
+"price": 5,
+"n": 20
+}
+]
+}
