@@ -148,7 +148,8 @@ def bot_step(page, stats):
         return 'nobuy'
     if 'result' in acts:
         page.wait_for_timeout(420)
-        tap(page, '#gActs [data-act=result]')
+        # 待っているあいだに結果画面へ自動で移ることがある（そのときは押せなくてよい。次の回で結果画面になる）
+        tap(page, '#gActs [data-act=result]', must=False)
         return 'toresult'
     for a in ('attack', 'spell', 'item', 'spellself', 'summon'):
         if a in acts and not acts[a]['dis']:
