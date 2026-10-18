@@ -358,13 +358,17 @@ function renderLobby() {
   if (host) {
     const teams = [[0, '個人戦'], [2, '2チーム'], [3, '3チーム'], [4, '4チーム']];
     const times = [[30, '30秒'], [60, '60秒'], [90, '90秒'], [0, 'なし']];
+    const chaos = [[0, 'なし'], [1, 'ふつう'], [2, '多め']];
+    const cv = st.chaos == null ? 1 : st.chaos;
     $('lobbySettings').innerHTML = '<div class="seg-l">戦い方</div><div class="seg" id="segTeams">' +
       teams.map(([v, l]) => '<button type="button" data-teams="' + v + '" aria-pressed="' + (st.teams === v) + '">' + l + '</button>').join('') + '</div>' +
       (local ? '' : '<div class="seg-l" style="margin-top:8px">持ち時間（自分の番）</div><div class="seg" id="segTime">' +
-        times.map(([v, l]) => '<button type="button" data-time="' + v + '" aria-pressed="' + (st.turnSec === v) + '">' + l + '</button>').join('') + '</div>');
+        times.map(([v, l]) => '<button type="button" data-time="' + v + '" aria-pressed="' + (st.turnSec === v) + '">' + l + '</button>').join('') + '</div>') +
+      '<div class="seg-l" style="margin-top:8px">ハプニング<small>すっぽ抜け・会心の一撃・巡のはじめの出来事・ハプニング札</small></div><div class="seg" id="segChaos">' +
+        chaos.map(([v, l]) => '<button type="button" data-chaos="' + v + '" aria-pressed="' + (cv === v) + '">' + l + '</button>').join('') + '</div>';
   } else {
     $('lobbySettings').innerHTML = '<p class="note" style="text-align:left">' + (st.teams ? st.teams + 'チームに分かれて戦います' : '個人戦（全員が敵）') +
-      '・持ち時間 ' + (st.turnSec ? st.turnSec + '秒' : 'なし') + '</p>';
+      '・持ち時間 ' + (st.turnSec ? st.turnSec + '秒' : 'なし') + '・ハプニング ' + ['なし', 'ふつう', '多め'][st.chaos == null ? 1 : st.chaos] + '</p>';
   }
   $('lobbySeats').innerHTML = R.seats.map((s, i) => {
     const g = GUARD[s.guardian] || GUARD_LIST[0];
@@ -394,6 +398,7 @@ function lobbyTap(e) {
   const b = e.target.closest('button'); if (!b || !net) return;
   if (b.dataset.teams != null) { sfx('select'); net.send({ t: 'settings', teams: Number(b.dataset.teams) }); }
   else if (b.dataset.time != null) { sfx('select'); net.send({ t: 'settings', turnSec: Number(b.dataset.time) }); }
+  else if (b.dataset.chaos != null) { sfx('select'); net.send({ t: 'settings', chaos: Number(b.dataset.chaos) }); }
   else if (b.dataset.team != null) { sfx('select'); net.send({ t: 'team', seat: Number(b.dataset.team) }); }
   else if (b.dataset.kick != null) { sfx('tap'); net.send({ t: 'kick', seat: Number(b.dataset.kick) }); }
   else if (b.id === 'lobbyCpu') { sfx('tap'); net.send({ t: 'addCpu' }); }
@@ -428,7 +433,7 @@ function renderResult() {
     const g = GUARD[p.guardian];
     const rank = team ? (p.team === G.winner ? '勝' : '') : kanjiNum(i + 1);
     return '<div class="rk' + (p.alive ? ' win' : '') + '"><span class="no">' + rank + '</span>' + embHTML(p.guardian, 34) +
-      '<div class="grow"><div class="rn">' + esc(p.name) + (me && p.pid === me.pid ? '（あなた）' : '') + '</div><div class="rs">' + esc(g.name) + '　与えたダメージ ' + p.dealt + '　討ち取り ' + p.kos + '</div></div>' +
+      '<div class="grow"><div class="rn">' + esc(p.name) + (me && p.pid === me.pid ? '（あなた）' : '') + '</div><div class="rs">' + esc(g.name) + '　与えたダメージ ' + p.dealt + '　討ち取り ' + p.kos + (p.ff ? '　<span class="ff">味方に当てた ' + p.ff + '</span>' : '') + '</div></div>' +
       (G.settings.teams ? teamHTML(p.team) : '') + '</div>';
   }).join('');
   const host = isHost();
@@ -467,7 +472,7 @@ function leaveGame() {
 /* =====================================================================
    GUIDE (遊び方)
    ===================================================================== */
-const HOW_TABS = [['basic', 'はじめに'], ['turn', '自分の番'], ['guard', '守り'], ['beast', '霊獣'], ['gogyo', '五行と式神'], ['weather', '天候'], ['cards', '札の一覧'], ['online', 'オンライン']];
+const HOW_TABS = [['basic', 'はじめに'], ['turn', '自分の番'], ['guard', '守り'], ['beast', '霊獣'], ['gogyo', '五行と式神'], ['weather', '天候'], ['happen', 'ハプニング'], ['cards', '札の一覧'], ['online', 'オンライン']];
 let howTab = 'basic';
 function openHow(tab) { howTab = tab || 'basic'; renderHow(); openOv('ovHow'); }
 function renderHow() {
@@ -490,15 +495,17 @@ function howHTML(k) {
       '<h3>札の見かた</h3>' + ex(F('hiya') + F('katana') + F('hinezumi'), '<b>外枠と左上の印</b>は札の種類（武＝武器、守＝防具、術、道＝道具、追＝追撃、召＝召喚）。<b>札の地の色</b>は属性（緑＝木、朱＝火、黄＝土、銀＝金、青＝水）。地が白い札は属性なしです。') +
       '<h3>持っているもの</h3><ul><li>体力：はじめの体力は式神によってちがいます（30〜60）。<b>上限はなく</b>、回復した分だけ増えます（99まで）。0で成仏</li><li>霊力：術を使う・霊獣を呼ぶときに払う</li><li>小判：よろず屋で札を買う。簒奪札で見つけた札も小判で買う</li><li>手札：はじめは10枚、12枚まで（術札は数えません）。番のはじめには引きません</li></ul>' +
       '<h3>手札の並び</h3><p>手札はいつも左から<b>術札 → 攻撃の札 → 守札 → その他</b>の順に並び、同じ組の中は<b>数値の小さい順</b>です。左はしの紫のわくが「術札ゾーン」です。</p>';
-    case 'turn': return '<h3>攻める</h3>' + ex(F('katana') + P + F('kiai'), '武器をタップして、攻める相手をタップ。<b>追撃</b>の札はどの武器にも足せます。太刀（攻7）＋気合（＋3）で攻撃10。') +
+    case 'turn': return '<h3>札はだれにでも使える</h3><p>武器・術・道具・召喚札は、<b>自分・味方・相手のだれにでも</b>使えます。おにぎりで味方の体力を回復したり、霊獣を味方につけたり。わざと相手を回復させても、味方を攻めてもかまいません（味方を攻めるときは確認が出ます）。</p>' +
+      '<h3>攻める</h3>' + ex(F('katana') + P + F('kiai'), '武器をタップして、攻める人をタップ。<b>追撃</b>の札はどの武器にも足せます。太刀（攻7）＋気合（＋3）で攻撃10。') +
       '<h3>重ね打ち（属性の武器だけ）</h3>' + ex(F('hiya') + P + F('homura'), '<b>同じ属性の武器どうしは何枚でも重ねられます</b>。火矢（4）＋焔の太刀（7）で火の攻撃11。') +
       ex(F('katana') + F('naginata'), '<b>属性のない武器は重ねられません</b>（1回に1枚。追撃札だけ足せます）。そのかわり、相手はどの守札でも守れてしまいます。') +
       ex(F('kaensha') + F('yabusuma'), '「全体」と書いた武器や術は、相手全員に当たります。全体の武器はほかの武器と重ねられません。') +
       ex(F('kusarigama'), '「通れば1枚」の武器は、ダメージが通ったら札を1枚引けます。') +
       '<h3>術を使う</h3>' + ex(F('kitsunebi') + F('iyashi'), '札の下の「霊3」は、使うのに必要な霊力。<b>術札は使っても手札の「術札ゾーン」に残り、霊力があれば毎番でも使えます</b>。同じ術札は1枚までで、もう持っている術を引いたときは捨てて引き直します。術札は手札の枚数に数えません。') +
       '<p>属性のある術は、同じ属性の守札・その属性に強い属性の守札・結界札で守れます。術札は押し売り・神隠し・簒奪の対象になりません（よろず屋では売れます）。</p>' +
-      '<h3>道具</h3>' + ex(F('sandatsu'), '<b>簒奪札</b>：相手1人の手札からランダムに1枚を見て、<b>値段を払えば自分の札</b>にできます。払った小判は相手に渡ります。買わなければ札は相手に戻ります。') +
-      ex(F('jobutsu'), '<b>成仏札</b>：霊獣を連れた相手に使うと、半分の確率でその霊獣を成仏させます。') +
+      '<h3>道具</h3>' + ex(F('onigiri') + F('iyashi'), '<b>体力・霊力・小判をふやす札</b>は、えらばなければ自分に使います。ほかの人の席をタップすると、その人に使えます（味方にも相手にも）。') +
+      ex(F('sandatsu'), '<b>簒奪札</b>：えらんだ人の手札からランダムに1枚を見て、<b>値段を払えば自分の札</b>にできます。払った小判はその人に渡ります。買わなければ札は戻ります。') +
+      ex(F('jobutsu'), '<b>成仏札</b>：霊獣を連れた人に使うと、半分の確率でその霊獣を成仏させます。') +
       ex(F('oshiuri') + F('kinnokatana'), '<b>押し売り札</b>：手札の札を1枚、相手に値段どおり売りつけます（代金はあなたのものに）。相手の小判が足りなければ霊力、それでも足りなければ体力で払わせ、払いきれなければ成仏。金の刀（30両）のような高い札が武器になります。') +
       ex(F('seiren'), '<b>精錬札</b>：体力・霊力・小判を5ずつ入れかえられます。「−5」で減らした分を「＋5」で分けて「精錬」。') +
       ex(F('onigiri') + F('reisui') + F('zenibukuro'), '体力・霊力・小判をふやす道具は、それぞれ＋5・＋10・＋15・＋20があります。') +
@@ -513,8 +520,8 @@ function howHTML(k) {
       ex(F('kagami'), '<b>照魔の鏡</b>：攻撃も術も、そっくり相手にはね返す。はね返された人も鏡を持っていれば、またはね返せます（鏡がつきるまで応酬）。') +
       ex(F('hauchiwa'), '<b>羽団扇</b>：攻めを弾く。弾いた攻めは<b>流れ弾</b>になって、<b>自分もふくめた全員</b>の中からランダムに選ばれた1人に飛びます。飛んだ先の人には守りの番が来て、<b>守札で守れます</b>。') +
       ex(F('migawari'), '<b>身代わり人形</b>：攻撃も術も、なかったことにする') + ex(F('minokasa'), '<b>隠れ蓑</b>：武器の攻撃を半分の確率でかわす（ふつうの防具と重ねられる）') +
-      '<h3>状態のしるし</h3><ul><li><span class="st st-curse">呪</span> 呪い：番のはじめに体力−3（3回）</li><li><span class="st st-seal">封</span> 封印：術が使えない（2回の番）</li><li><span class="st st-mist">霧</span> 霧隠れ：次の自分の番まで狙われない</li><li><span class="st st-kiai">気</span> 気合：次の攻撃＋5</li><li><span class="st st-kiai">力</span> 白虎の力：次の攻撃が強くなる</li><li><span class="st st-shell">甲</span> 甲羅：次に受けるダメージが減る</li></ul><p>呪いと封印は「清めの塩」で治せます。倒した人は、倒された人の小判の半分をもらえます。</p>';
-    case 'beast': return '<h3>霊獣を呼ぶ</h3>' + ex(F('shokan'), '<b>召喚札</b>を使うと、霊力を払って霊獣を呼べます。<b>どの霊獣が出るかはランダム</b>です。霊獣は式神とは別に、あなたの席についてくれます。<b>1人1体まで</b>で、もう一度呼ぶと別の霊獣と入れかわります（龍神は呼べません）。') +
+      '<h3>状態のしるし</h3><ul><li><span class="st st-curse">呪</span> 呪い：番のはじめに体力−3（3回）</li><li><span class="st st-seal">封</span> 封印：術が使えない（2回の番）</li><li><span class="st st-mist">霧</span> 霧隠れ：その人の次の番まで、ほかのだれにもえらばれない</li><li><span class="st st-kiai">気</span> 気合：次の攻撃＋5</li><li><span class="st st-kiai">力</span> 白虎の力：次の攻撃が強くなる</li><li><span class="st st-shell">甲</span> 甲羅：次に受けるダメージが減る</li></ul><p>呪いと封印は「清めの塩」で治せます。倒した人は、倒された人の小判の半分をもらえます。</p>';
+    case 'beast': return '<h3>霊獣を呼ぶ</h3>' + ex(F('shokan'), '<b>召喚札</b>を使うと、霊力を払って霊獣を呼べます。<b>どの霊獣が出るかはランダム</b>です。霊獣は式神とは別に、席についてくれます。<b>自分だけでなく、味方や相手の席につけることもできます</b>（席をタップしてから「呼ぶ」）。<b>1人1体まで</b>で、もう一度呼ぶと別の霊獣と入れかわります。龍神は霊獣を連れられませんが、召喚札をほかの人に使うことはできます。') +
       '<h3>アシスト</h3><p>霊獣は、<b>だれの番でも</b>番のはじめに<b>10回に1回くらい</b>アシストを出します。</p>' +
       '<h3>霊獣が去るとき</h3><ul><li>持ち主がダメージを受けるたびに、8回に1回くらい成仏して去る</li><li>相手に<b>成仏札</b>を使われると、半分の確率で成仏する</li></ul><h3>十の霊獣</h3>' +
       BEAST_LIST.map(B => '<div class="ex ex-b">' + beastCardHTML(B.id) + '<div class="say"><b>' + esc(B.name) + '</b>（' + esc(B.yomi) + '）' + (B.elem ? '　<span class="elchip el-' + B.elem + '">' + crestSVG(B.elem) + B.elem + '</span>' : '') +
@@ -529,6 +536,17 @@ function howHTML(k) {
       GUARD_LIST.map(g => '<div class="ex">' + embHTML(g.id, 46) + '<div class="say"><b>' + esc(g.name) + '</b>　<span class="elchip el-' + g.elem + '">' + crestSVG(g.elem) + g.elem + '</span>　体力' + g.hp + '　霊力' + g.mp + '<br>' + esc(g.skill) + '：' + esc(g.text) + '</div></div>').join('');
     case 'weather': return '<h3>天候</h3><p>1巡ごとに天候が変わり、場に効果がかかります。いまの天候は<b>まん中の場の背景</b>（雨・月・提灯など）と画面の上に出ていて、上の札をタップすると説明が見られます。</p>' +
       WEATHER_LIST.map(w => '<div class="ex"><span style="font-size:36px;color:' + (WX_COLOR[w.id] || 'var(--kin-hi)') + '">' + weatherCrest(w) + '</span><div class="say"><b>' + esc(w.name) + '</b>（' + esc(w.yomi) + '）<br>' + esc(w.text) + '</div></div>').join('');
+    case 'happen': return '<h3>ハプニング</h3><p>思いがけないことが起きると、合戦はもっとおもしろくなります。待合室の「ハプニング」で<b>なし・ふつう・多め</b>をえらべます（ふつうがおすすめ）。</p>' +
+      '<h3>すっぽ抜け</h3><p>武器で1人を攻めたとき、ときどき<b>手がすべって、ねらった人とはちがうだれか</b>に飛んでいきます。味方に当たることも！（ふつう5%・多め10%）</p>' +
+      '<h3>会心の一撃</h3><p>武器で攻めたとき、ときどき<b>攻撃が2倍</b>になります（ふつう6%・多め10%）。</p>' +
+      '<h3>春一番</h3><p>天候が春一番のあいだは、1人をねらう武器と術の相手がランダムになり、<b>味方に当たることもあります</b>。</p>' +
+      '<h3>巡のはじめの出来事</h3><p>巡が変わるとき、ときどき次のどれかが起きます（ふつう35%・多め70%）。</p>' +
+      HAPPENINGS.map(h => '<div class="ex"><span class="hp-seal sm">' + (HAPPEN_SEAL[h.id] || '変') + '</span><div class="say"><b>' + esc(h.name) + '</b>（' + esc(h.yomi) + '）<br>' + esc(h.text) + '</div></div>').join('') +
+      '<h3>ハプニング札</h3>' +
+      ex(F('abaregoma'), '<b>暴れ独楽</b>：攻撃12と強いけれど、<b>自分以外のだれに当たるかは運まかせ</b>。味方に当たることも！') +
+      ex(F('bakeha'), '<b>狸の化け葉</b>：えらんだ人と<b>体力を入れかえる</b>。守れない。ピンチからの大逆転に') +
+      ex(F('fukuwarai'), '<b>福笑い</b>：<b>全員の手札をまぜて配り直す</b>（術札はのぞく）。だれの札がだれに行くかは運まかせ') +
+      '<p>ハプニング「なし」の部屋では、ハプニング札は山札に入りません。</p>';
     case 'cards': {
       const groups = [['weapon', '武器'], ['plus', '追撃'], ['armor', '防具'], ['spell', '術'], ['item', '道具'], ['summon', '召喚（霊獣）']];
       const total = CARD_LIST.reduce((s, c) => s + c.n, 0);
@@ -648,6 +666,8 @@ function boot() {
   initOnline();
   /* 自動テスト用の入口（ふつうに開いたときは何もしない） */
   if (TEST.hook) window.__yao = { G: () => net && net.host && net.host.room.game, changed: () => net && net.host && net.host.changed(), GUARD, CARD, BEAST, fuda: (id, o) => fudaHTML(id, o), koFx, stampAt, cutIn, relPos, embHTML, shownSeq: () => (shown && shown.game ? shown.game.seq : -1), busy: () => pres.busy || pres.q.length > 0, assist: pid => { const G = net && net.host && net.host.room.game; if (G) assist(G, G.players[pid]); },
+    /* ハプニングを起こす（テスト用） */
+    happen: id => { const G = net && net.host && net.host.room.game; if (G) { const e = happening(G, id || true); net.host.changed(); return e; } return null; },
     /* 確かめをせずに合言葉の部屋の進行役になる（ほぼ同時に部屋ができたときのテスト用） */
     hostNow: async rp => {
       const n = new MqttNet(rp); await n.init(); await n.bus.waitUp(5000);

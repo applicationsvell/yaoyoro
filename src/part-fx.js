@@ -21,7 +21,7 @@ function cardText(C) {
   if (!C) return '';
   switch (C.type) {
     case 'weapon': {
-      let t = (C.all ? '相手全員に' : '相手1人に') + (C.elem ? C.elem + 'の' : '') + '攻撃' + C.atk + '。' + (C.elem ? guardRule(C.elem) : '属性なし。' + guardRule(null));
+      let t = (C.all ? '相手全員に' : C.fx === 'rand' ? '自分以外のだれかにランダムで（味方に当たることも！）' : 'えらんだ1人に（味方もえらべる）') + (C.elem ? C.elem + 'の' : '') + '攻撃' + C.atk + '。' + (C.elem ? guardRule(C.elem) : '属性なし。' + guardRule(null));
       if (C.all) t += '。ほかの武器とは重ねられない（追撃札は足せる）';
       else t += C.elem ? '。' + C.elem + 'の武器どうし重ねられる' : '。追撃札だけ足せる';
       if (C.fx === 'draw') t += '。ダメージが通ったら札を1枚引く';
@@ -37,7 +37,8 @@ function cardText(C) {
       if (C.elem) return '守り' + C.def + '。' + C.elem + 'の攻め、' + BEATS[C.elem] + 'の攻め（' + C.elem + 'が強い）、属性のない攻めを守れる。何枚でも重ねられる';
       return '守り' + C.def + '。属性のない攻めだけ守れる。何枚でも重ねられる';
     case 'spell': {
-      const who = C.tgt === 'all' ? '相手全員' : C.tgt === 'ally' ? '自分か味方' : C.tgt === 'self' ? '自分' : '相手1人';
+      const aim = aimOf(C);
+      const who = aim === 'all' ? '相手全員' : aim === 'help' ? '自分かえらんだ人（だれでも）' : 'えらんだ1人（味方もえらべる）';
       const head = '霊力' + C.mp + 'で使う。使っても手札に残り、何度でも使える。';
       if (C.eff === 'dmg') return head + who + 'に' + (C.elem ? C.elem + 'の' : '') + C.val + 'ダメージ。' + guardRule(C.elem, true);
       if (C.eff === 'drain') return head + who + 'に' + C.val + 'ダメージ。与えた分だけ自分の体力が回復。' + guardRule(C.elem, true);
@@ -45,22 +46,24 @@ function cardText(C) {
       if (C.eff === 'seal') return head + who + 'を封印（2回の番のあいだ術が使えない）。守札1枚で防げる';
       if (C.eff === 'steal') return head + who + 'の手札をタダで1枚うばう。守れない';
       if (C.eff === 'heal') return head + who + 'の体力＋' + C.val + '（99まで）';
-      if (C.eff === 'mist') return head + '次の自分の番まで、だれにも狙われない';
+      if (C.eff === 'mist') return head + who + 'が、その人の次の番まで、ほかのだれにも狙われない';
       return head;
     }
     case 'item':
-      if (C.eff === 'heal') return '体力＋' + C.val + '（はじめの体力より多くなってもよい。99まで）';
-      if (C.eff === 'mp') return '霊力＋' + C.val + '（99まで）';
-      if (C.eff === 'gold') return '小判＋' + C.val + '両';
-      if (C.eff === 'kiai') return '次の攻撃が＋5（気合）';
-      if (C.eff === 'cleanse') return '呪いと封印を治して、体力＋' + C.val;
-      if (C.eff === 'maneki') return '小判＋' + C.val + '両と霊力＋3';
-      if (C.eff === 'jobutsu') return '霊獣を連れた相手1人に使う。半分の確率で、その霊獣を成仏させる';
-      if (C.eff === 'usurp') return '相手1人の手札からランダムに1枚を見る。値段を払えば自分の札になる（払った小判は相手に渡る）。買わなければ相手に戻る。守れない';
-      if (C.eff === 'sell') return '自分の手札の札を1枚、相手1人に値段どおりに売りつける。相手の小判が足りなければ霊力から、それでも足りなければ体力から払わせる。払いきれなければ成仏。守れない';
+      if (C.eff === 'heal') return '自分かえらんだ人（だれでも）の体力＋' + C.val + '（はじめの体力より多くなってもよい。99まで）';
+      if (C.eff === 'mp') return '自分かえらんだ人の霊力＋' + C.val + '（99まで）';
+      if (C.eff === 'gold') return '自分かえらんだ人の小判＋' + C.val + '両';
+      if (C.eff === 'kiai') return '自分かえらんだ人の、次の攻撃が＋5（気合）';
+      if (C.eff === 'cleanse') return '自分かえらんだ人の呪いと封印を治して、体力＋' + C.val;
+      if (C.eff === 'maneki') return '自分かえらんだ人の小判＋' + C.val + '両と霊力＋3';
+      if (C.eff === 'jobutsu') return '霊獣を連れた人1人に使う。半分の確率で、その霊獣を成仏させる';
+      if (C.eff === 'usurp') return 'えらんだ人の手札からランダムに1枚を見る。値段を払えば自分の札になる（払った小判はその人に渡る）。買わなければ戻す。守れない';
+      if (C.eff === 'sell') return '自分の手札の札を1枚、えらんだ人に値段どおりに売りつける。小判が足りなければ霊力から、それでも足りなければ体力から払わせる。払いきれなければ成仏。守れない';
+      if (C.eff === 'hpswap') return 'えらんだ人と、自分の体力を入れかえる。守れない';
+      if (C.eff === 'shuffle') return '全員の手札（術札はのぞく）を集めてまぜ、もとの枚数ずつ配り直す';
       if (C.eff === 'refine') return '自分の体力・霊力・小判を、5ずつ好きなように入れかえる（体力は1より下にできない）';
       return '';
-    case 'summon': return '霊力' + C.mp + 'で霊獣を1体呼ぶ。どの霊獣が出るかはランダム（いまの霊獣とは別のもの）。霊獣は' + ASSIST_NOTE + '助けてくれる';
+    case 'summon': return '霊力' + C.mp + 'で霊獣を1体呼んで、自分かえらんだ人（だれでも。龍神はのぞく）につける。どの霊獣が出るかはランダム（いまの霊獣とは別のもの）。霊獣は' + ASSIST_NOTE + '持ち主を助けてくれる';
   }
   return '';
 }
@@ -123,7 +126,7 @@ function cardVal(C) {
     case 'armor': return C.special === 'reflect' ? ['', '返す'] : C.special === 'deflect' ? ['', '弾く'] : C.special === 'null' ? ['', '無効'] : C.special === 'dodge' ? ['', '回避'] : ['守', String(C.def)];
     case 'spell': return ['霊', String(C.mp)];
     case 'summon': return ['霊', String(C.mp)];
-    case 'item': return C.eff === 'heal' ? ['体＋', String(C.val)] : C.eff === 'mp' ? ['霊＋', String(C.val)] : C.eff === 'gold' ? ['両＋', String(C.val)] : C.eff === 'kiai' ? ['', '気合'] : C.eff === 'cleanse' ? ['', '浄め'] : C.eff === 'jobutsu' ? ['', '成仏'] : C.eff === 'usurp' ? ['', '簒奪'] : C.eff === 'sell' ? ['', '押売'] : C.eff === 'refine' ? ['', '精錬'] : ['', '招福'];
+    case 'item': return C.eff === 'heal' ? ['体＋', String(C.val)] : C.eff === 'mp' ? ['霊＋', String(C.val)] : C.eff === 'gold' ? ['両＋', String(C.val)] : C.eff === 'kiai' ? ['', '気合'] : C.eff === 'cleanse' ? ['', '浄め'] : C.eff === 'jobutsu' ? ['', '成仏'] : C.eff === 'usurp' ? ['', '簒奪'] : C.eff === 'sell' ? ['', '押売'] : C.eff === 'refine' ? ['', '精錬'] : C.eff === 'hpswap' ? ['', '入替'] : C.eff === 'shuffle' ? ['', '混ぜる'] : ['', '招福'];
   }
   return ['', ''];
 }

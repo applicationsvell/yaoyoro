@@ -66,7 +66,7 @@
 "weaponBonus": 5,
 "armorHalf": true,
 "skill": "龍神の加護",
-"text": "霊獣を呼べない。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる"
+"text": "霊獣を連れられない（召喚札はほかの人に使える）。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる"
 }
 ],
 "weathers": [
@@ -76,7 +76,7 @@
 "yomi": "はるいちばん",
 "kind": "random",
 "crest": "木",
-"text": "攻める相手がランダムになる"
+"text": "攻める相手がランダムになる（味方に当たることも！）"
 },
 {
 "id": "enten",
@@ -526,6 +526,17 @@
 "price": 1,
 "n": 4,
 "all": true
+},
+{
+"id": "abaregoma",
+"name": "暴れ独楽",
+"yomi": "あばれごま",
+"type": "weapon",
+"atk": 12,
+"price": 5,
+"n": 4,
+"fx": "rand",
+"chaos": true
 },
 {
 "id": "hinoko",
@@ -1385,6 +1396,29 @@
 "val": 5,
 "price": 10,
 "n": 5
+},
+{
+"id": "bakeha",
+"name": "狸の化け葉",
+"yomi": "たぬきのばけは",
+"type": "item",
+"eff": "hpswap",
+"val": 0,
+"price": 18,
+"n": 3,
+"tgt": "harm",
+"chaos": true
+},
+{
+"id": "fukuwarai",
+"name": "福笑い",
+"yomi": "ふくわらい",
+"type": "item",
+"eff": "shuffle",
+"val": 0,
+"price": 6,
+"n": 3,
+"chaos": true
 },
 {
 "id": "shokan",

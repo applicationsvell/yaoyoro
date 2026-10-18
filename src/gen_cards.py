@@ -2,6 +2,7 @@
 # 第5版：すべての札は4枚ずつ。はじめの手札は10枚で、使った札の数だけあとで引く
 # 第10版：道具は5枚ずつ、体力を回復する道具（おにぎり・三色団子・薬湯・仙桃）は8枚ずつに増やした
 # 第12版：召喚札は20枚。体力・霊力・小判の道具は＋5と＋10が20枚、＋15と＋20が10枚
+# 第13版：札はだれにでも使える。ハプニング札（暴れ独楽・狸の化け葉・福笑い）を追加（ハプニング「なし」の部屋では入らない）
 import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 N = 4        # 武器・防具・術・追撃・召喚は4枚
@@ -11,15 +12,17 @@ COUNT = {
     'onigiri': 20, 'dango': 20, 'yakuto': 10, 'sento': 10,              # 体力＋5・＋10・＋15・＋20
     'reisui': 20, 'reiyaku': 20, 'magatama': 10, 'hoju': 10,            # 霊力＋5・＋10・＋15・＋20
     'zenibukuro': 20, 'koban': 20, 'senryobako': 10, 'kozuchi': 10,     # 小判＋5・＋10・＋15・＋20
+    'bakeha': 3, 'fukuwarai': 3,                                        # ハプニング札（道具）
 }
 cards = []
 
 
-def W(id, name, yomi, atk, price, elem=None, all=False, fx=None):
+def W(id, name, yomi, atk, price, elem=None, all=False, fx=None, chaos=False):
     c = {'id': id, 'name': name, 'yomi': yomi, 'type': 'weapon', 'atk': atk, 'price': price, 'n': N}
     if elem: c['elem'] = elem
     if all: c['all'] = True
     if fx: c['fx'] = fx
+    if chaos: c['chaos'] = True   # ハプニング札
     cards.append(c)
 
 
@@ -39,9 +42,10 @@ def S(id, name, yomi, mp, eff, val, tgt, price, elem=None, nodef=False):
     cards.append(c)
 
 
-def I(id, name, yomi, eff, val, price, tgt=None):
+def I(id, name, yomi, eff, val, price, tgt=None, chaos=False):
     c = {'id': id, 'name': name, 'yomi': yomi, 'type': 'item', 'eff': eff, 'val': val, 'price': price, 'n': COUNT.get(id, N_ITEM)}
     if tgt: c['tgt'] = tgt
+    if chaos: c['chaos'] = True   # ハプニング札
     cards.append(c)
 
 
@@ -78,6 +82,8 @@ W('murakumo', '天叢雲剣', 'あめのむらくものつるぎ', 30, 30)
 W('yabusuma', '矢ぶすま', 'やぶすま', 3, 1, all=True)
 W('horoku', '焙烙玉', 'ほうろくだま', 4, 8, all=True)
 W('ozutsu', '大筒', 'おおづつ', 6, 1, all=True)
+# ---- ハプニング札：だれに当たるか分からない大技（自分以外のだれか。味方のことも）
+W('abaregoma', '暴れ独楽', 'あばれごま', 12, 5, fx='rand', chaos=True)
 # ---- 武器：属性つき（2〜7）。同じ属性の守札でしか守れない。同じ属性どうしは重ねられる
 W('hinoko', '火の粉', 'ひのこ', 2, 3, '火')
 W('hiya', '火矢', 'ひや', 4, 6, '火')
@@ -168,6 +174,9 @@ I('jobutsu', '成仏札', 'じょうぶつふだ', 'jobutsu', 50, 6, 'beast')
 I('sandatsu', '簒奪札', 'さんだつふだ', 'usurp', 0, 8, 'enemy')
 I('oshiuri', '押し売り札', 'おしうりふだ', 'sell', 0, 8, 'foe')
 I('seiren', '精錬札', 'せいれんふだ', 'refine', 5, 10)
+# ---- ハプニング札（道具）
+I('bakeha', '狸の化け葉', 'たぬきのばけは', 'hpswap', 0, 18, 'harm', chaos=True)
+I('fukuwarai', '福笑い', 'ふくわらい', 'shuffle', 0, 6, chaos=True)
 # ---- 召喚札：使うと霊獣がランダムで出てくる
 cards.append({'id': 'shokan', 'name': '召喚札', 'yomi': 'しょうかんふだ', 'type': 'summon', 'mp': 3, 'price': 5, 'n': COUNT['shokan']})
 beasts = [
@@ -198,11 +207,11 @@ guards = [
     {'id': 'oni', 'name': '天邪鬼', 'yomi': 'あまのじゃく', 'elem': '金', 'hp': 30, 'mp': 25, 'gold': 20, 'deflectRate': 0.4,
      'skill': '幻惑', 'text': '武器で攻められたとき、40%の確率で攻撃を弾く（弾いた攻撃は流れ弾になって全員の中からランダムに1人に飛ぶ。飛んだ先の人は守札で守れる）'},
     {'id': 'ryujin', 'name': '龍神', 'yomi': 'りゅうじん', 'elem': '水', 'hp': 60, 'mp': 15, 'gold': 20, 'noSummon': True, 'noMpGain': True, 'weaponBonus': 5, 'armorHalf': True,
-     'skill': '龍神の加護', 'text': '霊獣を呼べない。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる'},
+     'skill': '龍神の加護', 'text': '霊獣を連れられない（召喚札はほかの人に使える）。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる'},
 ]
 # ---- 天候（札帳で書きかえてもらったもの）
 weathers = [
-    {'id': 'haru', 'name': '春一番', 'yomi': 'はるいちばん', 'kind': 'random', 'crest': '木', 'text': '攻める相手がランダムになる'},
+    {'id': 'haru', 'name': '春一番', 'yomi': 'はるいちばん', 'kind': 'random', 'crest': '木', 'text': '攻める相手がランダムになる（味方に当たることも！）'},
     {'id': 'enten', 'name': '炎天', 'yomi': 'えんてん', 'kind': 'power', 'bonus': 2, 'crest': '火', 'text': '攻撃と術のダメージ＋2'},
     {'id': 'jinari', 'name': '地鳴り', 'yomi': 'じなり', 'kind': 'power', 'bonus': -2, 'crest': '土', 'text': '攻撃と術のダメージ−2'},
     {'id': 'shuso', 'name': '秋霜', 'yomi': 'しゅうそう', 'kind': 'onecard', 'crest': '金', 'text': '守るときに出せる札は1枚まで'},

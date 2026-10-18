@@ -202,6 +202,7 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
   background: rgba(120, 36, 24, .92); color: #fff3ea; font: 700 12.5px/1.4 var(--gothic); text-align: center; box-shadow: 0 0 0 1px rgba(255, 200, 180, .4), 0 4px 14px rgba(0, 0, 0, .5); pointer-events: none; animation: nbPulse 1.6s ease-in-out infinite; }
 @keyframes nbPulse { 50% { opacity: .75; } }
 .seg-l { font-size: 12.5px; color: var(--text-2); font-weight: 700; margin-bottom: 5px; }
+.seg-l small { display: block; font-weight: 500; font-size: 11px; color: var(--text-3, var(--text-2)); opacity: .85; margin-top: 1px; }
 .seg { display: flex; border: 1px solid var(--line-2); border-radius: 4px; overflow: hidden; }
 .seg button { flex: 1; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--text-2); border-left: 1px solid var(--line); text-align: center; }
 .seg button:first-child { border-left: 0; }
@@ -387,6 +388,11 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
 .hx-l.good .hx-h, .hx-l.good b { color: var(--kin-hi); } .hx-l.bad .hx-h, .hx-l.bad b { color: #c9a6ef; }
 .hx-tag { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; margin-right: .3em; border-radius: 3px; font-size: .8em; vertical-align: .08em; }
 .hx-tag.good { background: var(--kin); color: var(--sumi); } .hx-tag.bad { background: #6a4f85; color: #fff; }
+/* ハプニングの判（朱の丸い印） */
+.hp-seal { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; font: 900 46px/1 var(--mincho); color: #fff6e6; background: radial-gradient(circle at 35% 30%, #e0603f, #a8301e 70%); border: 3px double #ffe2b0; box-shadow: 0 0 0 3px rgba(168, 48, 30, .35), 0 8px 24px rgba(0, 0, 0, .45); transform: rotate(-8deg); }
+.hp-seal.sm { width: 46px; height: 46px; font-size: 25px; border-width: 2px; flex: none; }
+.telop.chaos { color: #ffe08a; text-shadow: 0 0 18px rgba(255, 170, 60, .55); }
+.rk .ff { color: #f6b0a0; }
 .ghost-emb { display: block; filter: grayscale(.6) brightness(1.2) drop-shadow(0 0 10px rgba(190, 210, 255, .8)); opacity: .9; }
 .telop.ghost { color: #e6dcff; }
 .acts .btn.btn-s { flex: .55; }

@@ -26,9 +26,9 @@ def new_context(p, browser, size=(402, 812), pad=(47, 34), mobile=True):
     return ctx
 
 
-def open_page(ctx, tag='', speed=1, fake=False):
+def open_page(ctx, tag='', speed=1, fake=False, hook=False):
     page = ctx.new_page()
-    page.add_init_script('window.__YAO_TEST = ' + json.dumps({'tag': tag, 'speed': speed}) + ';')
+    page.add_init_script('window.__YAO_TEST = ' + json.dumps({'tag': tag, 'speed': speed, 'hook': hook}) + ';')
     if fake:
         page.add_init_script(FAKE)
     errs = []
@@ -257,7 +257,7 @@ def test_practice(p, browser):
     page.wait_for_timeout(200)
     tap(page, '#mHow')
     page.wait_for_timeout(200)
-    for i in range(8):
+    for i in range(page.locator('#howTabs button').count()):
         tap(page, '#howTabs button', i)
         page.wait_for_timeout(120)
         if i in (0, 1, 3, 4):

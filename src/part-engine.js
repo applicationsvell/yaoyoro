@@ -42,6 +42,22 @@ const guardOf = p => GUARD[p.guardian] || GUARD_LIST[0];
 const sameTeam = (a, b) => a.team === b.team;
 const enemiesOf = (G, p) => G.players.filter(t => t.alive && t.pid !== p.pid && !sameTeam(t, p));
 const alliesOf = (G, p) => G.players.filter(t => t.alive && sameTeam(t, p));
+const othersOf = (G, p) => G.players.filter(t => t.alive && t.pid !== p.pid);   /* 自分以外の全員（味方もふくむ） */
+/* 札をだれに向けるか。札はだれにでも使える（チームの味方にも、相手にも）
+   all＝相手全員　harm＝自分以外のだれか1人（味方も）　help＝自分をふくめてだれでも1人　none＝相手はいらない */
+function aimOf(C) {
+  if (!C) return 'none';
+  if (C.type === 'weapon') return C.all ? 'all' : 'harm';
+  if (C.type === 'spell') return C.tgt === 'all' ? 'all' : C.eff === 'heal' || C.eff === 'mist' ? 'help' : 'harm';
+  if (C.type === 'item') return C.eff === 'refine' || C.eff === 'shuffle' ? 'none' : ['jobutsu', 'usurp', 'sell', 'hpswap'].includes(C.eff) ? 'harm' : 'help';
+  if (C.type === 'summon') return 'help';
+  return 'none';
+}
+/* ハプニングの多さ（0＝なし・1＝ふつう・2＝多め）。すっぽ抜け・会心の一撃・巡のはじめのハプニング・ハプニング札 */
+const chaosLv = G => { const v = G && G.settings && G.settings.chaos; return v === 0 || v === 2 ? v : 1; };
+const SLIP_RATE = [0, 0.05, 0.1], CRIT_RATE = [0, 0.06, 0.1], HAPPEN_RATE = [0, 0.35, 0.7];
+/* となりの人（番の順で次の、生きている人） */
+function nextAlive(G, p) { const n = G.players.length; for (let k = 1; k < n; k++) { const t = G.players[(p.pid + k) % n]; if (t.alive) return t; } return null; }
 const handCard = (p, u) => p.hand.find(h => h.u === u) || null;
 /* 術札は使っても手札（術札ゾーン）に残る。手札の枚数には数えず、同じ術は1枚だけ持てる */
 const isSpellId = c => !!CARD[c] && CARD[c].type === 'spell';
@@ -116,7 +132,7 @@ function refreshShop(G) { G.shop.forEach(h => G.discard.push(h.c)); G.shop = [];
 
 /* ---------- new game ---------- */
 function newGame(seats, settings, seed, now) {
-  const st = Object.assign({ teams: 0, turnSec: 60, defSec: 20 }, settings || {});
+  const st = Object.assign({ teams: 0, turnSec: 60, defSec: 20, chaos: 1 }, settings || {});
   const G = {
     v: 2, rng: (seed | 0) || 1, round: 1, turn: 1, cur: 0, uid: 1, seq: 0, log: [], phase: 'act', pend: null, queue: [], used: {}, wxVote: {}, ghost: {}, hexQ: [],
     deadline: 0, turnAt: now || 0, ko: [], winner: null, settings: st, deck: [], discard: [], shop: [], players: [],
@@ -130,11 +146,11 @@ function newGame(seats, settings, seed, now) {
     return {
       pid: i, cid: s.cid || null, name: String(s.name || '名無し').slice(0, 10), cpu: !!s.cpu, guardian: g.id, team,
       hp: g.hp, hp0: g.hp, mp: g.mp, gold: g.gold, hand: [], st: freshSt(), beast: null,
-      alive: true, dealt: 0, kos: 0,
+      alive: true, dealt: 0, kos: 0, ff: 0,
     };
   });
   if (st.teams >= 2 && teamsUsed.size < 2) { st.teams = 0; G.players.forEach(p => { p.team = p.pid; }); }
-  CARD_LIST.forEach(c => { for (let k = 0; k < (c.n || 0); k++) G.deck.push(c.id); });
+  CARD_LIST.forEach(c => { if (c.chaos && !chaosLv(G)) return; for (let k = 0; k < (c.n || 0); k++) G.deck.push(c.id); });
   shuffleG(G, G.deck);
   G.players.forEach(p => drawTo(G, p, HAND0));
   logE(G, { k: 'start' });
@@ -199,7 +215,7 @@ function advance(G, now) {
   let i = G.cur;
   for (let k = 0; k < n * 3; k++) {
     i = (i + 1) % n;
-    if (i === 0) { G.round++; changeWeather(G); refreshShop(G); }
+    if (i === 0) { G.round++; changeWeather(G); refreshShop(G); happening(G); }
     if (!G.players[i].alive) continue;
     G.cur = i; G.turn++;
     beginTurn(G, now);
@@ -213,7 +229,7 @@ function hurt(G, t, amt, by) {
   if (!t.alive || amt <= 0) return 0;
   if (t.st.shell > 0) { const cut = Math.min(t.st.shell, amt); amt -= cut; t.st.shell = 0; logE(G, { k: 'shell', p: t.pid, cut }); if (amt <= 0) return 0; }
   t.hp -= amt;
-  if (by != null && by !== t.pid && G.players[by]) G.players[by].dealt += amt;
+  if (by != null && by !== t.pid && G.players[by]) { G.players[by].dealt += amt; if (G.settings.teams && sameTeam(G.players[by], t)) G.players[by].ff = (G.players[by].ff || 0) + amt; }
   if (t.beast && t.hp > 0 && rnd(G) < BEAST_LEAVE_ON_HIT) { logE(G, { k: 'beastgone', p: t.pid, b: t.beast, why: 'hit' }); t.beast = null; }
   if (t.hp <= 0) ko(G, t, by);
   return amt;
@@ -352,26 +368,98 @@ function resolveHexes(G) {
   });
 }
 
+/* ---------- ハプニング：巡のはじめに、ときどき思いがけないことが起きる ---------- */
+const HAPPENINGS = [
+  { id: 'nezumi', name: 'ねずみ小僧', yomi: 'ねずみこぞう', text: '小判がいちばん多い人から15両を、いちばん少ない人へ' },
+  { id: 'nagareboshi', name: '流れ星', yomi: 'ながれぼし', text: 'だれか1人が札を2枚引く' },
+  { id: 'jishin', name: '地震', yomi: 'じしん', text: '全員の体力−3（1より下にはならない）' },
+  { id: 'matsuri', name: 'お祭り', yomi: 'おまつり', text: '全員の体力＋5' },
+  { id: 'yomeiri', name: '狐の嫁入り', yomi: 'きつねのよめいり', text: '全員が手札を1枚ずつ、となりの人へ渡す（どの札かはランダム）' },
+  { id: 'irekawari', name: '魂の入れかわり', yomi: 'たましいのいれかわり', text: 'だれか2人の体力が入れかわる' },
+  { id: 'iede', name: '霊獣の家出', yomi: 'れいじゅうのいえで', text: '霊獣がみんな、となりの人のところへ引っこす' },
+  { id: 'takarakuji', name: '宝くじ', yomi: 'たからくじ', text: 'だれか1人に小判＋20両' },
+];
+function happening(G, force) {
+  const lv = chaosLv(G);
+  if (!force && (!lv || rnd(G) >= HAPPEN_RATE[lv])) return null;
+  const alive = G.players.filter(p => p.alive);
+  if (alive.length < 2) return null;
+  const rich = alive.slice().sort((a, b) => b.gold - a.gold)[0], poor = alive.slice().sort((a, b) => a.gold - b.gold)[0];
+  const ok = {
+    nezumi: rich.gold > 0 && rich.gold > poor.gold,
+    yomeiri: alive.filter(p => looseHand(p).length).length >= 1,
+    irekawari: new Set(alive.map(p => p.hp)).size > 1,
+    iede: alive.some(p => p.beast),
+  };
+  const pool = HAPPENINGS.filter(h => ok[h.id] !== false && (!force || force === true || force === h.id));
+  const H = pickOne(G, pool); if (!H) return null;
+  const e = { k: 'happen', id: H.id };
+  switch (H.id) {
+    case 'nezumi': { const v = Math.min(15, rich.gold); rich.gold -= v; gainGold(poor, v); Object.assign(e, { from: rich.pid, to: poor.pid, v }); break; }
+    case 'nagareboshi': { const t = pickOne(G, alive); e.to = t.pid; e.got = drawTo(G, t, 2); break; }
+    case 'jishin': e.hits = alive.map(p => { const d = Math.max(0, Math.min(3, p.hp - 1)); p.hp -= d; return { p: p.pid, d }; }); break;
+    case 'matsuri': e.heals = alive.map(p => ({ p: p.pid, v: heal(p, 5) })); break;
+    case 'yomeiri': {
+      /* いっせいに渡す：先に全員の渡す札を決めてから、となりへ */
+      const give = alive.map(p => { const L = looseHand(p); const h = L.length ? L[Math.floor(rnd(G) * L.length)] : null; return { p, h, to: nextAlive(G, p) }; });
+      give.forEach(x => { if (x.h) x.p.hand.splice(x.p.hand.indexOf(x.h), 1); });
+      e.moves = give.filter(x => x.h).map(x => {
+        if (handN(x.to) < HAND_MAX) { x.to.hand.push(x.h); return { f: x.p.pid, t: x.to.pid, c: x.h.c }; }
+        G.discard.push(x.h.c); return { f: x.p.pid, t: -1, c: x.h.c };
+      });
+      break;
+    }
+    case 'irekawari': {
+      const a = pickOne(G, alive), b = pickOne(G, alive.filter(p => p !== a && p.hp !== a.hp)) || pickOne(G, alive.filter(p => p !== a));
+      Object.assign(e, { a: a.pid, b: b.pid, ha: a.hp, hb: b.hp });
+      [a.hp, b.hp] = [b.hp, a.hp];
+      break;
+    }
+    case 'iede': {
+      /* いっせいに引っこす。龍神のところへ来た霊獣は、いられずに去る */
+      const was = alive.map(p => ({ p, b: p.beast, to: nextAlive(G, p) }));
+      alive.forEach(p => { p.beast = null; });
+      e.moves = was.filter(x => x.b).map(x => {
+        if (guardOf(x.to).noSummon) return { f: x.p.pid, t: -1, b: x.b };
+        x.to.beast = x.b; return { f: x.p.pid, t: x.to.pid, b: x.b };
+      });
+      break;
+    }
+    case 'takarakuji': { const t = pickOne(G, alive); e.to = t.pid; e.v = gainGold(t, 20); break; }
+  }
+  logE(G, e);
+  return e;
+}
+/* 福笑い：全員の手札（術札をのぞく）を集めてまぜ、もとの枚数ずつ配り直す */
+function fukuwarai(G, p) {
+  const alive = G.players.filter(t => t.alive);
+  const pool = [], cnt = {};
+  alive.forEach(t => { const L = looseHand(t); cnt[t.pid] = L.length; L.forEach(h => { t.hand.splice(t.hand.indexOf(h), 1); pool.push(h); }); });
+  shuffleG(G, pool);
+  const deal = {};
+  alive.forEach(t => { deal[t.pid] = []; for (let k = 0; k < cnt[t.pid]; k++) { const h = pool.pop(); t.hand.push(h); deal[t.pid].push(h.c); } });
+  return { cnt, deal };
+}
+
 /* ---------- what can be done (also used by the screen and the CPU) ---------- */
+/* えらべる相手。霧隠れの人は、ほかの人からはえらべない（自分にはいつでも使える） */
 function targetsFor(G, p, C) {
   if (!C) return [];
-  if (C.type === 'weapon') return enemiesOf(G, p).filter(t => !t.st.mist);
-  if (C.type === 'spell') {
-    if (C.tgt === 'enemy' || C.tgt === 'all') return enemiesOf(G, p).filter(t => !t.st.mist);
-    if (C.tgt === 'ally') return alliesOf(G, p);
-    if (C.tgt === 'self') return [p];
+  const aim = aimOf(C);
+  if (aim === 'all') return enemiesOf(G, p).filter(t => !t.st.mist);
+  if (aim === 'none') return [p];
+  const others = othersOf(G, p).filter(t => !t.st.mist);
+  if (aim === 'harm') {
+    if (C.eff === 'jobutsu') return others.filter(t => t.beast);
+    if (C.eff === 'usurp') return others.filter(t => looseHand(t).length > 0);
+    return others;
   }
-  if (C.type === 'item') {
-    if (C.tgt === 'beast') return enemiesOf(G, p).filter(t => t.beast && !t.st.mist);
-    if (C.tgt === 'enemy') return enemiesOf(G, p).filter(t => looseHand(t).length > 0 && !t.st.mist);
-    if (C.tgt === 'foe') return enemiesOf(G, p).filter(t => !t.st.mist);
-    return [p];
-  }
-  if (C.type === 'summon') return [p];
-  return [];
+  const L = [p].concat(others);
+  return C.type === 'summon' ? L.filter(t => !guardOf(t).noSummon) : L;
 }
-/* 天候「春一番」：攻める相手がランダム（相手1人を狙う武器と術） */
-const randomTarget = (G, C) => wKind(G, 'random') && ((C.type === 'weapon' && !C.all) || (C.type === 'spell' && C.tgt === 'enemy'));
+/* だれに当たるかランダム：天候「春一番」の武器と術（1人を狙うもの。味方に当たることも）・暴れ独楽 */
+const randomTarget = (G, C) => !!C && ((C.type === 'weapon' && C.fx === 'rand') || (wKind(G, 'random') && ((C.type === 'weapon' && !C.all) || (C.type === 'spell' && aimOf(C) === 'harm'))));
+const randomPick = (G, p) => pickOne(G, othersOf(G, p).filter(x => !x.st.mist));
 /* 使えない理由（なければ null） */
 function whyNot(G, p, C) {
   if (!C) return 'bad';
@@ -381,8 +469,8 @@ function whyNot(G, p, C) {
     if (p.mp < spellCost(G, p, C)) return 'mp';
   }
   if (C.type === 'summon') {
-    if (guardOf(p).noSummon) return 'nosummon';
     if (p.mp < summonCost(p, C)) return 'mp';
+    if (!targetsFor(G, p, C).length) return 'target';
     return null;
   }
   if (C.type === 'item' && C.eff === 'sell' && looseHand(p).length < 2) return 'nosell';
@@ -517,16 +605,23 @@ function doAttack(G, p, a, now) {
   const err = attackCheck(G, p, wsU, addsU); if (err) return err;
   const Ws = wsU.map(u => CARD[handCard(p, u).c]);
   const lead = Ws.slice().sort((x, y) => y.atk - x.atk)[0];
-  let targets;
+  let targets, slip = null;
   if (lead.all) targets = enemiesOf(G, p).filter(t => !t.st.mist);
-  else if (randomTarget(G, lead)) { const t = pickOne(G, enemiesOf(G, p).filter(x => !x.st.mist)); targets = t ? [t] : []; }
+  else if (randomTarget(G, lead)) { const t = randomPick(G, p); targets = t ? [t] : []; }
   else {
-    const t = G.players[a.to];
-    if (!t || !t.alive || t.pid === p.pid || sameTeam(t, p) || t.st.mist) return 'target';
+    let t = G.players[a.to];
+    if (!t || !t.alive || t.pid === p.pid || t.st.mist) return 'target';
+    /* ハプニング「すっぽ抜け」：手がすべって、ねらった人とはちがうだれかに飛ぶ（味方のことも） */
+    if (rnd(G) < SLIP_RATE[chaosLv(G)]) {
+      const pool = othersOf(G, p).filter(x => !x.st.mist && x.pid !== t.pid);
+      if (pool.length) { slip = t.pid; t = pickOne(G, pool); }
+    }
     targets = [t];
   }
   if (!targets.length) return 'target';
-  const base = attackBase(G, p, wsU, addsU);
+  /* ハプニング「会心の一撃」：攻撃が2倍 */
+  const crit = rnd(G) < CRIT_RATE[chaosLv(G)];
+  const base = attackBase(G, p, wsU, addsU) * (crit ? 2 : 1);
   const kiai = p.st.kiai > 0, boost = p.st.boost || 0;
   p.st.kiai = 0; p.st.boost = 0;
   const addIds = addsU.map(u => handCard(p, u).c);
@@ -536,9 +631,9 @@ function doAttack(G, p, a, now) {
   const elem = lead.elem || null;
   targets.forEach(t => { aff[t.pid] = affinity(elem, guardOf(t).elem); atk[t.pid] = applyAff(base, aff[t.pid]); });
   const draws = Ws.filter(W => W.fx === 'draw').length;
-  startDefend(G, { kind: 'attack', by: p.pid, card: lead.id, cards: Ws.map(W => W.id), adds: addIds, elem, base, atk, aff, kiai, boost, draws,
+  startDefend(G, { kind: 'attack', by: p.pid, card: lead.id, cards: Ws.map(W => W.id), adds: addIds, elem, base, atk, aff, kiai, boost, draws, crit, slip,
     targets: targets.map(t => t.pid), resp: {}, at: now }, now);
-  logE(G, { k: 'declare', by: p.pid, card: lead.id, cards: G.pend.cards, adds: addIds, targets: G.pend.targets, atk, aff, kiai, boost, base, elem });
+  logE(G, { k: 'declare', by: p.pid, card: lead.id, cards: G.pend.cards, adds: addIds, targets: G.pend.targets, atk, aff, kiai, boost, base, elem, crit, slip });
   return null;
 }
 function doSpell(G, p, a, now) {
@@ -548,23 +643,23 @@ function doSpell(G, p, a, now) {
   if (p.st.seal > 0) return 'sealed';
   const cost = spellCost(G, p, S);
   if (p.mp < cost) return 'mp';
+  const aim = aimOf(S);
   let targets;
-  if (S.tgt === 'all') targets = enemiesOf(G, p).filter(t => !t.st.mist);
-  else if (randomTarget(G, S)) { const t = pickOne(G, enemiesOf(G, p).filter(x => !x.st.mist)); targets = t ? [t] : []; }
-  else if (S.tgt === 'self') targets = [p];
-  else if (S.tgt === 'ally') {
+  if (aim === 'all') targets = enemiesOf(G, p).filter(t => !t.st.mist);
+  else if (randomTarget(G, S)) { const t = randomPick(G, p); targets = t ? [t] : []; }
+  else if (aim === 'help') {
     const t = a.to == null ? p : G.players[a.to];
-    if (!t || !t.alive || !sameTeam(t, p)) return 'target';
+    if (!t || !targetsFor(G, p, S).includes(t)) return 'target';
     targets = [t];
   } else {
     const t = G.players[a.to];
-    if (!t || !t.alive || t.pid === p.pid || sameTeam(t, p) || t.st.mist) return 'target';
+    if (!t || !t.alive || t.pid === p.pid || t.st.mist) return 'target';
     targets = [t];
   }
   if (!targets.length) return 'target';
   p.mp -= cost;
   /* 術札は使っても手札に残る（捨てない・引かない） */
-  if (S.tgt === 'self' || S.tgt === 'ally') {
+  if (aim === 'help') {
     const t = targets[0];
     let v = 0;
     if (S.eff === 'heal') v = heal(t, S.val);
@@ -587,9 +682,10 @@ function doSpell(G, p, a, now) {
 function doItem(G, p, a, now) {
   const h = handCard(p, a.i); if (!h) return 'bad';
   const I = CARD[h.c]; if (!I || I.type !== 'item') return 'bad';
-  let t = null;
-  if (I.tgt === 'beast' || I.tgt === 'enemy' || I.tgt === 'foe') {
-    t = G.players[a.to];
+  const aim = aimOf(I);
+  let t = p;
+  if (aim === 'harm' || aim === 'help') {
+    t = a.to == null ? (aim === 'help' ? p : null) : G.players[a.to];
     if (!t || !targetsFor(G, p, I).includes(t)) return 'target';
   }
   /* 押し売り：売りつける札（自分の手札の別の札） */
@@ -617,15 +713,30 @@ function doItem(G, p, a, now) {
     endTurn(G, now);
     return null;
   }
-  const e = { k: 'item', by: p.pid, card: I.id, hp: 0, mp: 0, gold: 0 };
-  if (I.eff === 'heal') e.hp = heal(p, I.val);
-  if (I.eff === 'mp') e.mp = gainMp(p, I.val);
-  if (I.eff === 'gold') e.gold = gainGold(p, I.val);
-  if (I.eff === 'maneki') { e.gold = gainGold(p, I.val); e.mp = gainMp(p, 3); }
-  if (I.eff === 'kiai') { p.st.kiai = 1; e.kiai = true; }
-  if (I.eff === 'cleanse') { e.cured = p.st.curse > 0 || p.st.seal > 0; p.st.curse = 0; p.st.seal = 0; e.hp = heal(p, I.val); }
+  if (I.eff === 'hpswap') {
+    /* 狸の化け葉：えらんだ人と体力を入れかえる（守れない） */
+    const e = { k: 'hpswap', by: p.pid, to: t.pid, card: I.id, ha: p.hp, hb: t.hp };
+    [p.hp, t.hp] = [t.hp, p.hp];
+    logE(G, e);
+    endTurn(G, now);
+    return null;
+  }
+  if (I.eff === 'shuffle') {
+    const r = fukuwarai(G, p);
+    logE(G, { k: 'fukuwarai', by: p.pid, card: I.id, cnt: r.cnt, deal: r.deal });
+    endTurn(G, now);
+    return null;
+  }
+  /* 体力・霊力・小判・気合・清めは、えらんだ人（自分・味方・相手のだれでも）に効く */
+  const e = { k: 'item', by: p.pid, to: t.pid, card: I.id, hp: 0, mp: 0, gold: 0 };
+  if (I.eff === 'heal') e.hp = heal(t, I.val);
+  if (I.eff === 'mp') e.mp = gainMp(t, I.val);
+  if (I.eff === 'gold') e.gold = gainGold(t, I.val);
+  if (I.eff === 'maneki') { e.gold = gainGold(t, I.val); e.mp = gainMp(t, 3); }
+  if (I.eff === 'kiai') { t.st.kiai = 1; e.kiai = true; }
+  if (I.eff === 'cleanse') { e.cured = t.st.curse > 0 || t.st.seal > 0; t.st.curse = 0; t.st.seal = 0; e.hp = heal(t, I.val); }
   if (I.eff === 'jobutsu') {
-    e.to = t.pid; e.b = t.beast;
+    e.b = t.beast;
     e.ok = rnd(G) < JOBUTSU_RATE;
     if (e.ok) t.beast = null;
   }
@@ -685,17 +796,19 @@ function doUsurpDecide(G, p, buy, now) {
 function doSummon(G, p, a, now) {
   const s = handCard(p, a.s); if (!s) return 'bad';
   const S = CARD[s.c]; if (!S || S.type !== 'summon') return 'bad';
-  if (guardOf(p).noSummon) return 'nosummon';
   const cost = summonCost(p, S);
   if (p.mp < cost) return 'mp';
+  /* 霊獣は、自分にも味方にも相手にもつけられる（龍神にはつけられない） */
+  const t = a.to == null ? p : G.players[a.to];
+  if (!t || !targetsFor(G, p, S).includes(t)) return guardOf(t || p).noSummon ? 'nosummon' : 'target';
   p.mp -= cost;
   removeCards(G, p, [a.s]).forEach(c => G.discard.push(c));
   useCount(G, p.pid, 1);
-  const old = p.beast;
+  const old = t.beast;
   /* どの霊獣が出るかはランダム（いまの霊獣とは別のもの） */
   const pick = pickOne(G, BEAST_LIST.filter(B => B.id !== old)) || BEAST_LIST[0];
-  p.beast = pick.id;
-  logE(G, { k: 'summon', by: p.pid, b: p.beast, old, card: S.id });
+  t.beast = pick.id;
+  logE(G, { k: 'summon', by: p.pid, to: t.pid, b: t.beast, old, card: S.id });
   endTurn(G, now);
   return null;
 }
@@ -872,6 +985,9 @@ function cpuChoose(G, pid) {
   const immune = (t, elem) => (fireImmune(t, elem) ? 0 : 1);
   const cands = [];
   const add = (v, a) => cands.push({ v: v + rnd(G) * 0.5, a });
+  /* だれに当たるかランダムなとき（春一番・暴れ独楽）：味方に当たるとマイナスで見積もる */
+  const rndPool = othersOf(G, p).filter(t => !t.st.mist);
+  const randVal = f => (rndPool.length ? rndPool.reduce((s, t) => s + (sameTeam(t, p) ? -1.3 : 1) * f(t), 0) / rndPool.length : 0);
   const pluses = hand.filter(x => x.C.type === 'plus');
   const plusSum = pluses.reduce((s, x) => s + x.C.atk, 0);
   /* 守られそうな量：属性の攻撃は守りにくい */
@@ -901,11 +1017,12 @@ function cpuChoose(G, pid) {
       enemies.forEach(t => { const d = Math.max(0, applyAff(base, affinity(elem, guardOf(t).elem)) - expDef(t, elem)) * immune(t, elem); v += d + (d >= t.hp ? 8 : 0); });
       add(v * 0.9 - adds.length * 0.6, { t: 'attack', ws, adds });
     } else {
-      enemies.forEach(t => {
+      const val = t => {
         const d = Math.max(0, applyAff(base, affinity(elem, guardOf(t).elem)) - expDef(t, elem)) * immune(t, elem) * (guardOf(t).deflectRate ? 1 - guardOf(t).deflectRate : 1);
-        const v = d + (d >= t.hp ? 10 : 0) + (1 - Math.min(1, t.hp / t.hp0)) * 3 - cost + (W.fx === 'draw' ? 1 : 0);
-        add(v, { t: 'attack', ws, adds, to: t.pid });
-      });
+        return d + (d >= t.hp ? 10 : 0) + (1 - Math.min(1, t.hp / t.hp0)) * 3;
+      };
+      if (randomTarget(G, W)) { add(randVal(val) - cost + (W.fx === 'draw' ? 1 : 0), { t: 'attack', ws, adds }); return; }
+      enemies.forEach(t => add(val(t) - cost + (W.fx === 'draw' ? 1 : 0), { t: 'attack', ws, adds, to: t.pid }));
     }
   });
   /* spells */
@@ -916,12 +1033,16 @@ function cpuChoose(G, pid) {
       if (S.tgt === 'all') {
         let v = 0; enemies.forEach(t => { const d = (applyAff(base, affinity(S.elem, guardOf(t).elem)) - expDef(t, S.elem) * 0.5) * immune(t, S.elem); v += Math.max(0, d) + (d >= t.hp ? 8 : 0); });
         add(v - 1, { t: 'spell', s: x.h.u });
+      } else if (randomTarget(G, S)) {
+        add(randVal(t => { const d = (applyAff(base, affinity(S.elem, guardOf(t).elem)) - expDef(t, S.elem) * 0.5) * immune(t, S.elem); return Math.max(0, d) + (d >= t.hp ? 10 : 0); }) - 0.5, { t: 'spell', s: x.h.u });
       } else enemies.forEach(t => {
         const d = (applyAff(base, affinity(S.elem, guardOf(t).elem)) - expDef(t, S.elem) * 0.5) * immune(t, S.elem);
         add(Math.max(0, d) + (d >= t.hp ? 10 : 0) + (S.eff === 'drain' && hpRate < 0.6 ? 4 : 0) - 0.5, { t: 'spell', s: x.h.u, to: t.pid });
       });
     } else if (S.eff === 'heal') {
       alliesOf(G, p).filter(t => t.hp / t.hp0 < 0.7).forEach(t => add(Math.min(S.val, HP_CAP - t.hp, t.hp0 - t.hp) * (t.hp / t.hp0 < 0.35 ? 1.3 : 0.75) + (t.pid === p.pid ? 1 : 0), { t: 'spell', s: x.h.u, to: t.pid }));
+    } else if (randomTarget(G, S)) {
+      /* 春一番のあいだの呪い・封印・神隠しは、味方に当たるかもしれないので使わない */
     } else if (S.eff === 'curse') {
       enemies.filter(t => t.st.curse <= 0).forEach(t => add(4 + t.hp / 20 - t.hand.length * 0.15, { t: 'spell', s: x.h.u, to: t.pid }));
     } else if (S.eff === 'seal') {
@@ -933,12 +1054,27 @@ function cpuChoose(G, pid) {
     }
   });
   /* summon */
-  if (!g.noSummon) hand.filter(x => x.C.type === 'summon' && p.mp >= summonCost(p, x.C)).forEach(x => add(p.beast ? 0.8 : 5 + enemies.length * 0.3, { t: 'summon', s: x.h.u }));
+  hand.filter(x => x.C.type === 'summon' && p.mp >= summonCost(p, x.C)).forEach(x => {
+    if (!g.noSummon) add(p.beast ? 0.8 : 5 + enemies.length * 0.3, { t: 'summon', s: x.h.u });
+    /* 霊獣のいない味方につける（龍神は自分につけられないので、味方につける） */
+    alliesOf(G, p).filter(t => t !== p && !t.beast && !t.st.mist && !guardOf(t).noSummon).forEach(t => add((g.noSummon ? 4.5 : 2.5) + enemies.length * 0.2, { t: 'summon', s: x.h.u, to: t.pid }));
+  });
+  const mates = alliesOf(G, p).filter(t => t !== p && !t.st.mist);
   /* items */
   hand.filter(x => x.C.type === 'item').forEach(x => {
     const I = x.C;
-    if (I.eff === 'heal') { const lost = p.hp0 - p.hp; if (lost >= I.val * 0.8) add(Math.min(lost, I.val) * (hpRate < 0.5 ? 1.6 : 0.8), { t: 'item', i: x.h.u }); else if (nh >= HAND_MAX - 1) add(1 + I.val * 0.05, { t: 'item', i: x.h.u }); }
+    if (I.eff === 'heal') {
+      const lost = p.hp0 - p.hp; if (lost >= I.val * 0.8) add(Math.min(lost, I.val) * (hpRate < 0.5 ? 1.6 : 0.8), { t: 'item', i: x.h.u }); else if (nh >= HAND_MAX - 1) add(1 + I.val * 0.05, { t: 'item', i: x.h.u });
+      /* 味方の体力も回復できる */
+      mates.forEach(t => { const ml = t.hp0 - t.hp; if (ml >= I.val * 0.8) add(Math.min(ml, I.val) * (t.hp / t.hp0 < 0.4 ? 1.4 : 0.6), { t: 'item', i: x.h.u, to: t.pid }); });
+    }
     if (I.eff === 'cleanse' && (p.st.curse > 0 || p.st.seal > 0)) add(8 + p.st.curse * 2, { t: 'item', i: x.h.u });
+    if (I.eff === 'cleanse') mates.filter(t => t.st.curse > 0).forEach(t => add(5 + t.st.curse * 1.5, { t: 'item', i: x.h.u, to: t.pid }));
+    if (I.eff === 'hpswap') {
+      /* 狸の化け葉：体力が少ないときに、体力の多い相手と入れかえる */
+      enemies.forEach(t => { const gain = t.hp - p.hp; if (gain >= 10) add(gain * (hpRate < 0.4 ? 0.7 : 0.35), { t: 'item', i: x.h.u, to: t.pid }); });
+    }
+    if (I.eff === 'shuffle') add(0.6 + hand.filter(y => y.C.type !== 'spell' && !canUse(G, p, y.h) && y.C.type !== 'armor').length * 0.5, { t: 'item', i: x.h.u });
     if (I.eff === 'mp' && !g.noMpGain && p.mp < 8) add(2 + I.val * 0.1, { t: 'item', i: x.h.u });
     if (I.eff === 'mp' && g.noMpGain && nh >= HAND_MAX - 1) add(0.5, { t: 'shop', buy: -1, sell: [x.h.u] });
     if (I.eff === 'sell' && loose.length >= 2) {

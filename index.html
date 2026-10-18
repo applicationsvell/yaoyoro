@@ -202,6 +202,7 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
   background: rgba(120, 36, 24, .92); color: #fff3ea; font: 700 12.5px/1.4 var(--gothic); text-align: center; box-shadow: 0 0 0 1px rgba(255, 200, 180, .4), 0 4px 14px rgba(0, 0, 0, .5); pointer-events: none; animation: nbPulse 1.6s ease-in-out infinite; }
 @keyframes nbPulse { 50% { opacity: .75; } }
 .seg-l { font-size: 12.5px; color: var(--text-2); font-weight: 700; margin-bottom: 5px; }
+.seg-l small { display: block; font-weight: 500; font-size: 11px; color: var(--text-3, var(--text-2)); opacity: .85; margin-top: 1px; }
 .seg { display: flex; border: 1px solid var(--line-2); border-radius: 4px; overflow: hidden; }
 .seg button { flex: 1; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--text-2); border-left: 1px solid var(--line); text-align: center; }
 .seg button:first-child { border-left: 0; }
@@ -387,6 +388,11 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
 .hx-l.good .hx-h, .hx-l.good b { color: var(--kin-hi); } .hx-l.bad .hx-h, .hx-l.bad b { color: #c9a6ef; }
 .hx-tag { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; margin-right: .3em; border-radius: 3px; font-size: .8em; vertical-align: .08em; }
 .hx-tag.good { background: var(--kin); color: var(--sumi); } .hx-tag.bad { background: #6a4f85; color: #fff; }
+/* ハプニングの判（朱の丸い印） */
+.hp-seal { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; font: 900 46px/1 var(--mincho); color: #fff6e6; background: radial-gradient(circle at 35% 30%, #e0603f, #a8301e 70%); border: 3px double #ffe2b0; box-shadow: 0 0 0 3px rgba(168, 48, 30, .35), 0 8px 24px rgba(0, 0, 0, .45); transform: rotate(-8deg); }
+.hp-seal.sm { width: 46px; height: 46px; font-size: 25px; border-width: 2px; flex: none; }
+.telop.chaos { color: #ffe08a; text-shadow: 0 0 18px rgba(255, 170, 60, .55); }
+.rk .ff { color: #f6b0a0; }
 .ghost-emb { display: block; filter: grayscale(.6) brightness(1.2) drop-shadow(0 0 10px rgba(190, 210, 255, .8)); opacity: .9; }
 .telop.ghost { color: #e6dcff; }
 .acts .btn.btn-s { flex: .55; }
@@ -828,7 +834,7 @@ input { font: inherit; -webkit-user-select: text; user-select: text; }
   <div id="toast" aria-live="polite"></div>
   <div id="netBadge" role="status" hidden></div>
 </div>
-<script type="application/json" id="card-data">{"version":4,"guardians":[{"id":"tengu","name":"天狗","yomi":"てんぐ","elem":"木","hp":30,"mp":25,"gold":20,"spellDiscount":2,"dodge":0.1,"skill":"神通力","text":"術に使う霊力が2少ない。武器で攻められたとき、10回に1回くらいひらりとかわす"},{"id":"kitsune","name":"九尾の狐","yomi":"きゅうびのきつね","elem":"火","hp":35,"mp":20,"gold":20,"atkBonus":3,"elemBonusOf":"火","elemBonus":5,"fireImmune":true,"skill":"狐火の化身","text":"攻撃と術のダメージ＋3。火の攻撃と術ならさらに＋5。火の攻撃ではダメージを受けない"},{"id":"gama","name":"大蝦蟇","yomi":"おおがま","elem":"土","hp":40,"mp":15,"gold":20,"armorBonus":3,"skill":"鉄壁の腹","text":"防具を出して守るとき、守り＋3"},{"id":"oni","name":"天邪鬼","yomi":"あまのじゃく","elem":"金","hp":30,"mp":25,"gold":20,"deflectRate":0.4,"skill":"幻惑","text":"武器で攻められたとき、40%の確率で攻撃を弾く（弾いた攻撃は流れ弾になって全員の中からランダムに1人に飛ぶ。飛んだ先の人は守札で守れる）"},{"id":"ryujin","name":"龍神","yomi":"りゅうじん","elem":"水","hp":60,"mp":15,"gold":20,"noSummon":true,"noMpGain":true,"weaponBonus":5,"armorHalf":true,"skill":"龍神の加護","text":"霊獣を呼べない。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる"}],"weathers":[{"id":"haru","name":"春一番","yomi":"はるいちばん","kind":"random","crest":"木","text":"攻める相手がランダムになる"},{"id":"enten","name":"炎天","yomi":"えんてん","kind":"power","bonus":2,"crest":"火","text":"攻撃と術のダメージ＋2"},{"id":"jinari","name":"地鳴り","yomi":"じなり","kind":"power","bonus":-2,"crest":"土","text":"攻撃と術のダメージ−2"},{"id":"shuso","name":"秋霜","yomi":"しゅうそう","kind":"onecard","crest":"金","text":"守るときに出せる札は1枚まで"},{"id":"tsuyu","name":"梅雨","yomi":"つゆ","kind":"nospell","crest":"水","text":"術が使えない"},{"id":"nagi","name":"凪","yomi":"なぎ","kind":"calm","text":"何も起きない、静かな巡"},{"id":"ennichi","name":"縁日","yomi":"えんにち","kind":"fair","shop":5,"text":"よろず屋の値段が半分。棚の札が5枚になる"},{"id":"mangetsu","name":"満月","yomi":"まんげつ","kind":"moon","cut":3,"text":"術に使う霊力が3少ない"},{"id":"arashi","name":"野分","yomi":"のわき","kind":"storm","text":"番のはじめに札を1枚引ける"}],"beasts":[{"id":"seiryu","name":"青龍","yomi":"せいりゅう","eff":"heal","val":4,"text":"持ち主の体力＋4","elem":"木"},{"id":"suzaku","name":"朱雀","yomi":"すざく","eff":"burn","val":3,"text":"相手1人（ランダム）に火の3ダメージ。守れない","elem":"火"},{"id":"byakko","name":"白虎","yomi":"びゃっこ","eff":"boost","val":4,"text":"持ち主の次の攻撃＋4","elem":"金"},{"id":"genbu","name":"玄武","yomi":"げんぶ","eff":"shell","val":5,"text":"持ち主に甲羅。次に受けるダメージ−5","elem":"水"},{"id":"kirin","name":"麒麟","yomi":"きりん","eff":"mp","val":5,"text":"持ち主の霊力＋5","elem":"土"},{"id":"yatagarasu","name":"八咫烏","yomi":"やたがらす","eff":"draw","val":1,"text":"持ち主が札を1枚引く"},{"id":"komainu","name":"狛犬","yomi":"こまいぬ","eff":"cleanse","val":5,"text":"持ち主の呪い・封印をはらう。なければ体力＋5","elem":"土"},{"id":"baku","name":"獏","yomi":"ばく","eff":"discard","val":1,"text":"相手1人（ランダム）の手札を1枚捨てさせる。まれに（5回に1回）自分の手札を捨ててしまう","elem":"水"},{"id":"kinkei","name":"金鶏","yomi":"きんけい","eff":"gold","val":6,"text":"持ち主の小判＋6両","elem":"金"},{"id":"shinigami","name":"死神","yomi":"しにがみ","eff":"reaper","val":5,"text":"相手全員に5ダメージ。自分にも5ダメージ。守れない"}],"cards":[{"id":"shuto","name":"手刀","yomi":"しゅとう","type":"weapon","atk":1,"price":1,"n":4},{"id":"bokken","name":"木刀","yomi":"ぼくとう","type":"weapon","atk":3,"price":1,"n":4},{"id":"dounokatana","name":"銅の刀","yomi":"どうのかたな","type":"weapon","atk":1,"price":10,"n":4},{"id":"ginnokatana","name":"銀の刀","yomi":"ぎんのかたな","type":"weapon","atk":1,"price":20,"n":4},{"id":"kinnokatana","name":"金の刀","yomi":"きんのかたな","type":"weapon","atk":1,"price":30,"n":4},{"id":"takeyari","name":"竹槍","yomi":"たけやり","type":"weapon","atk":2,"price":3,"n":4},{"id":"kama","name":"鎌","yomi":"かま","type":"weapon","atk":2,"price":2,"n":4},{"id":"kunai","name":"苦無","yomi":"くない","type":"weapon","atk":3,"price":4,"n":4},{"id":"hocho","name":"包丁","yomi":"ほうちょう","type":"weapon","atk":3,"price":3,"n":4},{"id":"konbo","name":"棍棒","yomi":"こんぼう","type":"weapon","atk":4,"price":5,"n":4},{"id":"jitte","name":"十手","yomi":"じって","type":"weapon","atk":4,"price":4,"n":4},{"id":"kusarigama","name":"鎖鎌","yomi":"くさりがま","type":"weapon","atk":4,"price":7,"n":4,"fx":"draw"},{"id":"wakizashi","name":"脇差","yomi":"わきざし","type":"weapon","atk":5,"price":7,"n":4},{"id":"shakujo","name":"錫杖","yomi":"しゃくじょう","type":"weapon","atk":5,"price":6,"n":4},{"id":"naginata","name":"薙刀","yomi":"なぎなた","type":"weapon","atk":6,"price":9,"n":4},{"id":"kodachi","name":"小太刀","yomi":"こだち","type":"weapon","atk":6,"price":8,"n":4},{"id":"katana","name":"太刀","yomi":"たち","type":"weapon","atk":7,"price":10,"n":4},{"id":"nagayari","name":"長槍","yomi":"ながやり","type":"weapon","atk":7,"price":9,"n":4},{"id":"jumonji","name":"十文字槍","yomi":"じゅうもんじやり","type":"weapon","atk":8,"price":11,"n":4},{"id":"uchigatana","name":"打刀","yomi":"うちがたな","type":"weapon","atk":8,"price":10,"n":4},{"id":"kanabo","name":"金棒","yomi":"かなぼう","type":"weapon","atk":9,"price":13,"n":4},{"id":"nodachi","name":"野太刀","yomi":"のだち","type":"weapon","atk":9,"price":12,"n":4},{"id":"odachi","name":"大太刀","yomi":"おおだち","type":"weapon","atk":10,"price":14,"n":4},{"id":"zanbato","name":"斬馬刀","yomi":"ざんばとう","type":"weapon","atk":11,"price":16,"n":4},{"id":"masakari","name":"大鉞","yomi":"おおまさかり","type":"weapon","atk":12,"price":17,"n":4},{"id":"yakumo","name":"神剣・八雲","yomi":"しんけん・やくも","type":"weapon","atk":13,"price":19,"n":4},{"id":"onikiri","name":"鬼斬り","yomi":"おにきり","type":"weapon","atk":14,"price":20,"n":4,"fx":"draw"},{"id":"habakiri","name":"天羽々斬","yomi":"あめのはばきり","type":"weapon","atk":15,"price":22,"n":4},{"id":"murakumo","name":"天叢雲剣","yomi":"あめのむらくものつるぎ","type":"weapon","atk":30,"price":30,"n":4},{"id":"yabusuma","name":"矢ぶすま","yomi":"やぶすま","type":"weapon","atk":3,"price":1,"n":4,"all":true},{"id":"horoku","name":"焙烙玉","yomi":"ほうろくだま","type":"weapon","atk":4,"price":8,"n":4,"all":true},{"id":"ozutsu","name":"大筒","yomi":"おおづつ","type":"weapon","atk":6,"price":1,"n":4,"all":true},{"id":"hinoko","name":"火の粉","yomi":"ひのこ","type":"weapon","atk":2,"price":3,"n":4,"elem":"火"},{"id":"hiya","name":"火矢","yomi":"ひや","type":"weapon","atk":4,"price":6,"n":4,"elem":"火"},{"id":"homura","name":"焔の太刀","yomi":"ほむらのたち","type":"weapon","atk":7,"price":11,"n":4,"elem":"火"},{"id":"kaensha","name":"火炎車","yomi":"かえんしゃ","type":"weapon","atk":5,"price":16,"n":4,"elem":"火","all":true},{"id":"mizutsubute","name":"水礫","yomi":"みずつぶて","type":"weapon","atk":2,"price":3,"n":4,"elem":"水"},{"id":"suijin","name":"水刃","yomi":"すいじん","type":"weapon","atk":4,"price":6,"n":4,"elem":"水"},{"id":"tsurara","name":"氷柱","yomi":"つらら","type":"weapon","atk":6,"price":9,"n":4,"elem":"水"},{"id":"mizuchi","name":"蛟の鉾","yomi":"みずちのほこ","type":"weapon","atk":7,"price":11,"n":4,"elem":"水"},{"id":"samidare","name":"五月雨の弓","yomi":"さみだれのゆみ","type":"weapon","atk":3,"price":9,"n":4,"elem":"水","all":true},{"id":"matsuba","name":"松葉針","yomi":"まつばばり","type":"weapon","atk":2,"price":3,"n":4,"elem":"木"},{"id":"ibara","name":"茨の鞭","yomi":"いばらのむち","type":"weapon","atk":3,"price":5,"n":4,"elem":"木","fx":"draw"},{"id":"kashi","name":"樫の棍","yomi":"かしのこん","type":"weapon","atk":6,"price":9,"n":4,"elem":"木"},{"id":"senpu","name":"旋風の扇","yomi":"せんぷうのおうぎ","type":"weapon","atk":4,"price":12,"n":4,"elem":"木","all":true},{"id":"sunakake","name":"砂かけ","yomi":"すなかけ","type":"weapon","atk":2,"price":3,"n":4,"elem":"土"},{"id":"ishi","name":"石つぶて","yomi":"いしつぶて","type":"weapon","atk":3,"price":5,"n":4,"elem":"土"},{"id":"iwakudaki","name":"岩砕き","yomi":"いわくだき","type":"weapon","atk":6,"price":9,"n":4,"elem":"土"},{"id":"jiware","name":"地割れの槌","yomi":"じわれのつち","type":"weapon","atk":4,"price":12,"n":4,"elem":"土","all":true},{"id":"kanzashi","name":"銀の簪","yomi":"ぎんのかんざし","type":"weapon","atk":2,"price":3,"n":4,"elem":"金"},{"id":"shuriken","name":"手裏剣","yomi":"しゅりけん","type":"weapon","atk":3,"price":5,"n":4,"elem":"金","fx":"draw"},{"id":"tessen","name":"鉄扇","yomi":"てっせん","type":"weapon","atk":5,"price":8,"n":4,"elem":"金"},{"id":"hagane","name":"鋼の矛","yomi":"はがねのほこ","type":"weapon","atk":7,"price":11,"n":4,"elem":"金"},{"id":"toishi","name":"砥石","yomi":"といし","type":"plus","atk":2,"price":3,"n":4},{"id":"kiai","name":"気合","yomi":"きあい","type":"plus","atk":3,"price":5,"n":4},{"id":"kairiki","name":"怪力","yomi":"かいりき","type":"plus","atk":5,"price":9,"n":4},{"id":"toshinki","name":"闘神気","yomi":"とうしんき","type":"plus","atk":10,"price":10,"n":4},{"id":"tenugui","name":"手ぬぐい","yomi":"てぬぐい","type":"armor","price":1,"n":4,"def":1},{"id":"nabebuta","name":"鍋のふた","yomi":"なべのふた","type":"armor","price":2,"n":4,"def":2},{"id":"amigasa","name":"編み笠","yomi":"あみがさ","type":"armor","price":4,"n":4,"def":3},{"id":"itadate","name":"板の盾","yomi":"いたのたて","type":"armor","price":5,"n":4,"def":4},{"id":"kote","name":"籠手","yomi":"こて","type":"armor","price":7,"n":4,"def":5},{"id":"domaru","name":"胴丸","yomi":"どうまる","type":"armor","price":8,"n":4,"def":6},{"id":"katabira","name":"鎖帷子","yomi":"くさりかたびら","type":"armor","price":9,"n":4,"def":7},{"id":"gusoku","name":"具足","yomi":"ぐそく","type":"armor","price":11,"n":4,"def":8},{"id":"ooyoroi","name":"大鎧","yomi":"おおよろい","type":"armor","price":12,"n":4,"def":9},{"id":"odate","name":"大盾","yomi":"おおだて","type":"armor","price":13,"n":4,"def":10},{"id":"jomon","name":"城門の扉","yomi":"じょうもんのとびら","type":"armor","price":15,"n":4,"def":11},{"id":"nanban","name":"南蛮胴","yomi":"なんばんどう","type":"armor","price":16,"n":4,"def":12},{"id":"ishigaki","name":"石垣","yomi":"いしがき","type":"armor","price":17,"n":4,"def":13},{"id":"tenshu","name":"天守の壁","yomi":"てんしゅのかべ","type":"armor","price":19,"n":4,"def":14},{"id":"kongo","name":"金剛の鎧","yomi":"こんごうのよろい","type":"armor","price":20,"n":4,"def":15},{"id":"iwato","name":"天岩戸","yomi":"あまのいわと","type":"armor","price":30,"n":4,"def":30},{"id":"hiyoke","name":"火除けの札","yomi":"ひよけのふだ","type":"armor","price":5,"n":4,"def":3,"elem":"火"},{"id":"hinezumi","name":"火鼠の衣","yomi":"ひねずみのころも","type":"armor","price":9,"n":4,"def":6,"elem":"火"},{"id":"namiyoke","name":"波除け","yomi":"なみよけ","type":"armor","price":5,"n":4,"def":3,"elem":"水"},{"id":"ryusui","name":"流水の帯","yomi":"りゅうすいのおび","type":"armor","price":9,"n":4,"def":6,"elem":"水"},{"id":"wara","name":"藁の束","yomi":"わらのたば","type":"armor","price":5,"n":4,"def":3,"elem":"木"},{"id":"takegaki","name":"竹垣","yomi":"たけがき","type":"armor","price":9,"n":4,"def":6,"elem":"木"},{"id":"donabe","name":"土鍋のふた","yomi":"どなべのふた","type":"armor","price":5,"n":4,"def":3,"elem":"土"},{"id":"dorui","name":"土塁","yomi":"どるい","type":"armor","price":9,"n":4,"def":6,"elem":"土"},{"id":"kabuto","name":"鉄兜","yomi":"てつかぶと","type":"armor","price":5,"n":4,"def":3,"elem":"金"},{"id":"haganetate","name":"鋼の盾","yomi":"はがねのたて","type":"armor","price":9,"n":4,"def":6,"elem":"金"},{"id":"kekkai","name":"結界札","yomi":"けっかいふだ","type":"armor","price":10,"n":4,"def":5,"magic":true},{"id":"kagami","name":"照魔の鏡","yomi":"しょうまのかがみ","type":"armor","price":20,"n":4,"special":"reflect"},{"id":"hauchiwa","name":"羽団扇","yomi":"はうちわ","type":"armor","price":16,"n":4,"special":"deflect"},{"id":"migawari","name":"身代わり人形","yomi":"みがわりにんぎょう","type":"armor","price":20,"n":4,"special":"null"},{"id":"minokasa","name":"隠れ蓑","yomi":"かくれみの","type":"armor","price":12,"n":4,"special":"dodge"},{"id":"kitsunebi","name":"狐火","yomi":"きつねび","type":"spell","mp":3,"eff":"dmg","val":6,"tgt":"enemy","price":8,"n":4,"elem":"火"},{"id":"kamaitachi","name":"鎌鼬","yomi":"かまいたち","type":"spell","mp":3,"eff":"dmg","val":5,"tgt":"enemy","price":8,"n":4,"elem":"木"},{"id":"raimei","name":"雷鳴","yomi":"らいめい","type":"spell","mp":5,"eff":"dmg","val":7,"tgt":"all","price":6,"n":4},{"id":"tsunami","name":"大津波","yomi":"おおつなみ","type":"spell","mp":7,"eff":"dmg","val":10,"tgt":"all","price":15,"n":4,"elem":"水"},{"id":"tamasui","name":"魂吸い","yomi":"たますい","type":"spell","mp":5,"eff":"drain","val":5,"tgt":"enemy","price":14,"n":4},{"id":"noroi","name":"呪いの藁人形","yomi":"のろいのわらにんぎょう","type":"spell","mp":4,"eff":"curse","val":3,"tgt":"enemy","price":10,"n":4},{"id":"fuin","name":"封印札","yomi":"ふういんふだ","type":"spell","mp":2,"eff":"seal","val":2,"tgt":"enemy","price":6,"n":4},{"id":"kamikakushi","name":"神隠し","yomi":"かみかくし","type":"spell","mp":4,"eff":"steal","val":1,"tgt":"enemy","price":10,"n":4,"nodef":true},{"id":"iyashi","name":"癒しの舞","yomi":"いやしのまい","type":"spell","mp":3,"eff":"heal","val":7,"tgt":"ally","price":9,"n":4},{"id":"kirigakure","name":"霧隠れの術","yomi":"きりがくれのじゅつ","type":"spell","mp":3,"eff":"mist","val":1,"tgt":"self","price":8,"n":4},{"id":"onigiri","name":"おにぎり","yomi":"おにぎり","type":"item","eff":"heal","val":5,"price":5,"n":20},{"id":"dango","name":"三色団子","yomi":"さんしょくだんご","type":"item","eff":"heal","val":10,"price":9,"n":20},{"id":"yakuto","name":"薬湯","yomi":"やくとう","type":"item","eff":"heal","val":15,"price":13,"n":10},{"id":"sento","name":"仙桃","yomi":"せんとう","type":"item","eff":"heal","val":20,"price":17,"n":10},{"id":"reisui","name":"霊水","yomi":"れいすい","type":"item","eff":"mp","val":5,"price":5,"n":20},{"id":"reiyaku","name":"霊薬","yomi":"れいやく","type":"item","eff":"mp","val":10,"price":9,"n":20},{"id":"magatama","name":"勾玉","yomi":"まがたま","type":"item","eff":"mp","val":15,"price":13,"n":10},{"id":"hoju","name":"宝珠","yomi":"ほうじゅ","type":"item","eff":"mp","val":20,"price":17,"n":10},{"id":"zenibukuro","name":"銭袋","yomi":"ぜにぶくろ","type":"item","eff":"gold","val":5,"price":4,"n":20},{"id":"koban","name":"小判袋","yomi":"こばんぶくろ","type":"item","eff":"gold","val":10,"price":8,"n":20},{"id":"senryobako","name":"千両箱","yomi":"せんりょうばこ","type":"item","eff":"gold","val":15,"price":12,"n":10},{"id":"kozuchi","name":"打ち出の小槌","yomi":"うちでのこづち","type":"item","eff":"gold","val":20,"price":16,"n":10},{"id":"omiki","name":"御神酒","yomi":"おみき","type":"item","eff":"kiai","val":5,"price":7,"n":5},{"id":"shio","name":"清めの塩","yomi":"きよめのしお","type":"item","eff":"cleanse","val":3,"price":5,"n":5},{"id":"maneki","name":"招き猫","yomi":"まねきねこ","type":"item","eff":"maneki","val":15,"price":16,"n":5},{"id":"jobutsu","name":"成仏札","yomi":"じょうぶつふだ","type":"item","eff":"jobutsu","val":50,"price":6,"n":5,"tgt":"beast"},{"id":"sandatsu","name":"簒奪札","yomi":"さんだつふだ","type":"item","eff":"usurp","val":0,"price":8,"n":5,"tgt":"enemy"},{"id":"oshiuri","name":"押し売り札","yomi":"おしうりふだ","type":"item","eff":"sell","val":0,"price":8,"n":5,"tgt":"foe"},{"id":"seiren","name":"精錬札","yomi":"せいれんふだ","type":"item","eff":"refine","val":5,"price":10,"n":5},{"id":"shokan","name":"召喚札","yomi":"しょうかんふだ","type":"summon","mp":3,"price":5,"n":20}]}</script>
+<script type="application/json" id="card-data">{"version":4,"guardians":[{"id":"tengu","name":"天狗","yomi":"てんぐ","elem":"木","hp":30,"mp":25,"gold":20,"spellDiscount":2,"dodge":0.1,"skill":"神通力","text":"術に使う霊力が2少ない。武器で攻められたとき、10回に1回くらいひらりとかわす"},{"id":"kitsune","name":"九尾の狐","yomi":"きゅうびのきつね","elem":"火","hp":35,"mp":20,"gold":20,"atkBonus":3,"elemBonusOf":"火","elemBonus":5,"fireImmune":true,"skill":"狐火の化身","text":"攻撃と術のダメージ＋3。火の攻撃と術ならさらに＋5。火の攻撃ではダメージを受けない"},{"id":"gama","name":"大蝦蟇","yomi":"おおがま","elem":"土","hp":40,"mp":15,"gold":20,"armorBonus":3,"skill":"鉄壁の腹","text":"防具を出して守るとき、守り＋3"},{"id":"oni","name":"天邪鬼","yomi":"あまのじゃく","elem":"金","hp":30,"mp":25,"gold":20,"deflectRate":0.4,"skill":"幻惑","text":"武器で攻められたとき、40%の確率で攻撃を弾く（弾いた攻撃は流れ弾になって全員の中からランダムに1人に飛ぶ。飛んだ先の人は守札で守れる）"},{"id":"ryujin","name":"龍神","yomi":"りゅうじん","elem":"水","hp":60,"mp":15,"gold":20,"noSummon":true,"noMpGain":true,"weaponBonus":5,"armorHalf":true,"skill":"龍神の加護","text":"霊獣を連れられない（召喚札はほかの人に使える）。霊力は増えない。武器の攻撃＋5。自分の守札の守りは半分になる"}],"weathers":[{"id":"haru","name":"春一番","yomi":"はるいちばん","kind":"random","crest":"木","text":"攻める相手がランダムになる（味方に当たることも！）"},{"id":"enten","name":"炎天","yomi":"えんてん","kind":"power","bonus":2,"crest":"火","text":"攻撃と術のダメージ＋2"},{"id":"jinari","name":"地鳴り","yomi":"じなり","kind":"power","bonus":-2,"crest":"土","text":"攻撃と術のダメージ−2"},{"id":"shuso","name":"秋霜","yomi":"しゅうそう","kind":"onecard","crest":"金","text":"守るときに出せる札は1枚まで"},{"id":"tsuyu","name":"梅雨","yomi":"つゆ","kind":"nospell","crest":"水","text":"術が使えない"},{"id":"nagi","name":"凪","yomi":"なぎ","kind":"calm","text":"何も起きない、静かな巡"},{"id":"ennichi","name":"縁日","yomi":"えんにち","kind":"fair","shop":5,"text":"よろず屋の値段が半分。棚の札が5枚になる"},{"id":"mangetsu","name":"満月","yomi":"まんげつ","kind":"moon","cut":3,"text":"術に使う霊力が3少ない"},{"id":"arashi","name":"野分","yomi":"のわき","kind":"storm","text":"番のはじめに札を1枚引ける"}],"beasts":[{"id":"seiryu","name":"青龍","yomi":"せいりゅう","eff":"heal","val":4,"text":"持ち主の体力＋4","elem":"木"},{"id":"suzaku","name":"朱雀","yomi":"すざく","eff":"burn","val":3,"text":"相手1人（ランダム）に火の3ダメージ。守れない","elem":"火"},{"id":"byakko","name":"白虎","yomi":"びゃっこ","eff":"boost","val":4,"text":"持ち主の次の攻撃＋4","elem":"金"},{"id":"genbu","name":"玄武","yomi":"げんぶ","eff":"shell","val":5,"text":"持ち主に甲羅。次に受けるダメージ−5","elem":"水"},{"id":"kirin","name":"麒麟","yomi":"きりん","eff":"mp","val":5,"text":"持ち主の霊力＋5","elem":"土"},{"id":"yatagarasu","name":"八咫烏","yomi":"やたがらす","eff":"draw","val":1,"text":"持ち主が札を1枚引く"},{"id":"komainu","name":"狛犬","yomi":"こまいぬ","eff":"cleanse","val":5,"text":"持ち主の呪い・封印をはらう。なければ体力＋5","elem":"土"},{"id":"baku","name":"獏","yomi":"ばく","eff":"discard","val":1,"text":"相手1人（ランダム）の手札を1枚捨てさせる。まれに（5回に1回）自分の手札を捨ててしまう","elem":"水"},{"id":"kinkei","name":"金鶏","yomi":"きんけい","eff":"gold","val":6,"text":"持ち主の小判＋6両","elem":"金"},{"id":"shinigami","name":"死神","yomi":"しにがみ","eff":"reaper","val":5,"text":"相手全員に5ダメージ。自分にも5ダメージ。守れない"}],"cards":[{"id":"shuto","name":"手刀","yomi":"しゅとう","type":"weapon","atk":1,"price":1,"n":4},{"id":"bokken","name":"木刀","yomi":"ぼくとう","type":"weapon","atk":3,"price":1,"n":4},{"id":"dounokatana","name":"銅の刀","yomi":"どうのかたな","type":"weapon","atk":1,"price":10,"n":4},{"id":"ginnokatana","name":"銀の刀","yomi":"ぎんのかたな","type":"weapon","atk":1,"price":20,"n":4},{"id":"kinnokatana","name":"金の刀","yomi":"きんのかたな","type":"weapon","atk":1,"price":30,"n":4},{"id":"takeyari","name":"竹槍","yomi":"たけやり","type":"weapon","atk":2,"price":3,"n":4},{"id":"kama","name":"鎌","yomi":"かま","type":"weapon","atk":2,"price":2,"n":4},{"id":"kunai","name":"苦無","yomi":"くない","type":"weapon","atk":3,"price":4,"n":4},{"id":"hocho","name":"包丁","yomi":"ほうちょう","type":"weapon","atk":3,"price":3,"n":4},{"id":"konbo","name":"棍棒","yomi":"こんぼう","type":"weapon","atk":4,"price":5,"n":4},{"id":"jitte","name":"十手","yomi":"じって","type":"weapon","atk":4,"price":4,"n":4},{"id":"kusarigama","name":"鎖鎌","yomi":"くさりがま","type":"weapon","atk":4,"price":7,"n":4,"fx":"draw"},{"id":"wakizashi","name":"脇差","yomi":"わきざし","type":"weapon","atk":5,"price":7,"n":4},{"id":"shakujo","name":"錫杖","yomi":"しゃくじょう","type":"weapon","atk":5,"price":6,"n":4},{"id":"naginata","name":"薙刀","yomi":"なぎなた","type":"weapon","atk":6,"price":9,"n":4},{"id":"kodachi","name":"小太刀","yomi":"こだち","type":"weapon","atk":6,"price":8,"n":4},{"id":"katana","name":"太刀","yomi":"たち","type":"weapon","atk":7,"price":10,"n":4},{"id":"nagayari","name":"長槍","yomi":"ながやり","type":"weapon","atk":7,"price":9,"n":4},{"id":"jumonji","name":"十文字槍","yomi":"じゅうもんじやり","type":"weapon","atk":8,"price":11,"n":4},{"id":"uchigatana","name":"打刀","yomi":"うちがたな","type":"weapon","atk":8,"price":10,"n":4},{"id":"kanabo","name":"金棒","yomi":"かなぼう","type":"weapon","atk":9,"price":13,"n":4},{"id":"nodachi","name":"野太刀","yomi":"のだち","type":"weapon","atk":9,"price":12,"n":4},{"id":"odachi","name":"大太刀","yomi":"おおだち","type":"weapon","atk":10,"price":14,"n":4},{"id":"zanbato","name":"斬馬刀","yomi":"ざんばとう","type":"weapon","atk":11,"price":16,"n":4},{"id":"masakari","name":"大鉞","yomi":"おおまさかり","type":"weapon","atk":12,"price":17,"n":4},{"id":"yakumo","name":"神剣・八雲","yomi":"しんけん・やくも","type":"weapon","atk":13,"price":19,"n":4},{"id":"onikiri","name":"鬼斬り","yomi":"おにきり","type":"weapon","atk":14,"price":20,"n":4,"fx":"draw"},{"id":"habakiri","name":"天羽々斬","yomi":"あめのはばきり","type":"weapon","atk":15,"price":22,"n":4},{"id":"murakumo","name":"天叢雲剣","yomi":"あめのむらくものつるぎ","type":"weapon","atk":30,"price":30,"n":4},{"id":"yabusuma","name":"矢ぶすま","yomi":"やぶすま","type":"weapon","atk":3,"price":1,"n":4,"all":true},{"id":"horoku","name":"焙烙玉","yomi":"ほうろくだま","type":"weapon","atk":4,"price":8,"n":4,"all":true},{"id":"ozutsu","name":"大筒","yomi":"おおづつ","type":"weapon","atk":6,"price":1,"n":4,"all":true},{"id":"abaregoma","name":"暴れ独楽","yomi":"あばれごま","type":"weapon","atk":12,"price":5,"n":4,"fx":"rand","chaos":true},{"id":"hinoko","name":"火の粉","yomi":"ひのこ","type":"weapon","atk":2,"price":3,"n":4,"elem":"火"},{"id":"hiya","name":"火矢","yomi":"ひや","type":"weapon","atk":4,"price":6,"n":4,"elem":"火"},{"id":"homura","name":"焔の太刀","yomi":"ほむらのたち","type":"weapon","atk":7,"price":11,"n":4,"elem":"火"},{"id":"kaensha","name":"火炎車","yomi":"かえんしゃ","type":"weapon","atk":5,"price":16,"n":4,"elem":"火","all":true},{"id":"mizutsubute","name":"水礫","yomi":"みずつぶて","type":"weapon","atk":2,"price":3,"n":4,"elem":"水"},{"id":"suijin","name":"水刃","yomi":"すいじん","type":"weapon","atk":4,"price":6,"n":4,"elem":"水"},{"id":"tsurara","name":"氷柱","yomi":"つらら","type":"weapon","atk":6,"price":9,"n":4,"elem":"水"},{"id":"mizuchi","name":"蛟の鉾","yomi":"みずちのほこ","type":"weapon","atk":7,"price":11,"n":4,"elem":"水"},{"id":"samidare","name":"五月雨の弓","yomi":"さみだれのゆみ","type":"weapon","atk":3,"price":9,"n":4,"elem":"水","all":true},{"id":"matsuba","name":"松葉針","yomi":"まつばばり","type":"weapon","atk":2,"price":3,"n":4,"elem":"木"},{"id":"ibara","name":"茨の鞭","yomi":"いばらのむち","type":"weapon","atk":3,"price":5,"n":4,"elem":"木","fx":"draw"},{"id":"kashi","name":"樫の棍","yomi":"かしのこん","type":"weapon","atk":6,"price":9,"n":4,"elem":"木"},{"id":"senpu","name":"旋風の扇","yomi":"せんぷうのおうぎ","type":"weapon","atk":4,"price":12,"n":4,"elem":"木","all":true},{"id":"sunakake","name":"砂かけ","yomi":"すなかけ","type":"weapon","atk":2,"price":3,"n":4,"elem":"土"},{"id":"ishi","name":"石つぶて","yomi":"いしつぶて","type":"weapon","atk":3,"price":5,"n":4,"elem":"土"},{"id":"iwakudaki","name":"岩砕き","yomi":"いわくだき","type":"weapon","atk":6,"price":9,"n":4,"elem":"土"},{"id":"jiware","name":"地割れの槌","yomi":"じわれのつち","type":"weapon","atk":4,"price":12,"n":4,"elem":"土","all":true},{"id":"kanzashi","name":"銀の簪","yomi":"ぎんのかんざし","type":"weapon","atk":2,"price":3,"n":4,"elem":"金"},{"id":"shuriken","name":"手裏剣","yomi":"しゅりけん","type":"weapon","atk":3,"price":5,"n":4,"elem":"金","fx":"draw"},{"id":"tessen","name":"鉄扇","yomi":"てっせん","type":"weapon","atk":5,"price":8,"n":4,"elem":"金"},{"id":"hagane","name":"鋼の矛","yomi":"はがねのほこ","type":"weapon","atk":7,"price":11,"n":4,"elem":"金"},{"id":"toishi","name":"砥石","yomi":"といし","type":"plus","atk":2,"price":3,"n":4},{"id":"kiai","name":"気合","yomi":"きあい","type":"plus","atk":3,"price":5,"n":4},{"id":"kairiki","name":"怪力","yomi":"かいりき","type":"plus","atk":5,"price":9,"n":4},{"id":"toshinki","name":"闘神気","yomi":"とうしんき","type":"plus","atk":10,"price":10,"n":4},{"id":"tenugui","name":"手ぬぐい","yomi":"てぬぐい","type":"armor","price":1,"n":4,"def":1},{"id":"nabebuta","name":"鍋のふた","yomi":"なべのふた","type":"armor","price":2,"n":4,"def":2},{"id":"amigasa","name":"編み笠","yomi":"あみがさ","type":"armor","price":4,"n":4,"def":3},{"id":"itadate","name":"板の盾","yomi":"いたのたて","type":"armor","price":5,"n":4,"def":4},{"id":"kote","name":"籠手","yomi":"こて","type":"armor","price":7,"n":4,"def":5},{"id":"domaru","name":"胴丸","yomi":"どうまる","type":"armor","price":8,"n":4,"def":6},{"id":"katabira","name":"鎖帷子","yomi":"くさりかたびら","type":"armor","price":9,"n":4,"def":7},{"id":"gusoku","name":"具足","yomi":"ぐそく","type":"armor","price":11,"n":4,"def":8},{"id":"ooyoroi","name":"大鎧","yomi":"おおよろい","type":"armor","price":12,"n":4,"def":9},{"id":"odate","name":"大盾","yomi":"おおだて","type":"armor","price":13,"n":4,"def":10},{"id":"jomon","name":"城門の扉","yomi":"じょうもんのとびら","type":"armor","price":15,"n":4,"def":11},{"id":"nanban","name":"南蛮胴","yomi":"なんばんどう","type":"armor","price":16,"n":4,"def":12},{"id":"ishigaki","name":"石垣","yomi":"いしがき","type":"armor","price":17,"n":4,"def":13},{"id":"tenshu","name":"天守の壁","yomi":"てんしゅのかべ","type":"armor","price":19,"n":4,"def":14},{"id":"kongo","name":"金剛の鎧","yomi":"こんごうのよろい","type":"armor","price":20,"n":4,"def":15},{"id":"iwato","name":"天岩戸","yomi":"あまのいわと","type":"armor","price":30,"n":4,"def":30},{"id":"hiyoke","name":"火除けの札","yomi":"ひよけのふだ","type":"armor","price":5,"n":4,"def":3,"elem":"火"},{"id":"hinezumi","name":"火鼠の衣","yomi":"ひねずみのころも","type":"armor","price":9,"n":4,"def":6,"elem":"火"},{"id":"namiyoke","name":"波除け","yomi":"なみよけ","type":"armor","price":5,"n":4,"def":3,"elem":"水"},{"id":"ryusui","name":"流水の帯","yomi":"りゅうすいのおび","type":"armor","price":9,"n":4,"def":6,"elem":"水"},{"id":"wara","name":"藁の束","yomi":"わらのたば","type":"armor","price":5,"n":4,"def":3,"elem":"木"},{"id":"takegaki","name":"竹垣","yomi":"たけがき","type":"armor","price":9,"n":4,"def":6,"elem":"木"},{"id":"donabe","name":"土鍋のふた","yomi":"どなべのふた","type":"armor","price":5,"n":4,"def":3,"elem":"土"},{"id":"dorui","name":"土塁","yomi":"どるい","type":"armor","price":9,"n":4,"def":6,"elem":"土"},{"id":"kabuto","name":"鉄兜","yomi":"てつかぶと","type":"armor","price":5,"n":4,"def":3,"elem":"金"},{"id":"haganetate","name":"鋼の盾","yomi":"はがねのたて","type":"armor","price":9,"n":4,"def":6,"elem":"金"},{"id":"kekkai","name":"結界札","yomi":"けっかいふだ","type":"armor","price":10,"n":4,"def":5,"magic":true},{"id":"kagami","name":"照魔の鏡","yomi":"しょうまのかがみ","type":"armor","price":20,"n":4,"special":"reflect"},{"id":"hauchiwa","name":"羽団扇","yomi":"はうちわ","type":"armor","price":16,"n":4,"special":"deflect"},{"id":"migawari","name":"身代わり人形","yomi":"みがわりにんぎょう","type":"armor","price":20,"n":4,"special":"null"},{"id":"minokasa","name":"隠れ蓑","yomi":"かくれみの","type":"armor","price":12,"n":4,"special":"dodge"},{"id":"kitsunebi","name":"狐火","yomi":"きつねび","type":"spell","mp":3,"eff":"dmg","val":6,"tgt":"enemy","price":8,"n":4,"elem":"火"},{"id":"kamaitachi","name":"鎌鼬","yomi":"かまいたち","type":"spell","mp":3,"eff":"dmg","val":5,"tgt":"enemy","price":8,"n":4,"elem":"木"},{"id":"raimei","name":"雷鳴","yomi":"らいめい","type":"spell","mp":5,"eff":"dmg","val":7,"tgt":"all","price":6,"n":4},{"id":"tsunami","name":"大津波","yomi":"おおつなみ","type":"spell","mp":7,"eff":"dmg","val":10,"tgt":"all","price":15,"n":4,"elem":"水"},{"id":"tamasui","name":"魂吸い","yomi":"たますい","type":"spell","mp":5,"eff":"drain","val":5,"tgt":"enemy","price":14,"n":4},{"id":"noroi","name":"呪いの藁人形","yomi":"のろいのわらにんぎょう","type":"spell","mp":4,"eff":"curse","val":3,"tgt":"enemy","price":10,"n":4},{"id":"fuin","name":"封印札","yomi":"ふういんふだ","type":"spell","mp":2,"eff":"seal","val":2,"tgt":"enemy","price":6,"n":4},{"id":"kamikakushi","name":"神隠し","yomi":"かみかくし","type":"spell","mp":4,"eff":"steal","val":1,"tgt":"enemy","price":10,"n":4,"nodef":true},{"id":"iyashi","name":"癒しの舞","yomi":"いやしのまい","type":"spell","mp":3,"eff":"heal","val":7,"tgt":"ally","price":9,"n":4},{"id":"kirigakure","name":"霧隠れの術","yomi":"きりがくれのじゅつ","type":"spell","mp":3,"eff":"mist","val":1,"tgt":"self","price":8,"n":4},{"id":"onigiri","name":"おにぎり","yomi":"おにぎり","type":"item","eff":"heal","val":5,"price":5,"n":20},{"id":"dango","name":"三色団子","yomi":"さんしょくだんご","type":"item","eff":"heal","val":10,"price":9,"n":20},{"id":"yakuto","name":"薬湯","yomi":"やくとう","type":"item","eff":"heal","val":15,"price":13,"n":10},{"id":"sento","name":"仙桃","yomi":"せんとう","type":"item","eff":"heal","val":20,"price":17,"n":10},{"id":"reisui","name":"霊水","yomi":"れいすい","type":"item","eff":"mp","val":5,"price":5,"n":20},{"id":"reiyaku","name":"霊薬","yomi":"れいやく","type":"item","eff":"mp","val":10,"price":9,"n":20},{"id":"magatama","name":"勾玉","yomi":"まがたま","type":"item","eff":"mp","val":15,"price":13,"n":10},{"id":"hoju","name":"宝珠","yomi":"ほうじゅ","type":"item","eff":"mp","val":20,"price":17,"n":10},{"id":"zenibukuro","name":"銭袋","yomi":"ぜにぶくろ","type":"item","eff":"gold","val":5,"price":4,"n":20},{"id":"koban","name":"小判袋","yomi":"こばんぶくろ","type":"item","eff":"gold","val":10,"price":8,"n":20},{"id":"senryobako","name":"千両箱","yomi":"せんりょうばこ","type":"item","eff":"gold","val":15,"price":12,"n":10},{"id":"kozuchi","name":"打ち出の小槌","yomi":"うちでのこづち","type":"item","eff":"gold","val":20,"price":16,"n":10},{"id":"omiki","name":"御神酒","yomi":"おみき","type":"item","eff":"kiai","val":5,"price":7,"n":5},{"id":"shio","name":"清めの塩","yomi":"きよめのしお","type":"item","eff":"cleanse","val":3,"price":5,"n":5},{"id":"maneki","name":"招き猫","yomi":"まねきねこ","type":"item","eff":"maneki","val":15,"price":16,"n":5},{"id":"jobutsu","name":"成仏札","yomi":"じょうぶつふだ","type":"item","eff":"jobutsu","val":50,"price":6,"n":5,"tgt":"beast"},{"id":"sandatsu","name":"簒奪札","yomi":"さんだつふだ","type":"item","eff":"usurp","val":0,"price":8,"n":5,"tgt":"enemy"},{"id":"oshiuri","name":"押し売り札","yomi":"おしうりふだ","type":"item","eff":"sell","val":0,"price":8,"n":5,"tgt":"foe"},{"id":"seiren","name":"精錬札","yomi":"せいれんふだ","type":"item","eff":"refine","val":5,"price":10,"n":5},{"id":"bakeha","name":"狸の化け葉","yomi":"たぬきのばけは","type":"item","eff":"hpswap","val":0,"price":18,"n":3,"tgt":"harm","chaos":true},{"id":"fukuwarai","name":"福笑い","yomi":"ふくわらい","type":"item","eff":"shuffle","val":0,"price":6,"n":3,"chaos":true},{"id":"shokan","name":"召喚札","yomi":"しょうかんふだ","type":"summon","mp":3,"price":5,"n":20}]}</script>
 <script>
 (() => {
 'use strict';
@@ -876,6 +882,22 @@ const guardOf = p => GUARD[p.guardian] || GUARD_LIST[0];
 const sameTeam = (a, b) => a.team === b.team;
 const enemiesOf = (G, p) => G.players.filter(t => t.alive && t.pid !== p.pid && !sameTeam(t, p));
 const alliesOf = (G, p) => G.players.filter(t => t.alive && sameTeam(t, p));
+const othersOf = (G, p) => G.players.filter(t => t.alive && t.pid !== p.pid);   /* 自分以外の全員（味方もふくむ） */
+/* 札をだれに向けるか。札はだれにでも使える（チームの味方にも、相手にも）
+   all＝相手全員　harm＝自分以外のだれか1人（味方も）　help＝自分をふくめてだれでも1人　none＝相手はいらない */
+function aimOf(C) {
+  if (!C) return 'none';
+  if (C.type === 'weapon') return C.all ? 'all' : 'harm';
+  if (C.type === 'spell') return C.tgt === 'all' ? 'all' : C.eff === 'heal' || C.eff === 'mist' ? 'help' : 'harm';
+  if (C.type === 'item') return C.eff === 'refine' || C.eff === 'shuffle' ? 'none' : ['jobutsu', 'usurp', 'sell', 'hpswap'].includes(C.eff) ? 'harm' : 'help';
+  if (C.type === 'summon') return 'help';
+  return 'none';
+}
+/* ハプニングの多さ（0＝なし・1＝ふつう・2＝多め）。すっぽ抜け・会心の一撃・巡のはじめのハプニング・ハプニング札 */
+const chaosLv = G => { const v = G && G.settings && G.settings.chaos; return v === 0 || v === 2 ? v : 1; };
+const SLIP_RATE = [0, 0.05, 0.1], CRIT_RATE = [0, 0.06, 0.1], HAPPEN_RATE = [0, 0.35, 0.7];
+/* となりの人（番の順で次の、生きている人） */
+function nextAlive(G, p) { const n = G.players.length; for (let k = 1; k < n; k++) { const t = G.players[(p.pid + k) % n]; if (t.alive) return t; } return null; }
 const handCard = (p, u) => p.hand.find(h => h.u === u) || null;
 /* 術札は使っても手札（術札ゾーン）に残る。手札の枚数には数えず、同じ術は1枚だけ持てる */
 const isSpellId = c => !!CARD[c] && CARD[c].type === 'spell';
@@ -950,7 +972,7 @@ function refreshShop(G) { G.shop.forEach(h => G.discard.push(h.c)); G.shop = [];
 
 /* ---------- new game ---------- */
 function newGame(seats, settings, seed, now) {
-  const st = Object.assign({ teams: 0, turnSec: 60, defSec: 20 }, settings || {});
+  const st = Object.assign({ teams: 0, turnSec: 60, defSec: 20, chaos: 1 }, settings || {});
   const G = {
     v: 2, rng: (seed | 0) || 1, round: 1, turn: 1, cur: 0, uid: 1, seq: 0, log: [], phase: 'act', pend: null, queue: [], used: {}, wxVote: {}, ghost: {}, hexQ: [],
     deadline: 0, turnAt: now || 0, ko: [], winner: null, settings: st, deck: [], discard: [], shop: [], players: [],
@@ -964,11 +986,11 @@ function newGame(seats, settings, seed, now) {
     return {
       pid: i, cid: s.cid || null, name: String(s.name || '名無し').slice(0, 10), cpu: !!s.cpu, guardian: g.id, team,
       hp: g.hp, hp0: g.hp, mp: g.mp, gold: g.gold, hand: [], st: freshSt(), beast: null,
-      alive: true, dealt: 0, kos: 0,
+      alive: true, dealt: 0, kos: 0, ff: 0,
     };
   });
   if (st.teams >= 2 && teamsUsed.size < 2) { st.teams = 0; G.players.forEach(p => { p.team = p.pid; }); }
-  CARD_LIST.forEach(c => { for (let k = 0; k < (c.n || 0); k++) G.deck.push(c.id); });
+  CARD_LIST.forEach(c => { if (c.chaos && !chaosLv(G)) return; for (let k = 0; k < (c.n || 0); k++) G.deck.push(c.id); });
   shuffleG(G, G.deck);
   G.players.forEach(p => drawTo(G, p, HAND0));
   logE(G, { k: 'start' });
@@ -1033,7 +1055,7 @@ function advance(G, now) {
   let i = G.cur;
   for (let k = 0; k < n * 3; k++) {
     i = (i + 1) % n;
-    if (i === 0) { G.round++; changeWeather(G); refreshShop(G); }
+    if (i === 0) { G.round++; changeWeather(G); refreshShop(G); happening(G); }
     if (!G.players[i].alive) continue;
     G.cur = i; G.turn++;
     beginTurn(G, now);
@@ -1047,7 +1069,7 @@ function hurt(G, t, amt, by) {
   if (!t.alive || amt <= 0) return 0;
   if (t.st.shell > 0) { const cut = Math.min(t.st.shell, amt); amt -= cut; t.st.shell = 0; logE(G, { k: 'shell', p: t.pid, cut }); if (amt <= 0) return 0; }
   t.hp -= amt;
-  if (by != null && by !== t.pid && G.players[by]) G.players[by].dealt += amt;
+  if (by != null && by !== t.pid && G.players[by]) { G.players[by].dealt += amt; if (G.settings.teams && sameTeam(G.players[by], t)) G.players[by].ff = (G.players[by].ff || 0) + amt; }
   if (t.beast && t.hp > 0 && rnd(G) < BEAST_LEAVE_ON_HIT) { logE(G, { k: 'beastgone', p: t.pid, b: t.beast, why: 'hit' }); t.beast = null; }
   if (t.hp <= 0) ko(G, t, by);
   return amt;
@@ -1186,26 +1208,98 @@ function resolveHexes(G) {
   });
 }
 
+/* ---------- ハプニング：巡のはじめに、ときどき思いがけないことが起きる ---------- */
+const HAPPENINGS = [
+  { id: 'nezumi', name: 'ねずみ小僧', yomi: 'ねずみこぞう', text: '小判がいちばん多い人から15両を、いちばん少ない人へ' },
+  { id: 'nagareboshi', name: '流れ星', yomi: 'ながれぼし', text: 'だれか1人が札を2枚引く' },
+  { id: 'jishin', name: '地震', yomi: 'じしん', text: '全員の体力−3（1より下にはならない）' },
+  { id: 'matsuri', name: 'お祭り', yomi: 'おまつり', text: '全員の体力＋5' },
+  { id: 'yomeiri', name: '狐の嫁入り', yomi: 'きつねのよめいり', text: '全員が手札を1枚ずつ、となりの人へ渡す（どの札かはランダム）' },
+  { id: 'irekawari', name: '魂の入れかわり', yomi: 'たましいのいれかわり', text: 'だれか2人の体力が入れかわる' },
+  { id: 'iede', name: '霊獣の家出', yomi: 'れいじゅうのいえで', text: '霊獣がみんな、となりの人のところへ引っこす' },
+  { id: 'takarakuji', name: '宝くじ', yomi: 'たからくじ', text: 'だれか1人に小判＋20両' },
+];
+function happening(G, force) {
+  const lv = chaosLv(G);
+  if (!force && (!lv || rnd(G) >= HAPPEN_RATE[lv])) return null;
+  const alive = G.players.filter(p => p.alive);
+  if (alive.length < 2) return null;
+  const rich = alive.slice().sort((a, b) => b.gold - a.gold)[0], poor = alive.slice().sort((a, b) => a.gold - b.gold)[0];
+  const ok = {
+    nezumi: rich.gold > 0 && rich.gold > poor.gold,
+    yomeiri: alive.filter(p => looseHand(p).length).length >= 1,
+    irekawari: new Set(alive.map(p => p.hp)).size > 1,
+    iede: alive.some(p => p.beast),
+  };
+  const pool = HAPPENINGS.filter(h => ok[h.id] !== false && (!force || force === true || force === h.id));
+  const H = pickOne(G, pool); if (!H) return null;
+  const e = { k: 'happen', id: H.id };
+  switch (H.id) {
+    case 'nezumi': { const v = Math.min(15, rich.gold); rich.gold -= v; gainGold(poor, v); Object.assign(e, { from: rich.pid, to: poor.pid, v }); break; }
+    case 'nagareboshi': { const t = pickOne(G, alive); e.to = t.pid; e.got = drawTo(G, t, 2); break; }
+    case 'jishin': e.hits = alive.map(p => { const d = Math.max(0, Math.min(3, p.hp - 1)); p.hp -= d; return { p: p.pid, d }; }); break;
+    case 'matsuri': e.heals = alive.map(p => ({ p: p.pid, v: heal(p, 5) })); break;
+    case 'yomeiri': {
+      /* いっせいに渡す：先に全員の渡す札を決めてから、となりへ */
+      const give = alive.map(p => { const L = looseHand(p); const h = L.length ? L[Math.floor(rnd(G) * L.length)] : null; return { p, h, to: nextAlive(G, p) }; });
+      give.forEach(x => { if (x.h) x.p.hand.splice(x.p.hand.indexOf(x.h), 1); });
+      e.moves = give.filter(x => x.h).map(x => {
+        if (handN(x.to) < HAND_MAX) { x.to.hand.push(x.h); return { f: x.p.pid, t: x.to.pid, c: x.h.c }; }
+        G.discard.push(x.h.c); return { f: x.p.pid, t: -1, c: x.h.c };
+      });
+      break;
+    }
+    case 'irekawari': {
+      const a = pickOne(G, alive), b = pickOne(G, alive.filter(p => p !== a && p.hp !== a.hp)) || pickOne(G, alive.filter(p => p !== a));
+      Object.assign(e, { a: a.pid, b: b.pid, ha: a.hp, hb: b.hp });
+      [a.hp, b.hp] = [b.hp, a.hp];
+      break;
+    }
+    case 'iede': {
+      /* いっせいに引っこす。龍神のところへ来た霊獣は、いられずに去る */
+      const was = alive.map(p => ({ p, b: p.beast, to: nextAlive(G, p) }));
+      alive.forEach(p => { p.beast = null; });
+      e.moves = was.filter(x => x.b).map(x => {
+        if (guardOf(x.to).noSummon) return { f: x.p.pid, t: -1, b: x.b };
+        x.to.beast = x.b; return { f: x.p.pid, t: x.to.pid, b: x.b };
+      });
+      break;
+    }
+    case 'takarakuji': { const t = pickOne(G, alive); e.to = t.pid; e.v = gainGold(t, 20); break; }
+  }
+  logE(G, e);
+  return e;
+}
+/* 福笑い：全員の手札（術札をのぞく）を集めてまぜ、もとの枚数ずつ配り直す */
+function fukuwarai(G, p) {
+  const alive = G.players.filter(t => t.alive);
+  const pool = [], cnt = {};
+  alive.forEach(t => { const L = looseHand(t); cnt[t.pid] = L.length; L.forEach(h => { t.hand.splice(t.hand.indexOf(h), 1); pool.push(h); }); });
+  shuffleG(G, pool);
+  const deal = {};
+  alive.forEach(t => { deal[t.pid] = []; for (let k = 0; k < cnt[t.pid]; k++) { const h = pool.pop(); t.hand.push(h); deal[t.pid].push(h.c); } });
+  return { cnt, deal };
+}
+
 /* ---------- what can be done (also used by the screen and the CPU) ---------- */
+/* えらべる相手。霧隠れの人は、ほかの人からはえらべない（自分にはいつでも使える） */
 function targetsFor(G, p, C) {
   if (!C) return [];
-  if (C.type === 'weapon') return enemiesOf(G, p).filter(t => !t.st.mist);
-  if (C.type === 'spell') {
-    if (C.tgt === 'enemy' || C.tgt === 'all') return enemiesOf(G, p).filter(t => !t.st.mist);
-    if (C.tgt === 'ally') return alliesOf(G, p);
-    if (C.tgt === 'self') return [p];
+  const aim = aimOf(C);
+  if (aim === 'all') return enemiesOf(G, p).filter(t => !t.st.mist);
+  if (aim === 'none') return [p];
+  const others = othersOf(G, p).filter(t => !t.st.mist);
+  if (aim === 'harm') {
+    if (C.eff === 'jobutsu') return others.filter(t => t.beast);
+    if (C.eff === 'usurp') return others.filter(t => looseHand(t).length > 0);
+    return others;
   }
-  if (C.type === 'item') {
-    if (C.tgt === 'beast') return enemiesOf(G, p).filter(t => t.beast && !t.st.mist);
-    if (C.tgt === 'enemy') return enemiesOf(G, p).filter(t => looseHand(t).length > 0 && !t.st.mist);
-    if (C.tgt === 'foe') return enemiesOf(G, p).filter(t => !t.st.mist);
-    return [p];
-  }
-  if (C.type === 'summon') return [p];
-  return [];
+  const L = [p].concat(others);
+  return C.type === 'summon' ? L.filter(t => !guardOf(t).noSummon) : L;
 }
-/* 天候「春一番」：攻める相手がランダム（相手1人を狙う武器と術） */
-const randomTarget = (G, C) => wKind(G, 'random') && ((C.type === 'weapon' && !C.all) || (C.type === 'spell' && C.tgt === 'enemy'));
+/* だれに当たるかランダム：天候「春一番」の武器と術（1人を狙うもの。味方に当たることも）・暴れ独楽 */
+const randomTarget = (G, C) => !!C && ((C.type === 'weapon' && C.fx === 'rand') || (wKind(G, 'random') && ((C.type === 'weapon' && !C.all) || (C.type === 'spell' && aimOf(C) === 'harm'))));
+const randomPick = (G, p) => pickOne(G, othersOf(G, p).filter(x => !x.st.mist));
 /* 使えない理由（なければ null） */
 function whyNot(G, p, C) {
   if (!C) return 'bad';
@@ -1215,8 +1309,8 @@ function whyNot(G, p, C) {
     if (p.mp < spellCost(G, p, C)) return 'mp';
   }
   if (C.type === 'summon') {
-    if (guardOf(p).noSummon) return 'nosummon';
     if (p.mp < summonCost(p, C)) return 'mp';
+    if (!targetsFor(G, p, C).length) return 'target';
     return null;
   }
   if (C.type === 'item' && C.eff === 'sell' && looseHand(p).length < 2) return 'nosell';
@@ -1351,16 +1445,23 @@ function doAttack(G, p, a, now) {
   const err = attackCheck(G, p, wsU, addsU); if (err) return err;
   const Ws = wsU.map(u => CARD[handCard(p, u).c]);
   const lead = Ws.slice().sort((x, y) => y.atk - x.atk)[0];
-  let targets;
+  let targets, slip = null;
   if (lead.all) targets = enemiesOf(G, p).filter(t => !t.st.mist);
-  else if (randomTarget(G, lead)) { const t = pickOne(G, enemiesOf(G, p).filter(x => !x.st.mist)); targets = t ? [t] : []; }
+  else if (randomTarget(G, lead)) { const t = randomPick(G, p); targets = t ? [t] : []; }
   else {
-    const t = G.players[a.to];
-    if (!t || !t.alive || t.pid === p.pid || sameTeam(t, p) || t.st.mist) return 'target';
+    let t = G.players[a.to];
+    if (!t || !t.alive || t.pid === p.pid || t.st.mist) return 'target';
+    /* ハプニング「すっぽ抜け」：手がすべって、ねらった人とはちがうだれかに飛ぶ（味方のことも） */
+    if (rnd(G) < SLIP_RATE[chaosLv(G)]) {
+      const pool = othersOf(G, p).filter(x => !x.st.mist && x.pid !== t.pid);
+      if (pool.length) { slip = t.pid; t = pickOne(G, pool); }
+    }
     targets = [t];
   }
   if (!targets.length) return 'target';
-  const base = attackBase(G, p, wsU, addsU);
+  /* ハプニング「会心の一撃」：攻撃が2倍 */
+  const crit = rnd(G) < CRIT_RATE[chaosLv(G)];
+  const base = attackBase(G, p, wsU, addsU) * (crit ? 2 : 1);
   const kiai = p.st.kiai > 0, boost = p.st.boost || 0;
   p.st.kiai = 0; p.st.boost = 0;
   const addIds = addsU.map(u => handCard(p, u).c);
@@ -1370,9 +1471,9 @@ function doAttack(G, p, a, now) {
   const elem = lead.elem || null;
   targets.forEach(t => { aff[t.pid] = affinity(elem, guardOf(t).elem); atk[t.pid] = applyAff(base, aff[t.pid]); });
   const draws = Ws.filter(W => W.fx === 'draw').length;
-  startDefend(G, { kind: 'attack', by: p.pid, card: lead.id, cards: Ws.map(W => W.id), adds: addIds, elem, base, atk, aff, kiai, boost, draws,
+  startDefend(G, { kind: 'attack', by: p.pid, card: lead.id, cards: Ws.map(W => W.id), adds: addIds, elem, base, atk, aff, kiai, boost, draws, crit, slip,
     targets: targets.map(t => t.pid), resp: {}, at: now }, now);
-  logE(G, { k: 'declare', by: p.pid, card: lead.id, cards: G.pend.cards, adds: addIds, targets: G.pend.targets, atk, aff, kiai, boost, base, elem });
+  logE(G, { k: 'declare', by: p.pid, card: lead.id, cards: G.pend.cards, adds: addIds, targets: G.pend.targets, atk, aff, kiai, boost, base, elem, crit, slip });
   return null;
 }
 function doSpell(G, p, a, now) {
@@ -1382,23 +1483,23 @@ function doSpell(G, p, a, now) {
   if (p.st.seal > 0) return 'sealed';
   const cost = spellCost(G, p, S);
   if (p.mp < cost) return 'mp';
+  const aim = aimOf(S);
   let targets;
-  if (S.tgt === 'all') targets = enemiesOf(G, p).filter(t => !t.st.mist);
-  else if (randomTarget(G, S)) { const t = pickOne(G, enemiesOf(G, p).filter(x => !x.st.mist)); targets = t ? [t] : []; }
-  else if (S.tgt === 'self') targets = [p];
-  else if (S.tgt === 'ally') {
+  if (aim === 'all') targets = enemiesOf(G, p).filter(t => !t.st.mist);
+  else if (randomTarget(G, S)) { const t = randomPick(G, p); targets = t ? [t] : []; }
+  else if (aim === 'help') {
     const t = a.to == null ? p : G.players[a.to];
-    if (!t || !t.alive || !sameTeam(t, p)) return 'target';
+    if (!t || !targetsFor(G, p, S).includes(t)) return 'target';
     targets = [t];
   } else {
     const t = G.players[a.to];
-    if (!t || !t.alive || t.pid === p.pid || sameTeam(t, p) || t.st.mist) return 'target';
+    if (!t || !t.alive || t.pid === p.pid || t.st.mist) return 'target';
     targets = [t];
   }
   if (!targets.length) return 'target';
   p.mp -= cost;
   /* 術札は使っても手札に残る（捨てない・引かない） */
-  if (S.tgt === 'self' || S.tgt === 'ally') {
+  if (aim === 'help') {
     const t = targets[0];
     let v = 0;
     if (S.eff === 'heal') v = heal(t, S.val);
@@ -1421,9 +1522,10 @@ function doSpell(G, p, a, now) {
 function doItem(G, p, a, now) {
   const h = handCard(p, a.i); if (!h) return 'bad';
   const I = CARD[h.c]; if (!I || I.type !== 'item') return 'bad';
-  let t = null;
-  if (I.tgt === 'beast' || I.tgt === 'enemy' || I.tgt === 'foe') {
-    t = G.players[a.to];
+  const aim = aimOf(I);
+  let t = p;
+  if (aim === 'harm' || aim === 'help') {
+    t = a.to == null ? (aim === 'help' ? p : null) : G.players[a.to];
     if (!t || !targetsFor(G, p, I).includes(t)) return 'target';
   }
   /* 押し売り：売りつける札（自分の手札の別の札） */
@@ -1451,15 +1553,30 @@ function doItem(G, p, a, now) {
     endTurn(G, now);
     return null;
   }
-  const e = { k: 'item', by: p.pid, card: I.id, hp: 0, mp: 0, gold: 0 };
-  if (I.eff === 'heal') e.hp = heal(p, I.val);
-  if (I.eff === 'mp') e.mp = gainMp(p, I.val);
-  if (I.eff === 'gold') e.gold = gainGold(p, I.val);
-  if (I.eff === 'maneki') { e.gold = gainGold(p, I.val); e.mp = gainMp(p, 3); }
-  if (I.eff === 'kiai') { p.st.kiai = 1; e.kiai = true; }
-  if (I.eff === 'cleanse') { e.cured = p.st.curse > 0 || p.st.seal > 0; p.st.curse = 0; p.st.seal = 0; e.hp = heal(p, I.val); }
+  if (I.eff === 'hpswap') {
+    /* 狸の化け葉：えらんだ人と体力を入れかえる（守れない） */
+    const e = { k: 'hpswap', by: p.pid, to: t.pid, card: I.id, ha: p.hp, hb: t.hp };
+    [p.hp, t.hp] = [t.hp, p.hp];
+    logE(G, e);
+    endTurn(G, now);
+    return null;
+  }
+  if (I.eff === 'shuffle') {
+    const r = fukuwarai(G, p);
+    logE(G, { k: 'fukuwarai', by: p.pid, card: I.id, cnt: r.cnt, deal: r.deal });
+    endTurn(G, now);
+    return null;
+  }
+  /* 体力・霊力・小判・気合・清めは、えらんだ人（自分・味方・相手のだれでも）に効く */
+  const e = { k: 'item', by: p.pid, to: t.pid, card: I.id, hp: 0, mp: 0, gold: 0 };
+  if (I.eff === 'heal') e.hp = heal(t, I.val);
+  if (I.eff === 'mp') e.mp = gainMp(t, I.val);
+  if (I.eff === 'gold') e.gold = gainGold(t, I.val);
+  if (I.eff === 'maneki') { e.gold = gainGold(t, I.val); e.mp = gainMp(t, 3); }
+  if (I.eff === 'kiai') { t.st.kiai = 1; e.kiai = true; }
+  if (I.eff === 'cleanse') { e.cured = t.st.curse > 0 || t.st.seal > 0; t.st.curse = 0; t.st.seal = 0; e.hp = heal(t, I.val); }
   if (I.eff === 'jobutsu') {
-    e.to = t.pid; e.b = t.beast;
+    e.b = t.beast;
     e.ok = rnd(G) < JOBUTSU_RATE;
     if (e.ok) t.beast = null;
   }
@@ -1519,17 +1636,19 @@ function doUsurpDecide(G, p, buy, now) {
 function doSummon(G, p, a, now) {
   const s = handCard(p, a.s); if (!s) return 'bad';
   const S = CARD[s.c]; if (!S || S.type !== 'summon') return 'bad';
-  if (guardOf(p).noSummon) return 'nosummon';
   const cost = summonCost(p, S);
   if (p.mp < cost) return 'mp';
+  /* 霊獣は、自分にも味方にも相手にもつけられる（龍神にはつけられない） */
+  const t = a.to == null ? p : G.players[a.to];
+  if (!t || !targetsFor(G, p, S).includes(t)) return guardOf(t || p).noSummon ? 'nosummon' : 'target';
   p.mp -= cost;
   removeCards(G, p, [a.s]).forEach(c => G.discard.push(c));
   useCount(G, p.pid, 1);
-  const old = p.beast;
+  const old = t.beast;
   /* どの霊獣が出るかはランダム（いまの霊獣とは別のもの） */
   const pick = pickOne(G, BEAST_LIST.filter(B => B.id !== old)) || BEAST_LIST[0];
-  p.beast = pick.id;
-  logE(G, { k: 'summon', by: p.pid, b: p.beast, old, card: S.id });
+  t.beast = pick.id;
+  logE(G, { k: 'summon', by: p.pid, to: t.pid, b: t.beast, old, card: S.id });
   endTurn(G, now);
   return null;
 }
@@ -1706,6 +1825,9 @@ function cpuChoose(G, pid) {
   const immune = (t, elem) => (fireImmune(t, elem) ? 0 : 1);
   const cands = [];
   const add = (v, a) => cands.push({ v: v + rnd(G) * 0.5, a });
+  /* だれに当たるかランダムなとき（春一番・暴れ独楽）：味方に当たるとマイナスで見積もる */
+  const rndPool = othersOf(G, p).filter(t => !t.st.mist);
+  const randVal = f => (rndPool.length ? rndPool.reduce((s, t) => s + (sameTeam(t, p) ? -1.3 : 1) * f(t), 0) / rndPool.length : 0);
   const pluses = hand.filter(x => x.C.type === 'plus');
   const plusSum = pluses.reduce((s, x) => s + x.C.atk, 0);
   /* 守られそうな量：属性の攻撃は守りにくい */
@@ -1735,11 +1857,12 @@ function cpuChoose(G, pid) {
       enemies.forEach(t => { const d = Math.max(0, applyAff(base, affinity(elem, guardOf(t).elem)) - expDef(t, elem)) * immune(t, elem); v += d + (d >= t.hp ? 8 : 0); });
       add(v * 0.9 - adds.length * 0.6, { t: 'attack', ws, adds });
     } else {
-      enemies.forEach(t => {
+      const val = t => {
         const d = Math.max(0, applyAff(base, affinity(elem, guardOf(t).elem)) - expDef(t, elem)) * immune(t, elem) * (guardOf(t).deflectRate ? 1 - guardOf(t).deflectRate : 1);
-        const v = d + (d >= t.hp ? 10 : 0) + (1 - Math.min(1, t.hp / t.hp0)) * 3 - cost + (W.fx === 'draw' ? 1 : 0);
-        add(v, { t: 'attack', ws, adds, to: t.pid });
-      });
+        return d + (d >= t.hp ? 10 : 0) + (1 - Math.min(1, t.hp / t.hp0)) * 3;
+      };
+      if (randomTarget(G, W)) { add(randVal(val) - cost + (W.fx === 'draw' ? 1 : 0), { t: 'attack', ws, adds }); return; }
+      enemies.forEach(t => add(val(t) - cost + (W.fx === 'draw' ? 1 : 0), { t: 'attack', ws, adds, to: t.pid }));
     }
   });
   /* spells */
@@ -1750,12 +1873,16 @@ function cpuChoose(G, pid) {
       if (S.tgt === 'all') {
         let v = 0; enemies.forEach(t => { const d = (applyAff(base, affinity(S.elem, guardOf(t).elem)) - expDef(t, S.elem) * 0.5) * immune(t, S.elem); v += Math.max(0, d) + (d >= t.hp ? 8 : 0); });
         add(v - 1, { t: 'spell', s: x.h.u });
+      } else if (randomTarget(G, S)) {
+        add(randVal(t => { const d = (applyAff(base, affinity(S.elem, guardOf(t).elem)) - expDef(t, S.elem) * 0.5) * immune(t, S.elem); return Math.max(0, d) + (d >= t.hp ? 10 : 0); }) - 0.5, { t: 'spell', s: x.h.u });
       } else enemies.forEach(t => {
         const d = (applyAff(base, affinity(S.elem, guardOf(t).elem)) - expDef(t, S.elem) * 0.5) * immune(t, S.elem);
         add(Math.max(0, d) + (d >= t.hp ? 10 : 0) + (S.eff === 'drain' && hpRate < 0.6 ? 4 : 0) - 0.5, { t: 'spell', s: x.h.u, to: t.pid });
       });
     } else if (S.eff === 'heal') {
       alliesOf(G, p).filter(t => t.hp / t.hp0 < 0.7).forEach(t => add(Math.min(S.val, HP_CAP - t.hp, t.hp0 - t.hp) * (t.hp / t.hp0 < 0.35 ? 1.3 : 0.75) + (t.pid === p.pid ? 1 : 0), { t: 'spell', s: x.h.u, to: t.pid }));
+    } else if (randomTarget(G, S)) {
+      /* 春一番のあいだの呪い・封印・神隠しは、味方に当たるかもしれないので使わない */
     } else if (S.eff === 'curse') {
       enemies.filter(t => t.st.curse <= 0).forEach(t => add(4 + t.hp / 20 - t.hand.length * 0.15, { t: 'spell', s: x.h.u, to: t.pid }));
     } else if (S.eff === 'seal') {
@@ -1767,12 +1894,27 @@ function cpuChoose(G, pid) {
     }
   });
   /* summon */
-  if (!g.noSummon) hand.filter(x => x.C.type === 'summon' && p.mp >= summonCost(p, x.C)).forEach(x => add(p.beast ? 0.8 : 5 + enemies.length * 0.3, { t: 'summon', s: x.h.u }));
+  hand.filter(x => x.C.type === 'summon' && p.mp >= summonCost(p, x.C)).forEach(x => {
+    if (!g.noSummon) add(p.beast ? 0.8 : 5 + enemies.length * 0.3, { t: 'summon', s: x.h.u });
+    /* 霊獣のいない味方につける（龍神は自分につけられないので、味方につける） */
+    alliesOf(G, p).filter(t => t !== p && !t.beast && !t.st.mist && !guardOf(t).noSummon).forEach(t => add((g.noSummon ? 4.5 : 2.5) + enemies.length * 0.2, { t: 'summon', s: x.h.u, to: t.pid }));
+  });
+  const mates = alliesOf(G, p).filter(t => t !== p && !t.st.mist);
   /* items */
   hand.filter(x => x.C.type === 'item').forEach(x => {
     const I = x.C;
-    if (I.eff === 'heal') { const lost = p.hp0 - p.hp; if (lost >= I.val * 0.8) add(Math.min(lost, I.val) * (hpRate < 0.5 ? 1.6 : 0.8), { t: 'item', i: x.h.u }); else if (nh >= HAND_MAX - 1) add(1 + I.val * 0.05, { t: 'item', i: x.h.u }); }
+    if (I.eff === 'heal') {
+      const lost = p.hp0 - p.hp; if (lost >= I.val * 0.8) add(Math.min(lost, I.val) * (hpRate < 0.5 ? 1.6 : 0.8), { t: 'item', i: x.h.u }); else if (nh >= HAND_MAX - 1) add(1 + I.val * 0.05, { t: 'item', i: x.h.u });
+      /* 味方の体力も回復できる */
+      mates.forEach(t => { const ml = t.hp0 - t.hp; if (ml >= I.val * 0.8) add(Math.min(ml, I.val) * (t.hp / t.hp0 < 0.4 ? 1.4 : 0.6), { t: 'item', i: x.h.u, to: t.pid }); });
+    }
     if (I.eff === 'cleanse' && (p.st.curse > 0 || p.st.seal > 0)) add(8 + p.st.curse * 2, { t: 'item', i: x.h.u });
+    if (I.eff === 'cleanse') mates.filter(t => t.st.curse > 0).forEach(t => add(5 + t.st.curse * 1.5, { t: 'item', i: x.h.u, to: t.pid }));
+    if (I.eff === 'hpswap') {
+      /* 狸の化け葉：体力が少ないときに、体力の多い相手と入れかえる */
+      enemies.forEach(t => { const gain = t.hp - p.hp; if (gain >= 10) add(gain * (hpRate < 0.4 ? 0.7 : 0.35), { t: 'item', i: x.h.u, to: t.pid }); });
+    }
+    if (I.eff === 'shuffle') add(0.6 + hand.filter(y => y.C.type !== 'spell' && !canUse(G, p, y.h) && y.C.type !== 'armor').length * 0.5, { t: 'item', i: x.h.u });
     if (I.eff === 'mp' && !g.noMpGain && p.mp < 8) add(2 + I.val * 0.1, { t: 'item', i: x.h.u });
     if (I.eff === 'mp' && g.noMpGain && nh >= HAND_MAX - 1) add(0.5, { t: 'shop', buy: -1, sell: [x.h.u] });
     if (I.eff === 'sell' && loose.length >= 2) {
@@ -1913,7 +2055,7 @@ const ssSet = (k, v) => { try { if (v == null) sessionStorage.removeItem(k); els
 function newRoom(code, mode, profile) {
   return {
     v: 1, code, mode, host: myCid, ver: 1, at: Date.now(), created: Date.now(), phase: 'lobby',
-    settings: { teams: 0, turnSec: mode === 'local' ? 0 : 60, defSec: mode === 'local' ? 0 : 20 },
+    settings: { teams: 0, turnSec: mode === 'local' ? 0 : 60, defSec: mode === 'local' ? 0 : 20, chaos: 1 },
     seats: [{ cid: myCid, name: profile.name, guardian: profile.guardian, team: 0, cpu: false }],
     game: null, closed: false,
   };
@@ -2016,6 +2158,7 @@ class Host {
           if (a.teams) R.seats.forEach((s, i) => { s.team = i % a.teams; });
         }
         if ([0, 30, 60, 90].includes(a.turnSec)) { R.settings.turnSec = a.turnSec; R.settings.defSec = a.turnSec ? Math.max(15, Math.round(a.turnSec / 3)) : 0; }
+        if ([0, 1, 2].includes(a.chaos)) R.settings.chaos = a.chaos;
         break;
       }
       case 'start': {
@@ -2109,7 +2252,7 @@ function animMs(G, from) {
     if (e.s <= from) break;
     switch (e.k) {
       case 'refill': ms += 200 * e.n + 120; break;
-      case 'declare': ms += stage((e.cards || []).length + (e.adds || []).length, 2800, 1800); break;
+      case 'declare': ms += stage((e.cards || []).length + (e.adds || []).length, 2800, 1800) + (e.slip != null ? 1200 : 0) + (e.crit ? 1400 : 0); break;
       case 'resolve': {
         const R = e.results || [];
         /* 1人ずつ順番に：守りの札を見せて、ダメージを出す */
@@ -2132,6 +2275,9 @@ function animMs(G, from) {
       case 'weather': ms += e.voice != null ? 1700 : 1300; break;
       case 'assist': ms += 3000; break;   /* 霊獣の絵を2秒見せてから効く */
       case 'summon': ms += 1850; break;
+      case 'hpswap': ms += stage(1, 2600, 1750) + 1550; break;
+      case 'fukuwarai': ms += stage(1, 2600, 1750) + 2100; break;
+      case 'happen': ms += 2800 + (e.id === 'nagareboshi' ? 200 * (e.got || 0) : e.id === 'irekawari' ? 400 : 0); break;
       default: break;
     }
   }
@@ -2591,7 +2737,7 @@ function cardText(C) {
   if (!C) return '';
   switch (C.type) {
     case 'weapon': {
-      let t = (C.all ? '相手全員に' : '相手1人に') + (C.elem ? C.elem + 'の' : '') + '攻撃' + C.atk + '。' + (C.elem ? guardRule(C.elem) : '属性なし。' + guardRule(null));
+      let t = (C.all ? '相手全員に' : C.fx === 'rand' ? '自分以外のだれかにランダムで（味方に当たることも！）' : 'えらんだ1人に（味方もえらべる）') + (C.elem ? C.elem + 'の' : '') + '攻撃' + C.atk + '。' + (C.elem ? guardRule(C.elem) : '属性なし。' + guardRule(null));
       if (C.all) t += '。ほかの武器とは重ねられない（追撃札は足せる）';
       else t += C.elem ? '。' + C.elem + 'の武器どうし重ねられる' : '。追撃札だけ足せる';
       if (C.fx === 'draw') t += '。ダメージが通ったら札を1枚引く';
@@ -2607,7 +2753,8 @@ function cardText(C) {
       if (C.elem) return '守り' + C.def + '。' + C.elem + 'の攻め、' + BEATS[C.elem] + 'の攻め（' + C.elem + 'が強い）、属性のない攻めを守れる。何枚でも重ねられる';
       return '守り' + C.def + '。属性のない攻めだけ守れる。何枚でも重ねられる';
     case 'spell': {
-      const who = C.tgt === 'all' ? '相手全員' : C.tgt === 'ally' ? '自分か味方' : C.tgt === 'self' ? '自分' : '相手1人';
+      const aim = aimOf(C);
+      const who = aim === 'all' ? '相手全員' : aim === 'help' ? '自分かえらんだ人（だれでも）' : 'えらんだ1人（味方もえらべる）';
       const head = '霊力' + C.mp + 'で使う。使っても手札に残り、何度でも使える。';
       if (C.eff === 'dmg') return head + who + 'に' + (C.elem ? C.elem + 'の' : '') + C.val + 'ダメージ。' + guardRule(C.elem, true);
       if (C.eff === 'drain') return head + who + 'に' + C.val + 'ダメージ。与えた分だけ自分の体力が回復。' + guardRule(C.elem, true);
@@ -2615,22 +2762,24 @@ function cardText(C) {
       if (C.eff === 'seal') return head + who + 'を封印（2回の番のあいだ術が使えない）。守札1枚で防げる';
       if (C.eff === 'steal') return head + who + 'の手札をタダで1枚うばう。守れない';
       if (C.eff === 'heal') return head + who + 'の体力＋' + C.val + '（99まで）';
-      if (C.eff === 'mist') return head + '次の自分の番まで、だれにも狙われない';
+      if (C.eff === 'mist') return head + who + 'が、その人の次の番まで、ほかのだれにも狙われない';
       return head;
     }
     case 'item':
-      if (C.eff === 'heal') return '体力＋' + C.val + '（はじめの体力より多くなってもよい。99まで）';
-      if (C.eff === 'mp') return '霊力＋' + C.val + '（99まで）';
-      if (C.eff === 'gold') return '小判＋' + C.val + '両';
-      if (C.eff === 'kiai') return '次の攻撃が＋5（気合）';
-      if (C.eff === 'cleanse') return '呪いと封印を治して、体力＋' + C.val;
-      if (C.eff === 'maneki') return '小判＋' + C.val + '両と霊力＋3';
-      if (C.eff === 'jobutsu') return '霊獣を連れた相手1人に使う。半分の確率で、その霊獣を成仏させる';
-      if (C.eff === 'usurp') return '相手1人の手札からランダムに1枚を見る。値段を払えば自分の札になる（払った小判は相手に渡る）。買わなければ相手に戻る。守れない';
-      if (C.eff === 'sell') return '自分の手札の札を1枚、相手1人に値段どおりに売りつける。相手の小判が足りなければ霊力から、それでも足りなければ体力から払わせる。払いきれなければ成仏。守れない';
+      if (C.eff === 'heal') return '自分かえらんだ人（だれでも）の体力＋' + C.val + '（はじめの体力より多くなってもよい。99まで）';
+      if (C.eff === 'mp') return '自分かえらんだ人の霊力＋' + C.val + '（99まで）';
+      if (C.eff === 'gold') return '自分かえらんだ人の小判＋' + C.val + '両';
+      if (C.eff === 'kiai') return '自分かえらんだ人の、次の攻撃が＋5（気合）';
+      if (C.eff === 'cleanse') return '自分かえらんだ人の呪いと封印を治して、体力＋' + C.val;
+      if (C.eff === 'maneki') return '自分かえらんだ人の小判＋' + C.val + '両と霊力＋3';
+      if (C.eff === 'jobutsu') return '霊獣を連れた人1人に使う。半分の確率で、その霊獣を成仏させる';
+      if (C.eff === 'usurp') return 'えらんだ人の手札からランダムに1枚を見る。値段を払えば自分の札になる（払った小判はその人に渡る）。買わなければ戻す。守れない';
+      if (C.eff === 'sell') return '自分の手札の札を1枚、えらんだ人に値段どおりに売りつける。小判が足りなければ霊力から、それでも足りなければ体力から払わせる。払いきれなければ成仏。守れない';
+      if (C.eff === 'hpswap') return 'えらんだ人と、自分の体力を入れかえる。守れない';
+      if (C.eff === 'shuffle') return '全員の手札（術札はのぞく）を集めてまぜ、もとの枚数ずつ配り直す';
       if (C.eff === 'refine') return '自分の体力・霊力・小判を、5ずつ好きなように入れかえる（体力は1より下にできない）';
       return '';
-    case 'summon': return '霊力' + C.mp + 'で霊獣を1体呼ぶ。どの霊獣が出るかはランダム（いまの霊獣とは別のもの）。霊獣は' + ASSIST_NOTE + '助けてくれる';
+    case 'summon': return '霊力' + C.mp + 'で霊獣を1体呼んで、自分かえらんだ人（だれでも。龍神はのぞく）につける。どの霊獣が出るかはランダム（いまの霊獣とは別のもの）。霊獣は' + ASSIST_NOTE + '持ち主を助けてくれる';
   }
   return '';
 }
@@ -2693,7 +2842,7 @@ function cardVal(C) {
     case 'armor': return C.special === 'reflect' ? ['', '返す'] : C.special === 'deflect' ? ['', '弾く'] : C.special === 'null' ? ['', '無効'] : C.special === 'dodge' ? ['', '回避'] : ['守', String(C.def)];
     case 'spell': return ['霊', String(C.mp)];
     case 'summon': return ['霊', String(C.mp)];
-    case 'item': return C.eff === 'heal' ? ['体＋', String(C.val)] : C.eff === 'mp' ? ['霊＋', String(C.val)] : C.eff === 'gold' ? ['両＋', String(C.val)] : C.eff === 'kiai' ? ['', '気合'] : C.eff === 'cleanse' ? ['', '浄め'] : C.eff === 'jobutsu' ? ['', '成仏'] : C.eff === 'usurp' ? ['', '簒奪'] : C.eff === 'sell' ? ['', '押売'] : C.eff === 'refine' ? ['', '精錬'] : ['', '招福'];
+    case 'item': return C.eff === 'heal' ? ['体＋', String(C.val)] : C.eff === 'mp' ? ['霊＋', String(C.val)] : C.eff === 'gold' ? ['両＋', String(C.val)] : C.eff === 'kiai' ? ['', '気合'] : C.eff === 'cleanse' ? ['', '浄め'] : C.eff === 'jobutsu' ? ['', '成仏'] : C.eff === 'usurp' ? ['', '簒奪'] : C.eff === 'sell' ? ['', '押売'] : C.eff === 'refine' ? ['', '精錬'] : C.eff === 'hpswap' ? ['', '入替'] : C.eff === 'shuffle' ? ['', '混ぜる'] : ['', '招福'];
   }
   return ['', ''];
 }
@@ -3663,6 +3812,37 @@ ART.shokan = () => artBg('summon', { dx: 42, dy: 50, dr: 34 }) + C(42, 60, 32, '
   at(46, 28, 0, 1, P('M-8 4C-10 -4 -4 -10 4 -10C10 -10 14 -6 14 -2L10 2C8 6 2 8 -4 8Z', gid('gold')) + P('M2 -10C2 -16 6 -20 10 -22C8 -16 8 -12 8 -10Z', '#efe6cf') + P('M-4 -8C-6 -14 -4 -18 -2 -20C-2 -14 0 -12 0 -10Z', '#efe6cf') + Cn(6, -4, 1.3, INK) + L('M14 -2C18 0 20 4 18 8M12 2C16 6 16 10 12 12', '#f3ead6', .9)) +
   cloud(6, 104, .9, '#f3d7c0') + cloud(54, 112, .8, '#f3d7c0') + sparks(23, 12, 10, 14, 66, 70, '#fff3c0', 1.8);
 
+/* ---- ハプニング札 ---- */
+/* 暴れ独楽：赤・金・藍の縞の独楽が、火花を散らして暴れまわる */
+ART.abaregoma = () => artBg('none', { dx: 44, dy: 40 }) +
+  L('M10 60C16 40 68 36 78 56', '#f3ead6', 1.4, op(.55)) + L('M6 74C12 92 66 98 80 80', '#f3ead6', 1.2, op(.5)) + L('M14 50C22 34 56 30 70 40', '#d8b45e', 1, op(.6)) +
+  L('M4 40l8 4M2 54l9 1M78 30l-8 6M86 46l-9 2', '#ffe28a', 1.4, op(.8)) + shadow(44, 114, 16) +
+  at(44, 76, 14, 1.05,
+    P('M-27 -6C-27 -16 27 -16 27 -6L5 22L0 32L-5 22Z', gid('red')) +
+    Pn('M-22 0C-10 6 10 6 22 0L17 6C6 11 -6 11 -17 6Z', gid('gold')) + Pn('M-13 12C-5 15 5 15 13 12L9 17C3 19 -3 19 -9 17Z', gid('navy')) +
+    E(0, -10, 27, 7, gid('gold')) + E(0, -10, 19, 4.6, gid('red')) + E(0, -10, 9, 2.2, gid('navy')) +
+    R(-3.2, -30, 6.4, 20, 2, gid('wood')) + Pn('M-14 -14C-8 -10 -2 -9 4 -10C-2 -6 -10 -6 -14 -14Z', '#fff', op(.35)) + L('M0 22L0 31', INK, 1.4)) +
+  sparks(77, 10, 22, 96, 44, 18, '#ffe28a', 1.8) + P('M64 18l3 10l-4 1z', '#ffe28a') + Cn(65, 32, 1.4, '#ffe28a') + P('M74 22l2 9l-3 .5z', '#ffe28a') + Cn(74.5, 34, 1.2, '#ffe28a');
+/* 狸の化け葉：大きな葉っぱと、どろんと出る煙 */
+ART.bakeha = () => itemScene(
+  cloud(10, 104, 1.1, '#efe6cf') + cloud(48, 110, 1, '#efe6cf') + cloud(4, 82, .8, '#f3ead6') +
+  at(40, 70, -18, 1.25, P('M0 -36C14 -30 22 -12 16 6C11 20 2 28 -2 36C-8 24 -18 12 -18 -6C-18 -22 -10 -32 0 -36Z', gid('leaf')) +
+    L('M-1 34C0 12 1 -10 0 -34', INK, .9) + L('M0 -20L10 -26M0 -10L13 -14M0 0L14 -2M0 10L12 10M0 -16L-10 -22M0 -4L-13 -9M0 7L-13 4M0 18L-9 18', INK, .55, op(.75)) +
+    Pn('M-14 -6C-14 -20 -8 -28 -2 -32C-8 -22 -10 -10 -8 6Z', '#fff', op(.3))) +
+  at(64, 34, 12, 1, P('M-8 0C-12 -10 -4 -18 4 -14C12 -10 10 2 2 4C-2 5 -6 4 -8 0Z', '#a8713b') + Pn('M-6 -4C-6 -10 -1 -14 4 -12C0 -10 -2 -6 -2 -2Z', '#d39b5d') + L('M-4 -2C0 -6 4 -6 6 -4M-6 -8C-2 -12 2 -12 6 -10', '#5e3a1f', .8)) +
+  Rn(12, 22, 16, 16, 2, '#c8452e', op(.9)) + T(20, 34.5, 12, '化', '#fffdf6') +
+  sparks(41, 8, 56, 50, 30, 50, '#fff3c0', 1.6), { sh: 18 });
+/* 福笑い：目かくしで並べた、おかめの顔（目も口もあちこち） */
+ART.fukuwarai = () => itemScene(
+  E(40, 76, 27, 31, gid('white')) + Pn('M13 66C14 48 28 42 40 42C54 42 66 48 67 66C60 54 50 50 40 50C30 50 20 54 13 66Z', '#2a1f18') +
+  Cn(22, 90, 5.4, '#f2a6a6', op(.7)) + Cn(58, 84, 5, '#f2a6a6', op(.7)) +
+  at(27, 60, 28, 1, En(0, 0, 4.6, 1.6, INK)) + at(54, 98, -40, 1, En(0, 0, 4.6, 1.6, INK)) +
+  at(31, 72, 40, 1, L('M-5 0C-2 -3 2 -3 5 0', INK, 1.6)) + at(53, 66, -70, 1, L('M-5 0C-2 -3 2 -3 5 0', INK, 1.6)) +
+  at(46, 80, 120, 1, P('M-2 -5C0 -3 2 2 2 4C0 5 -2 5 -3 4', '#fff7ee')) +
+  at(30, 98, 35, 1, P('M-7 0C-3 4 3 4 7 0C3 1 -3 1 -7 0Z', '#c8452e')) +
+  at(68, 30, -14, 1, R(-14, -5, 28, 10, 2, gid('navy')) + L('M-10 -1h20M-10 2h20', '#f3ead6', .7, op(.7)) + L('M14 0C18 2 20 8 18 12M-14 0C-18 2 -20 8 -18 12', '#2b3456', 1.6)) +
+  sparks(9, 6, 6, 40, 20, 40, '#c8452e', 1.4), { sh: 20 });
+
 /* ---- 絵を1回だけ置く ---- */
 function installArt() {
   const defs = document.getElementById('spriteDefs'); if (!defs) return;
@@ -4444,13 +4624,17 @@ function renderLobby() {
   if (host) {
     const teams = [[0, '個人戦'], [2, '2チーム'], [3, '3チーム'], [4, '4チーム']];
     const times = [[30, '30秒'], [60, '60秒'], [90, '90秒'], [0, 'なし']];
+    const chaos = [[0, 'なし'], [1, 'ふつう'], [2, '多め']];
+    const cv = st.chaos == null ? 1 : st.chaos;
     $('lobbySettings').innerHTML = '<div class="seg-l">戦い方</div><div class="seg" id="segTeams">' +
       teams.map(([v, l]) => '<button type="button" data-teams="' + v + '" aria-pressed="' + (st.teams === v) + '">' + l + '</button>').join('') + '</div>' +
       (local ? '' : '<div class="seg-l" style="margin-top:8px">持ち時間（自分の番）</div><div class="seg" id="segTime">' +
-        times.map(([v, l]) => '<button type="button" data-time="' + v + '" aria-pressed="' + (st.turnSec === v) + '">' + l + '</button>').join('') + '</div>');
+        times.map(([v, l]) => '<button type="button" data-time="' + v + '" aria-pressed="' + (st.turnSec === v) + '">' + l + '</button>').join('') + '</div>') +
+      '<div class="seg-l" style="margin-top:8px">ハプニング<small>すっぽ抜け・会心の一撃・巡のはじめの出来事・ハプニング札</small></div><div class="seg" id="segChaos">' +
+        chaos.map(([v, l]) => '<button type="button" data-chaos="' + v + '" aria-pressed="' + (cv === v) + '">' + l + '</button>').join('') + '</div>';
   } else {
     $('lobbySettings').innerHTML = '<p class="note" style="text-align:left">' + (st.teams ? st.teams + 'チームに分かれて戦います' : '個人戦（全員が敵）') +
-      '・持ち時間 ' + (st.turnSec ? st.turnSec + '秒' : 'なし') + '</p>';
+      '・持ち時間 ' + (st.turnSec ? st.turnSec + '秒' : 'なし') + '・ハプニング ' + ['なし', 'ふつう', '多め'][st.chaos == null ? 1 : st.chaos] + '</p>';
   }
   $('lobbySeats').innerHTML = R.seats.map((s, i) => {
     const g = GUARD[s.guardian] || GUARD_LIST[0];
@@ -4480,6 +4664,7 @@ function lobbyTap(e) {
   const b = e.target.closest('button'); if (!b || !net) return;
   if (b.dataset.teams != null) { sfx('select'); net.send({ t: 'settings', teams: Number(b.dataset.teams) }); }
   else if (b.dataset.time != null) { sfx('select'); net.send({ t: 'settings', turnSec: Number(b.dataset.time) }); }
+  else if (b.dataset.chaos != null) { sfx('select'); net.send({ t: 'settings', chaos: Number(b.dataset.chaos) }); }
   else if (b.dataset.team != null) { sfx('select'); net.send({ t: 'team', seat: Number(b.dataset.team) }); }
   else if (b.dataset.kick != null) { sfx('tap'); net.send({ t: 'kick', seat: Number(b.dataset.kick) }); }
   else if (b.id === 'lobbyCpu') { sfx('tap'); net.send({ t: 'addCpu' }); }
@@ -4514,7 +4699,7 @@ function renderResult() {
     const g = GUARD[p.guardian];
     const rank = team ? (p.team === G.winner ? '勝' : '') : kanjiNum(i + 1);
     return '<div class="rk' + (p.alive ? ' win' : '') + '"><span class="no">' + rank + '</span>' + embHTML(p.guardian, 34) +
-      '<div class="grow"><div class="rn">' + esc(p.name) + (me && p.pid === me.pid ? '（あなた）' : '') + '</div><div class="rs">' + esc(g.name) + '　与えたダメージ ' + p.dealt + '　討ち取り ' + p.kos + '</div></div>' +
+      '<div class="grow"><div class="rn">' + esc(p.name) + (me && p.pid === me.pid ? '（あなた）' : '') + '</div><div class="rs">' + esc(g.name) + '　与えたダメージ ' + p.dealt + '　討ち取り ' + p.kos + (p.ff ? '　<span class="ff">味方に当てた ' + p.ff + '</span>' : '') + '</div></div>' +
       (G.settings.teams ? teamHTML(p.team) : '') + '</div>';
   }).join('');
   const host = isHost();
@@ -4553,7 +4738,7 @@ function leaveGame() {
 /* =====================================================================
    GUIDE (遊び方)
    ===================================================================== */
-const HOW_TABS = [['basic', 'はじめに'], ['turn', '自分の番'], ['guard', '守り'], ['beast', '霊獣'], ['gogyo', '五行と式神'], ['weather', '天候'], ['cards', '札の一覧'], ['online', 'オンライン']];
+const HOW_TABS = [['basic', 'はじめに'], ['turn', '自分の番'], ['guard', '守り'], ['beast', '霊獣'], ['gogyo', '五行と式神'], ['weather', '天候'], ['happen', 'ハプニング'], ['cards', '札の一覧'], ['online', 'オンライン']];
 let howTab = 'basic';
 function openHow(tab) { howTab = tab || 'basic'; renderHow(); openOv('ovHow'); }
 function renderHow() {
@@ -4576,15 +4761,17 @@ function howHTML(k) {
       '<h3>札の見かた</h3>' + ex(F('hiya') + F('katana') + F('hinezumi'), '<b>外枠と左上の印</b>は札の種類（武＝武器、守＝防具、術、道＝道具、追＝追撃、召＝召喚）。<b>札の地の色</b>は属性（緑＝木、朱＝火、黄＝土、銀＝金、青＝水）。地が白い札は属性なしです。') +
       '<h3>持っているもの</h3><ul><li>体力：はじめの体力は式神によってちがいます（30〜60）。<b>上限はなく</b>、回復した分だけ増えます（99まで）。0で成仏</li><li>霊力：術を使う・霊獣を呼ぶときに払う</li><li>小判：よろず屋で札を買う。簒奪札で見つけた札も小判で買う</li><li>手札：はじめは10枚、12枚まで（術札は数えません）。番のはじめには引きません</li></ul>' +
       '<h3>手札の並び</h3><p>手札はいつも左から<b>術札 → 攻撃の札 → 守札 → その他</b>の順に並び、同じ組の中は<b>数値の小さい順</b>です。左はしの紫のわくが「術札ゾーン」です。</p>';
-    case 'turn': return '<h3>攻める</h3>' + ex(F('katana') + P + F('kiai'), '武器をタップして、攻める相手をタップ。<b>追撃</b>の札はどの武器にも足せます。太刀（攻7）＋気合（＋3）で攻撃10。') +
+    case 'turn': return '<h3>札はだれにでも使える</h3><p>武器・術・道具・召喚札は、<b>自分・味方・相手のだれにでも</b>使えます。おにぎりで味方の体力を回復したり、霊獣を味方につけたり。わざと相手を回復させても、味方を攻めてもかまいません（味方を攻めるときは確認が出ます）。</p>' +
+      '<h3>攻める</h3>' + ex(F('katana') + P + F('kiai'), '武器をタップして、攻める人をタップ。<b>追撃</b>の札はどの武器にも足せます。太刀（攻7）＋気合（＋3）で攻撃10。') +
       '<h3>重ね打ち（属性の武器だけ）</h3>' + ex(F('hiya') + P + F('homura'), '<b>同じ属性の武器どうしは何枚でも重ねられます</b>。火矢（4）＋焔の太刀（7）で火の攻撃11。') +
       ex(F('katana') + F('naginata'), '<b>属性のない武器は重ねられません</b>（1回に1枚。追撃札だけ足せます）。そのかわり、相手はどの守札でも守れてしまいます。') +
       ex(F('kaensha') + F('yabusuma'), '「全体」と書いた武器や術は、相手全員に当たります。全体の武器はほかの武器と重ねられません。') +
       ex(F('kusarigama'), '「通れば1枚」の武器は、ダメージが通ったら札を1枚引けます。') +
       '<h3>術を使う</h3>' + ex(F('kitsunebi') + F('iyashi'), '札の下の「霊3」は、使うのに必要な霊力。<b>術札は使っても手札の「術札ゾーン」に残り、霊力があれば毎番でも使えます</b>。同じ術札は1枚までで、もう持っている術を引いたときは捨てて引き直します。術札は手札の枚数に数えません。') +
       '<p>属性のある術は、同じ属性の守札・その属性に強い属性の守札・結界札で守れます。術札は押し売り・神隠し・簒奪の対象になりません（よろず屋では売れます）。</p>' +
-      '<h3>道具</h3>' + ex(F('sandatsu'), '<b>簒奪札</b>：相手1人の手札からランダムに1枚を見て、<b>値段を払えば自分の札</b>にできます。払った小判は相手に渡ります。買わなければ札は相手に戻ります。') +
-      ex(F('jobutsu'), '<b>成仏札</b>：霊獣を連れた相手に使うと、半分の確率でその霊獣を成仏させます。') +
+      '<h3>道具</h3>' + ex(F('onigiri') + F('iyashi'), '<b>体力・霊力・小判をふやす札</b>は、えらばなければ自分に使います。ほかの人の席をタップすると、その人に使えます（味方にも相手にも）。') +
+      ex(F('sandatsu'), '<b>簒奪札</b>：えらんだ人の手札からランダムに1枚を見て、<b>値段を払えば自分の札</b>にできます。払った小判はその人に渡ります。買わなければ札は戻ります。') +
+      ex(F('jobutsu'), '<b>成仏札</b>：霊獣を連れた人に使うと、半分の確率でその霊獣を成仏させます。') +
       ex(F('oshiuri') + F('kinnokatana'), '<b>押し売り札</b>：手札の札を1枚、相手に値段どおり売りつけます（代金はあなたのものに）。相手の小判が足りなければ霊力、それでも足りなければ体力で払わせ、払いきれなければ成仏。金の刀（30両）のような高い札が武器になります。') +
       ex(F('seiren'), '<b>精錬札</b>：体力・霊力・小判を5ずつ入れかえられます。「−5」で減らした分を「＋5」で分けて「精錬」。') +
       ex(F('onigiri') + F('reisui') + F('zenibukuro'), '体力・霊力・小判をふやす道具は、それぞれ＋5・＋10・＋15・＋20があります。') +
@@ -4599,8 +4786,8 @@ function howHTML(k) {
       ex(F('kagami'), '<b>照魔の鏡</b>：攻撃も術も、そっくり相手にはね返す。はね返された人も鏡を持っていれば、またはね返せます（鏡がつきるまで応酬）。') +
       ex(F('hauchiwa'), '<b>羽団扇</b>：攻めを弾く。弾いた攻めは<b>流れ弾</b>になって、<b>自分もふくめた全員</b>の中からランダムに選ばれた1人に飛びます。飛んだ先の人には守りの番が来て、<b>守札で守れます</b>。') +
       ex(F('migawari'), '<b>身代わり人形</b>：攻撃も術も、なかったことにする') + ex(F('minokasa'), '<b>隠れ蓑</b>：武器の攻撃を半分の確率でかわす（ふつうの防具と重ねられる）') +
-      '<h3>状態のしるし</h3><ul><li><span class="st st-curse">呪</span> 呪い：番のはじめに体力−3（3回）</li><li><span class="st st-seal">封</span> 封印：術が使えない（2回の番）</li><li><span class="st st-mist">霧</span> 霧隠れ：次の自分の番まで狙われない</li><li><span class="st st-kiai">気</span> 気合：次の攻撃＋5</li><li><span class="st st-kiai">力</span> 白虎の力：次の攻撃が強くなる</li><li><span class="st st-shell">甲</span> 甲羅：次に受けるダメージが減る</li></ul><p>呪いと封印は「清めの塩」で治せます。倒した人は、倒された人の小判の半分をもらえます。</p>';
-    case 'beast': return '<h3>霊獣を呼ぶ</h3>' + ex(F('shokan'), '<b>召喚札</b>を使うと、霊力を払って霊獣を呼べます。<b>どの霊獣が出るかはランダム</b>です。霊獣は式神とは別に、あなたの席についてくれます。<b>1人1体まで</b>で、もう一度呼ぶと別の霊獣と入れかわります（龍神は呼べません）。') +
+      '<h3>状態のしるし</h3><ul><li><span class="st st-curse">呪</span> 呪い：番のはじめに体力−3（3回）</li><li><span class="st st-seal">封</span> 封印：術が使えない（2回の番）</li><li><span class="st st-mist">霧</span> 霧隠れ：その人の次の番まで、ほかのだれにもえらばれない</li><li><span class="st st-kiai">気</span> 気合：次の攻撃＋5</li><li><span class="st st-kiai">力</span> 白虎の力：次の攻撃が強くなる</li><li><span class="st st-shell">甲</span> 甲羅：次に受けるダメージが減る</li></ul><p>呪いと封印は「清めの塩」で治せます。倒した人は、倒された人の小判の半分をもらえます。</p>';
+    case 'beast': return '<h3>霊獣を呼ぶ</h3>' + ex(F('shokan'), '<b>召喚札</b>を使うと、霊力を払って霊獣を呼べます。<b>どの霊獣が出るかはランダム</b>です。霊獣は式神とは別に、席についてくれます。<b>自分だけでなく、味方や相手の席につけることもできます</b>（席をタップしてから「呼ぶ」）。<b>1人1体まで</b>で、もう一度呼ぶと別の霊獣と入れかわります。龍神は霊獣を連れられませんが、召喚札をほかの人に使うことはできます。') +
       '<h3>アシスト</h3><p>霊獣は、<b>だれの番でも</b>番のはじめに<b>10回に1回くらい</b>アシストを出します。</p>' +
       '<h3>霊獣が去るとき</h3><ul><li>持ち主がダメージを受けるたびに、8回に1回くらい成仏して去る</li><li>相手に<b>成仏札</b>を使われると、半分の確率で成仏する</li></ul><h3>十の霊獣</h3>' +
       BEAST_LIST.map(B => '<div class="ex ex-b">' + beastCardHTML(B.id) + '<div class="say"><b>' + esc(B.name) + '</b>（' + esc(B.yomi) + '）' + (B.elem ? '　<span class="elchip el-' + B.elem + '">' + crestSVG(B.elem) + B.elem + '</span>' : '') +
@@ -4615,6 +4802,17 @@ function howHTML(k) {
       GUARD_LIST.map(g => '<div class="ex">' + embHTML(g.id, 46) + '<div class="say"><b>' + esc(g.name) + '</b>　<span class="elchip el-' + g.elem + '">' + crestSVG(g.elem) + g.elem + '</span>　体力' + g.hp + '　霊力' + g.mp + '<br>' + esc(g.skill) + '：' + esc(g.text) + '</div></div>').join('');
     case 'weather': return '<h3>天候</h3><p>1巡ごとに天候が変わり、場に効果がかかります。いまの天候は<b>まん中の場の背景</b>（雨・月・提灯など）と画面の上に出ていて、上の札をタップすると説明が見られます。</p>' +
       WEATHER_LIST.map(w => '<div class="ex"><span style="font-size:36px;color:' + (WX_COLOR[w.id] || 'var(--kin-hi)') + '">' + weatherCrest(w) + '</span><div class="say"><b>' + esc(w.name) + '</b>（' + esc(w.yomi) + '）<br>' + esc(w.text) + '</div></div>').join('');
+    case 'happen': return '<h3>ハプニング</h3><p>思いがけないことが起きると、合戦はもっとおもしろくなります。待合室の「ハプニング」で<b>なし・ふつう・多め</b>をえらべます（ふつうがおすすめ）。</p>' +
+      '<h3>すっぽ抜け</h3><p>武器で1人を攻めたとき、ときどき<b>手がすべって、ねらった人とはちがうだれか</b>に飛んでいきます。味方に当たることも！（ふつう5%・多め10%）</p>' +
+      '<h3>会心の一撃</h3><p>武器で攻めたとき、ときどき<b>攻撃が2倍</b>になります（ふつう6%・多め10%）。</p>' +
+      '<h3>春一番</h3><p>天候が春一番のあいだは、1人をねらう武器と術の相手がランダムになり、<b>味方に当たることもあります</b>。</p>' +
+      '<h3>巡のはじめの出来事</h3><p>巡が変わるとき、ときどき次のどれかが起きます（ふつう35%・多め70%）。</p>' +
+      HAPPENINGS.map(h => '<div class="ex"><span class="hp-seal sm">' + (HAPPEN_SEAL[h.id] || '変') + '</span><div class="say"><b>' + esc(h.name) + '</b>（' + esc(h.yomi) + '）<br>' + esc(h.text) + '</div></div>').join('') +
+      '<h3>ハプニング札</h3>' +
+      ex(F('abaregoma'), '<b>暴れ独楽</b>：攻撃12と強いけれど、<b>自分以外のだれに当たるかは運まかせ</b>。味方に当たることも！') +
+      ex(F('bakeha'), '<b>狸の化け葉</b>：えらんだ人と<b>体力を入れかえる</b>。守れない。ピンチからの大逆転に') +
+      ex(F('fukuwarai'), '<b>福笑い</b>：<b>全員の手札をまぜて配り直す</b>（術札はのぞく）。だれの札がだれに行くかは運まかせ') +
+      '<p>ハプニング「なし」の部屋では、ハプニング札は山札に入りません。</p>';
     case 'cards': {
       const groups = [['weapon', '武器'], ['plus', '追撃'], ['armor', '防具'], ['spell', '術'], ['item', '道具'], ['summon', '召喚（霊獣）']];
       const total = CARD_LIST.reduce((s, c) => s + c.n, 0);
@@ -4734,6 +4932,8 @@ function boot() {
   initOnline();
   /* 自動テスト用の入口（ふつうに開いたときは何もしない） */
   if (TEST.hook) window.__yao = { G: () => net && net.host && net.host.room.game, changed: () => net && net.host && net.host.changed(), GUARD, CARD, BEAST, fuda: (id, o) => fudaHTML(id, o), koFx, stampAt, cutIn, relPos, embHTML, shownSeq: () => (shown && shown.game ? shown.game.seq : -1), busy: () => pres.busy || pres.q.length > 0, assist: pid => { const G = net && net.host && net.host.room.game; if (G) assist(G, G.players[pid]); },
+    /* ハプニングを起こす（テスト用） */
+    happen: id => { const G = net && net.host && net.host.room.game; if (G) { const e = happening(G, id || true); net.host.changed(); return e; } return null; },
     /* 確かめをせずに合言葉の部屋の進行役になる（ほぼ同時に部屋ができたときのテスト用） */
     hostNow: async rp => {
       const n = new MqttNet(rp); await n.init(); await n.bus.waitUp(5000);
@@ -4981,12 +5181,14 @@ function atkFinal(G, d, me) {
   const nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
   const vals = atkParts(d).filter(x => x.v != null).map(x => x.v);
   const sum = vals.reduce((s, v) => s + v, 0);
-  const kiai = d.kiai ? 5 : 0, boost = d.boost || 0, other = (d.base || 0) - sum - kiai - boost;
+  const base0 = d.crit ? Math.round((d.base || 0) / 2) : d.base || 0;
+  const kiai = d.kiai ? 5 : 0, boost = d.boost || 0, other = base0 - sum - kiai - boost;
   const bon = [];
   if (kiai) bon.push(['気合', kiai]);
   if (boost) bon.push(['白虎', boost]);
   if (other) bon.push([C.type === 'spell' ? '式神・天候' : '式神・天候', other]);
-  const formula = vals.length > 1 || bon.length ? vals.join(' ＋ ') + bon.map(([l, v]) => (v > 0 ? ' ＋ ' : ' − ') + l + Math.abs(v)).join('') + ' ＝ <b>' + d.base + '</b>' : '';
+  let formula = vals.length > 1 || bon.length ? vals.join(' ＋ ') + bon.map(([l, v]) => (v > 0 ? ' ＋ ' : ' − ') + l + Math.abs(v)).join('') + ' ＝ <b>' + base0 + '</b>' : '';
+  if (d.crit) formula = (formula ? '（' + formula.replace(/<\/?b>/g, '') + '）' : base0) + ' × 2 会心 ＝ <b>' + d.base + '</b>';
   const ts = d.targets || [];
   if (ts.length === 1) {
     const t = ts[0], T = G.players[t], f = (d.aff || {})[t] || 0, fin = (d.atk || {})[t];
@@ -5012,7 +5214,7 @@ function boardHTML(G, d, me, o) {
   const hid = o.anim ? ' hid' : '';
   const ts = d.targets || [];
   const to = ts.length > 1 ? '相手全員' : ts.length ? nm(ts[0]) : '';
-  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
+  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.slip != null ? 'すっぽ抜け（ねらいは' + nm(d.slip) + '）' : '', d.crit ? '会心の一撃' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
   return '<div class="bt bt2" data-bt="' + btKey(G, d) + '">' +
     '<div class="bt-head">' + (A ? embHTML(A.guardian, 34) : '') + '<div class="bt-who"><span><b>' + nm(d.by) + '</b>の' + (C.type === 'spell' ? '術' : '攻め') + '</span>' +
       (d.elem ? '<span class="elchip el-' + d.elem + '">' + crestSVG(d.elem) + d.elem + '</span>' : '') + (to ? '<span class="bt-to">→ ' + to + '</span>' : '') + (extra ? '<small>' + extra + '</small>' : '') + '</div></div>' +
@@ -5061,13 +5263,27 @@ async function playBoard(G, d, me) {
     if (!box) { await wait(TEMPO.atk[0]); return; }
     const n = box.querySelector('.bt-n'), x = box.querySelector('.bt-x'), w = box.querySelector('.bt-w');
     const F = atkFinal(G, d, me), C = CARD[d.card];
+    const myPid = me ? me.pid : -1, nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
     let sum = 0;
     await wait(200);
     await stageReveal(box, i => { if (parts[i].v != null && n) { sum += parts[i].v; n.textContent = sum; bumpEl(n); } });
-    if (n && F.dmg) { n.textContent = F.num; n.classList.add('fin'); bumpEl(n); }
+    if (d.slip != null) {
+      /* ハプニング：すっぽ抜け。ねらった人とはちがう人に飛んでいく */
+      telop('すっぽ抜けた！<small>' + nm(d.slip) + 'をねらったのに、' + nm((d.targets || [])[0]) + 'へ飛んでいく</small>', 'chaos', 1700);
+      sfx('deflect'); shakeEl(box, 'hit', 420);
+      await wait(1200);
+    }
+    if (n && F.dmg) { n.textContent = d.crit ? Math.round(d.base / 2) : F.num; n.classList.add('fin'); bumpEl(n); }
     if (x) x.classList.remove('hid');
     if (w) w.classList.remove('hid');
     sfx(C.type === 'spell' ? 'spell' : (d.targets || []).length > 1 ? 'allatk' : 'sword');
+    if (d.crit && n) {
+      /* ハプニング：会心の一撃。攻撃が2倍 */
+      await wait(500);
+      telop('会心の一撃！<small>攻撃が2倍</small>', 'chaos', 1400);
+      n.textContent = F.num; bumpEl(n); sfx('bighit'); flash('#ffe08a');
+      await wait(900);
+    }
     await stageHold(t0, TEMPO.atk[0], TEMPO.atk[1]);
     ui.lastBt = btKey(G, d);
   } finally { pres.board = false; }
@@ -5252,7 +5468,8 @@ async function playEvent(e, r, fast) {
       if (e.by === myPid) hvTake([e.card]); else seatCount(e.by, -1);
       if (fast) { sfx('summon'); return; }
       const B = BEAST[e.b];
-      beastCut(e.b, nm(e.by) + 'が霊獣を呼んだ' + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : ''), esc(B ? B.name : ''), B ? 'アシスト：' + esc(B.text) : '', 1900);
+      const other = e.to != null && e.to !== e.by;
+      beastCut(e.b, nm(e.by) + (other ? 'が' + nm(e.to) + 'に霊獣をつけた' : 'が霊獣を呼んだ') + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : ''), esc(B ? B.name : ''), B ? 'アシスト：' + esc(B.text) : '', 1900);
       sfx('summon');
       await wait(1850);
       return;
@@ -5401,16 +5618,17 @@ async function playEvent(e, r, fast) {
         await wait(900);
         return;
       }
-      /* 札を舞台に出して2秒見せてから、効果が出る */
+      /* 札を舞台に出して2秒見せてから、効果が出る（えらんだ人に効く。自分・味方・相手のだれでも） */
       const IW = itemWord(e);
-      await useStage(G, me, { by: e.by, cards: [e.card], title: 'の道具', word: IW.word, cls: IW.cls, sfx: 'select' });
-      if (e.hp) { popAt(pos, '+' + e.hp, 'heal'); hpAdd(e.by, e.hp); }
-      if (e.mp) popAt(pos, '霊力+' + e.mp, 'mp', e.hp ? 250 : 0);
-      if (e.gold) popAt(pos, '+' + e.gold + '両', 'gold', 120);
-      if (e.mp || e.gold) resNow(r, e.by);
-      if (e.kiai) popAt(pos, '気合', 'word');
-      if (e.cured) popAt(pos, '浄め', 'word', 200);
-      if (pos && e.hp) FXC.sparks(pos.x, pos.y, 10, ['#9fe0a2', '#fff3d2', '#ffffff']);
+      const to = e.to != null ? e.to : e.by, tpos = seatPos(to);
+      await useStage(G, me, { by: e.by, to, cards: [e.card], title: 'の道具', word: IW.word, cls: IW.cls, sfx: 'select', sub: to !== e.by && G.players[to] && G.players[e.by] && !sameTeam(G.players[to], G.players[e.by]) ? '相手に使った！' : '' });
+      if (e.hp) { popAt(tpos, '+' + e.hp, 'heal'); hpAdd(to, e.hp); }
+      if (e.mp) popAt(tpos, '霊力+' + e.mp, 'mp', e.hp ? 250 : 0);
+      if (e.gold) popAt(tpos, '+' + e.gold + '両', 'gold', 120);
+      if (e.mp || e.gold) resNow(r, to);
+      if (e.kiai) popAt(tpos, '気合', 'word');
+      if (e.cured) popAt(tpos, '浄め', 'word', 200);
+      if (tpos && e.hp) FXC.sparks(tpos.x, tpos.y, 10, ['#9fe0a2', '#fff3d2', '#ffffff']);
       sfx(e.kiai ? 'power' : e.gold && !e.hp ? 'coin' : 'heal');
       await wait(1100);
       return;
@@ -5519,9 +5737,100 @@ async function playEvent(e, r, fast) {
       await wait(450);
       return;
     }
+    case 'hpswap': {
+      if (e.by === myPid) hvTake([e.card]); else seatCount(e.by, -1);
+      if (fast) { hpAdd(e.by, e.hb - e.ha); hpAdd(e.to, e.ha - e.hb); return; }
+      if (e.to === myPid) vibrate([60, 40, 60]);
+      await useStage(G, me, { by: e.by, to: e.to, cards: [e.card], title: 'の道具', word: '体力入れかえ！', cls: 'bad', sub: nm(e.by) + ' ' + e.ha + ' ⇄ ' + e.hb + ' ' + nm(e.to), sfx: 'spell' });
+      const a = seatPos(e.by), b = seatPos(e.to);
+      flyCard(a, b, 380); flyCard(b, a, 380);
+      sfx('reflect');
+      await wait(420);
+      popAt(a, (e.hb >= e.ha ? '+' : '−') + Math.abs(e.hb - e.ha), e.hb >= e.ha ? 'heal' : ''); hpAdd(e.by, e.hb - e.ha);
+      popAt(b, (e.ha >= e.hb ? '+' : '−') + Math.abs(e.ha - e.hb), e.ha >= e.hb ? 'heal' : ''); hpAdd(e.to, e.ha - e.hb);
+      shakeEl(seatEl(e.by), 'hit', 520); shakeEl(seatEl(e.to), 'hit', 520);
+      await wait(1100);
+      return;
+    }
+    case 'fukuwarai': {
+      if (e.by === myPid) hvTake([e.card]); else seatCount(e.by, -1);
+      const mine = me ? (e.deal || {})[me.pid] : null;
+      if (fast) { if (me && mine) { hvTakeIf(h => !isSpellId(h.c), 99); hvGive(mine); } return; }
+      await useStage(G, me, { by: e.by, cards: [e.card], title: 'の道具', word: '福笑い！', cls: 'gold', sub: '全員の手札をまぜて配り直す', sfx: 'paper' });
+      /* 全員の札が、まん中に集まって、また配られる */
+      const mid = deckPos();
+      G.players.filter(p => p.alive).forEach((p, i) => { const pp = seatPos(p.pid); setTimeout(() => { flyCard(pp, mid, 260); setTimeout(() => flyCard(mid, pp, 260), 520 * SPEED); }, i * 90 * SPEED); });
+      sfx('paper');
+      await wait(500);
+      if (me && mine) { hvTakeIf(h => !isSpellId(h.c), 99); await wait(250); hvGive(mine); sfx('draw'); }
+      await wait(900);
+      if (me && mine) popAt(seatPos(me.pid), '手札が入れかわった', 'word');
+      await wait(400);
+      return;
+    }
+    case 'happen': await playHappen(e, r, fast); return;
     case 'left': toast(pname(G, e.p) + 'さんが抜けたので、CPUが代わりに戦います'); return;
     default: return;
   }
+}
+/* ---------- ハプニング（巡のはじめ） ---------- */
+const HAPPEN_SEAL = { nezumi: '鼠', nagareboshi: '星', jishin: '震', matsuri: '祭', yomeiri: '嫁', irekawari: '魂', iede: '獣', takarakuji: '籤' };
+const HAPPEN_OF = id => HAPPENINGS.find(h => h.id === id) || HAPPENINGS[0];
+/* 何が起きたかをひとことで */
+function happenWord(G, e, me) {
+  const myPid = me ? me.pid : -1, nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
+  switch (e.id) {
+    case 'nezumi': return nm(e.from) + 'の小判' + e.v + '両が、' + nm(e.to) + 'のもとへ';
+    case 'nagareboshi': return nm(e.to) + 'に星が落ちた！札を' + (e.got || 0) + '枚引く';
+    case 'jishin': return '全員の体力−3';
+    case 'matsuri': return '全員の体力＋5';
+    case 'yomeiri': return '手札を1枚ずつ、となりの人へ渡した';
+    case 'irekawari': return nm(e.a) + '（' + e.ha + '）と' + nm(e.b) + '（' + e.hb + '）の体力が入れかわった！';
+    case 'iede': return (e.moves || []).map(m => esc(bname(m.b)) + 'が' + (m.t < 0 ? '龍神のもとにいられず去った' : nm(m.t) + 'のもとへ')).join('、') || '霊獣が引っこした';
+    case 'takarakuji': return nm(e.to) + 'が当たり！小判＋' + (e.v || 0) + '両';
+  }
+  return '';
+}
+async function playHappen(e, r, fast) {
+  const G = r.game, me = mePlayer(r), myPid = me ? me.pid : -1;
+  const H = HAPPEN_OF(e.id);
+  /* 手札の動き（狐の嫁入り）は、見せる見せないにかかわらず数を合わせる */
+  const moveCards = () => (e.moves || []).forEach(m => {
+    if (e.id !== 'yomeiri') return;
+    if (m.f === myPid) hvTake([m.c]); else seatCount(m.f, -1);
+    if (m.t === myPid) hvGive([m.c]); else if (m.t >= 0) seatCount(m.t, 1);
+  });
+  if (fast) {
+    moveCards();
+    if (e.id === 'jishin') (e.hits || []).forEach(x => hpAdd(x.p, -x.d));
+    if (e.id === 'matsuri') (e.heals || []).forEach(x => hpAdd(x.p, x.v));
+    if (e.id === 'irekawari') { hpAdd(e.a, e.hb - e.ha); hpAdd(e.b, e.ha - e.hb); }
+    return;
+  }
+  cutIn('<div class="cards"><span class="hp-seal">' + (HAPPEN_SEAL[e.id] || '変') + '</span></div><div class="ctext"><div class="cwho">ハプニング！</div>' +
+    '<div class="cname">' + esc(H.name) + '</div><div class="cto">' + happenWord(G, e, me) + '</div></div>', 2100);
+  sfx(e.id === 'jishin' ? 'bighit' : e.id === 'matsuri' || e.id === 'takarakuji' ? 'daikichi' : 'summon');
+  if (e.id === 'jishin') { shakeEl($('shell'), 'shake-big', 900); vibrate([60, 40, 60]); }
+  await wait(1900);
+  const pos = pid => seatPos(pid);
+  switch (e.id) {
+    case 'nezumi': flyCard(pos(e.from), pos(e.to), 420); popAt(pos(e.from), '−' + e.v + '両', 'word curse'); popAt(pos(e.to), '+' + e.v + '両', 'gold', 380); resNow(r, e.from); resNow(r, e.to); sfx('coin'); break;
+    case 'nagareboshi': popAt(pos(e.to), '札＋' + (e.got || 0), 'word draw'); if (e.to === myPid) await hvDraw(e.got || 0); else await seatDraw(G, e.to, e.got || 0, 0); break;
+    case 'jishin': (e.hits || []).forEach((x, i) => { if (x.d) { popAt(pos(x.p), '−' + x.d, '', i * 80); hpAdd(x.p, -x.d); shakeEl(seatEl(x.p), 'hit', 520); } }); if ((e.hits || []).some(x => x.p === myPid && x.d)) flash('#ff3b2a'); break;
+    case 'matsuri': (e.heals || []).forEach((x, i) => { if (x.v) { popAt(pos(x.p), '+' + x.v, 'heal', i * 80); hpAdd(x.p, x.v); } }); sfx('heal'); break;
+    case 'yomeiri': (e.moves || []).forEach((m, i) => { setTimeout(() => flyCard(pos(m.f), m.t >= 0 ? pos(m.t) : deckPos(), 360), i * 110 * SPEED); }); sfx('paper'); moveCards(); break;
+    case 'irekawari': {
+      flyCard(pos(e.a), pos(e.b), 380); flyCard(pos(e.b), pos(e.a), 380); sfx('reflect');
+      await wait(400);
+      const d = e.hb - e.ha;
+      popAt(pos(e.a), (d >= 0 ? '+' : '−') + Math.abs(d), d >= 0 ? 'heal' : ''); hpAdd(e.a, d);
+      popAt(pos(e.b), (d <= 0 ? '+' : '−') + Math.abs(d), d <= 0 ? 'heal' : ''); hpAdd(e.b, -d);
+      break;
+    }
+    case 'iede': (e.moves || []).forEach(m => { flyCard(pos(m.f), m.t >= 0 ? pos(m.t) : null, 420); if (m.t >= 0) popAt(pos(m.t), bname(m.b) + 'が来た', 'word', 380); else popAt(pos(m.f), bname(m.b) + 'が去った', 'word curse', 200); }); sfx('assist'); $('gOpp').__h = null; break;
+    case 'takarakuji': popAt(pos(e.to), '+' + (e.v || 0) + '両', 'gold'); resNow(r, e.to); sfx('coin'); if (pos(e.to)) FXC.sparks(pos(e.to).x, pos(e.to).y, 14, ['#e8d199', '#fff3d2', '#c0503a']); break;
+  }
+  await wait(900);
 }
 function afterRender(evs, r) {
   const G = r.game, me = mePlayer(r);
@@ -5587,20 +5896,21 @@ function viewOf(G, me) {
   if (isMyAct(G, me)) return ui.shop ? 'shop' : ui.sel != null ? 'card' : 'mine';
   return 'wait';
 }
+/* えらべる人（札はだれにでも使える：自分・味方・相手） */
 function targetPids(G, me, C) {
   if (!me || !C || !isMyAct(G, me)) return [];
   if (randomTarget(G, C)) return [];
-  if (C.type === 'weapon' && !C.all) return targetsFor(G, me, C).map(p => p.pid);
-  if (C.type === 'spell' && (C.tgt === 'enemy' || C.tgt === 'ally')) {
-    if (me.st.seal > 0 || me.mp < spellCost(G, me, C)) return [];
-    return targetsFor(G, me, C).map(p => p.pid);
-  }
-  if (C.type === 'item' && (C.tgt === 'beast' || C.tgt === 'enemy' || C.tgt === 'foe')) return targetsFor(G, me, C).map(p => p.pid);
-  return [];
+  const aim = aimOf(C);
+  if (aim === 'all' || aim === 'none') return [];
+  if (C.type === 'spell' && (wKind(G, 'nospell') || me.st.seal > 0 || me.mp < spellCost(G, me, C))) return [];
+  if (C.type === 'summon' && me.mp < summonCost(me, C)) return [];
+  return targetsFor(G, me, C).map(p => p.pid);
 }
-/* 相手をえらぶ必要がある札（春一番のあいだは、武器と術の相手はランダム） */
-const needsTarget = C => !!C && !(shown && randomTarget(shown.game, C)) && ((C.type === 'weapon' && !C.all) || (C.type === 'spell' && C.tgt === 'enemy') || (C.type === 'item' && (C.tgt === 'beast' || C.tgt === 'enemy' || C.tgt === 'foe')));
-const WHY = { rain: '梅雨のあいだは術が使えません', sealed: '封印されているので、いまは術を使えません', nosummon: '龍神は霊獣を呼べません', nosell: '売りつける札が手札にありません', target: 'いま使える相手がいません' };
+/* 相手をえらばないと使えない札（よいことをする札は、えらばなければ自分に使う） */
+const needsTarget = C => !!C && !(shown && randomTarget(shown.game, C)) && aimOf(C) === 'harm';
+/* よいことをする札（自分か、えらんだだれかに使う） */
+const helpCard = C => aimOf(C) === 'help';
+const WHY = { rain: '梅雨のあいだは術が使えません', sealed: '封印されているので、いまは術を使えません', nosummon: '龍神には霊獣をつけられません', nosell: '売りつける札が手札にありません', target: 'いま使える相手がいません' };
 /* 武器をえらんでいるときに、いっしょに出せる札。追撃札はいつでも。武器どうしは「同じ属性」で「全体でない」ときだけ */
 function addable(me, C, h) {
   if (!C || C.type !== 'weapon' || h.u === ui.sel) return false;
@@ -5681,7 +5991,7 @@ function renderGame() {
 }
 const WX_COLOR = { haru: '#9cc995', enten: '#f39467', jinari: '#dcae5c', shuso: '#e9e6dd', tsuyu: '#93b4e6', nagi: '#a8c6c1', ennichi: '#f1b45d', mangetsu: '#f4e6b6', arashi: '#bcc7d3' };
 function weatherShort(w) {
-  return { random: '相手がランダム', power: (w.bonus > 0 ? 'ダメージ＋' : 'ダメージ−') + Math.abs(w.bonus || 0), onecard: '守り1枚まで', nospell: '術が使えない', fair: '半額・棚5枚', moon: '術の霊力−' + (w.cut || 1), storm: '札＋1枚', calm: '変化なし' }[w.kind] || '変化なし';
+  return { random: '味方にも当たる', power: (w.bonus > 0 ? 'ダメージ＋' : 'ダメージ−') + Math.abs(w.bonus || 0), onecard: '守り1枚まで', nospell: '術が使えない', fair: '半額・棚5枚', moon: '術の霊力−' + (w.cut || 1), storm: '札＋1枚', calm: '変化なし' }[w.kind] || '変化なし';
 }
 function renderOpp(G, me, view) {
   const others = G.players.filter(p => !me || p.pid !== me.pid);
@@ -5706,7 +6016,7 @@ function renderOpp(G, me, view) {
   const valid = new Set(view === 'dead' && ui.ghost === 'hex' && me && !hexUsed(G, me) ? hexTargets(G, me).map(p => p.pid) : targetPids(G, me, C));
   /* 属性のある攻めをえらんでいるときは、相手ごとの相性を席に出す */
   const affs = {};
-  if (C && me) others.forEach(p => { if (p.alive && !sameTeam(p, me)) { const f = affFor(G, C, p); if (f != null) affs[p.pid] = f; } });
+  if (C && me && aimOf(C) !== 'help') others.forEach(p => { if (p.alive && (aimOf(C) === 'harm' || !sameTeam(p, me))) { const f = affFor(G, C, p); if (f != null) affs[p.pid] = f; } });
   setHTML(box, others.map(p => seatHTML(G, p, valid, affs[p.pid])).join(''));
 }
 /* 体力に上限はない。バーは「はじめの体力」を目安にして、超えた分は金色で見せる */
@@ -5890,11 +6200,12 @@ function centerCard(G, me) {
     const bonus = base - parts.reduce((x, y) => x + y, 0);
     const sum = (parts.length > 1 || bonus ? parts.join('＋') + (bonus ? (bonus > 0 ? '＋' : '−') + Math.abs(bonus) + '（式神・天候・気合）' : '') + '＝' : '') + '<b>' + base + '</b>';
     if (C.all) now = '相手全員に 攻撃 ' + sum + '　相手の式神によって相性で変わります';
-    else if (rndT) now = '攻撃 ' + sum + '<br>春一番：攻める相手はランダムで決まります';
+    else if (rndT) now = '攻撃 ' + sum + '<br>' + (C.fx === 'rand' ? '暴れ独楽：自分以外のだれかに当たります（味方のことも！）' : '春一番：攻める相手はランダムで決まります（味方に当たることも！）');
     else if (ui.target == null) now = '攻撃 ' + sum + '<br>攻める相手をタップしてください';
     else {
       const t = G.players[ui.target], f = affinity(C.elem, guardOf(t).elem);
       now = esc(t.name) + 'に 攻撃 ' + sum + (f ? '　→　' + affTxt(f) + ' <b>' + applyAff(base, f) + '</b>' : '');
+      if (sameTeam(t, me)) now += '<br><span class="bad">' + esc(t.name) + 'は味方です！それでも攻めますか？</span>';
       if (fireImmune(t, C.elem)) now += '<br><span class="bad">九尾の狐は火の攻撃ではダメージを受けません</span>';
     }
     now += affSummary(G, me, C);
@@ -5909,13 +6220,12 @@ function centerCard(G, me) {
       now = '霊力 <b>' + cost + '</b> を使います' + (cost !== C.mp ? '（もとは' + C.mp + '）' : '');
       if (C.eff === 'dmg' || C.eff === 'drain') {
         const base = Math.max(0, C.val + atkBonus(G, me, C.elem, false));
-        if (rndT) now += '<br>ダメージ ' + base + '　春一番：相手はランダムで決まります';
-        else if (ui.target != null) { const f = affinity(C.elem, guardOf(G.players[ui.target]).elem); now += '<br>' + esc(pname(G, ui.target)) + 'に <b>' + applyAff(base, f) + '</b> ダメージ' + (f ? '　' + affTxt(f) : ''); }
+        if (rndT) now += '<br>ダメージ ' + base + '　春一番：相手はランダムで決まります（味方に当たることも！）';
+        else if (ui.target != null) { const f = affinity(C.elem, guardOf(G.players[ui.target]).elem); now += '<br>' + esc(pname(G, ui.target)) + 'に <b>' + applyAff(base, f) + '</b> ダメージ' + (f ? '　' + affTxt(f) : '') + (sameTeam(G.players[ui.target], me) ? '　<span class="bad">（味方です！）</span>' : ''); }
         else now += '<br>ダメージ ' + base + (C.tgt === 'all' ? '（相手全員）' : '　相手をタップしてください');
         now += affSummary(G, me, C);
-      } else if (C.tgt === 'ally' && ui.target != null) now += '<br>' + (ui.target === me.pid ? '自分' : esc(pname(G, ui.target))) + 'に使います';
-      else if (C.tgt === 'ally') now += '<br>自分か味方をタップ（自分のところをタップでもOK）';
-      else if (C.tgt === 'enemy') now += rndT ? '<br>春一番：かける相手はランダムで決まります' : ui.target != null ? '<br>' + esc(pname(G, ui.target)) + 'にかけます' : '<br>かける相手をタップしてください';
+      } else if (helpCard(C)) now += '<br>' + (ui.target != null && ui.target !== me.pid ? esc(pname(G, ui.target)) + 'に使います' + (sameTeam(G.players[ui.target], me) ? '（味方）' : '（相手）') : '自分に使います') + '<br><span class="c-hint">ほかの人をタップすると、その人に使えます（味方にも相手にも）</span>';
+      else if (C.tgt !== 'all') now += rndT ? '<br>春一番：かける相手はランダムで決まります（味方に当たることも！）' : ui.target != null ? '<br>' + esc(pname(G, ui.target)) + 'にかけます' + (sameTeam(G.players[ui.target], me) ? '　<span class="bad">（味方です！）</span>' : '') : '<br>かける相手をタップしてください';
     }
     now += '<br><span class="c-hint">術札は使っても手札に残ります。霊力があれば次の番もまた使えます</span>';
   } else if (C.type === 'item' && C.eff === 'jobutsu') {
@@ -5940,12 +6250,21 @@ function centerCard(G, me) {
         now += '<br>' + esc(t.name) + 'は 小判' + g + (m ? '・霊力' + m : '') + (h ? '・体力' + Math.min(h, t.hp) : '') + 'で払います' + (h >= t.hp ? '　<span class="bad">払いきれずに成仏！</span>' : '');
       }
     }
-  } else if (C.type === 'item') now = '自分に使います';
-  else if (C.type === 'summon') {
+  } else if (C.type === 'item' && C.eff === 'hpswap') {
+    if (!targetsFor(G, me, C).length) { now = 'いまえらべる人がいません'; warn = true; }
+    else if (ui.target == null) now = '体力を入れかえる人をタップしてください（いまのあなたの体力 <b>' + me.hp + '</b>）';
+    else { const t = G.players[ui.target]; now = esc(t.name) + 'と体力を入れかえます<br>あなた ' + me.hp + ' → <b>' + t.hp + '</b>　／　' + esc(t.name) + ' ' + t.hp + ' → <b>' + me.hp + '</b>' + (sameTeam(t, me) ? '<br><span class="bad">（味方です！）</span>' : ''); }
+  } else if (C.type === 'item' && C.eff === 'shuffle') now = '全員の手札（術札はのぞく）を集めてまぜ、もとの枚数ずつ配り直します。<br>あなたの手札も、だれかの札と入れかわります';
+  else if (C.type === 'item') {
+    const t = ui.target != null ? G.players[ui.target] : me;
+    now = (t === me ? '自分に使います' : esc(t.name) + 'に使います' + (sameTeam(t, me) ? '（味方）' : '（相手）')) + '<br><span class="c-hint">ほかの人をタップすると、その人に使えます（味方にも相手にも）</span>';
+  } else if (C.type === 'summon') {
     const cost = summonCost(me, C);
-    if (why === 'nosummon') { now = WHY.nosummon; warn = true; }
+    const t = ui.target != null ? G.players[ui.target] : me;
+    if (why === 'target') { now = 'いま霊獣をつけられる人がいません'; warn = true; }
     else if (me.mp < cost) { now = '霊力が足りません（必要 ' + cost + '・いま ' + me.mp + '）'; warn = true; }
-    else now = '霊力 <b>' + cost + '</b> を使って呼びます。どの霊獣が出るかはお楽しみ' + (me.beast ? '<br>いまの霊獣「' + esc(bname(me.beast)) + '」と入れかわります' : '');
+    else if (t === me && guardOf(me).noSummon) now = '霊力 <b>' + cost + '</b> を使って呼びます。<br>龍神は霊獣を連れられないので、霊獣をつける人をタップしてください（味方にも相手にも）';
+    else now = '霊力 <b>' + cost + '</b> を使って呼び、' + (t === me ? '自分' : esc(t.name)) + 'につけます。どの霊獣が出るかはお楽しみ' + (t.beast ? '<br>いまの霊獣「' + esc(bname(t.beast)) + '」と入れかわります' : '') + '<br><span class="c-hint">ほかの人をタップすると、その人につけられます（味方にも相手にも）</span>';
   }
   else if (C.type === 'plus') { now = '武器といっしょに出す札です。先に武器の札をタップしてください'; warn = true; }
   else if (C.type === 'armor') { now = '守りの札です。攻められたときに使います'; warn = true; }
@@ -6210,14 +6529,15 @@ function renderGuide(G, me, view) {
       if (C.type === 'weapon') {
         const more = me.hand.some(h => addable(me, C, h) && !ui.ws.includes(h.u) && !ui.adds.includes(h.u));
         if (C.all) { text = '相手全員に攻めます'; small = more ? '「＋足せる」札を重ねると強くなる' : '下のボタンで決まり'; }
-        else if (randomTarget(G, C)) { text = '春一番：相手はランダムで決まります'; small = more ? '「＋足せる」札を重ねると強くなる' : '下のボタンで攻めます'; }
-        else if (ui.target == null) { text = '攻める相手をタップ'; small = more ? '「＋足せる」札を重ねると強くなる' : '光っている相手をえらべます'; }
+        else if (randomTarget(G, C)) { text = C.fx === 'rand' ? 'だれに当たるかは運まかせ' : '春一番：相手はランダムで決まります'; small = (more ? '「＋足せる」札を重ねると強くなる。' : '') + '味方に当たることも！'; }
+        else if (ui.target == null) { text = '攻める相手をタップ'; small = more ? '「＋足せる」札を重ねると強くなる' : '光っている人をえらべます（味方も）'; }
         else { text = '「' + esc(pname(G, ui.target)) + 'を攻める」で決まり'; small = more ? 'まだ札を重ねられます' : ''; }
       } else if (C.type === 'spell') {
         const cost = spellCost(G, me, C);
         if (wKind(G, 'nospell') || me.st.seal > 0 || me.mp < cost) { text = 'この術はいま使えません'; small = wKind(G, 'nospell') ? '梅雨のあいだは術が使えません' : 'ほかの札をえらぶか、「やめる」'; }
-        else if (C.tgt === 'enemy' && randomTarget(G, C)) { text = '春一番：かける相手はランダム'; small = '下のボタンで術を使います'; }
-        else if ((C.tgt === 'enemy' || C.tgt === 'ally') && ui.target == null) { text = C.tgt === 'ally' ? '自分か味方をタップ' : '術をかける相手をタップ'; small = C.tgt === 'ally' ? '「自分に使う」でもOK' : '光っている相手をえらべます'; }
+        else if (aimOf(C) === 'harm' && randomTarget(G, C)) { text = '春一番：かける相手はランダム'; small = '味方に当たることも！'; }
+        else if (helpCard(C) && ui.target == null) { text = '使う人をタップ（だれでも）'; small = '「自分に使う」でもOK'; }
+        else if (aimOf(C) === 'harm' && ui.target == null) { text = '術をかける相手をタップ'; small = '光っている人をえらべます（味方も）'; }
         else { text = '下のボタンで術を使います'; }
       } else if (C.type === 'item' && C.eff === 'sell') {
         if (whyNot(G, me, C)) { text = 'この道具はいま使えません'; small = WHY[whyNot(G, me, C)] || ''; }
@@ -6227,14 +6547,16 @@ function renderGuide(G, me, view) {
       } else if (C.type === 'item' && C.eff === 'refine') {
         seal = '精'; text = '「−5」で減らして「＋5」で分ける'; small = refPool() ? 'あと ' + refPool() + ' 分けられます' : '分け終わったら「精錬」';
       } else if (C.type === 'item' && needsTarget(C)) {
-        if (!targetsFor(G, me, C).length) { text = 'この道具はいま使えません'; small = C.eff === 'jobutsu' ? '霊獣を連れた相手がいません' : '手札のある相手がいません'; }
-        else if (ui.target == null) { text = C.eff === 'jobutsu' ? '霊獣を連れた相手をタップ' : '札を見る相手をタップ'; small = '光っている相手をえらべます'; }
+        if (!targetsFor(G, me, C).length) { text = 'この道具はいま使えません'; small = C.eff === 'jobutsu' ? '霊獣を連れた人がいません' : C.eff === 'usurp' ? '手札のある人がいません' : 'えらべる人がいません'; }
+        else if (ui.target == null) { text = C.eff === 'jobutsu' ? '霊獣を連れた人をタップ' : C.eff === 'hpswap' ? '体力を入れかえる人をタップ' : '札を見る人をタップ'; small = '光っている人をえらべます（味方も）'; }
         else text = '下のボタンで使います';
-      } else if (C.type === 'item') { text = '「使う」で使います'; }
+      } else if (C.type === 'item' && C.eff === 'shuffle') { text = '「使う」で全員の手札をまぜます'; small = 'だれの札がだれに行くかは運まかせ'; }
+      else if (C.type === 'item') { text = ui.target == null || ui.target === me.pid ? '自分に使うなら「自分に使う」' : '下のボタンで使います'; small = 'ほかの人をタップすると、その人に使えます（味方にも相手にも）'; }
       else if (C.type === 'summon') {
-        if (guardOf(me).noSummon) { text = '龍神は霊獣を呼べません'; small = 'ほかの札をえらぶか、「やめる」'; }
-        else if (me.mp < summonCost(me, C)) { text = '霊力が足りません'; small = 'おみくじの中吉や霊力の道具で霊力をふやせます'; }
-        else { text = '「呼ぶ」で霊獣を呼びます'; small = '霊獣は1人1体。番のはじめに、ときどき助けてくれます'; }
+        if (me.mp < summonCost(me, C)) { text = '霊力が足りません'; small = 'おみくじの中吉や霊力の道具で霊力をふやせます'; }
+        else if (whyNot(G, me, C)) { text = 'いま霊獣をつけられる人がいません'; small = 'ほかの札をえらぶか、「やめる」'; }
+        else if (guardOf(me).noSummon && (ui.target == null || ui.target === me.pid)) { text = '霊獣をつける人をタップ'; small = '龍神は霊獣を連れられません。味方にも相手にもつけられます'; }
+        else { text = '「呼ぶ」で霊獣を呼びます'; small = 'ほかの人をタップすると、その人につけられます'; }
       }
       else { text = 'この札はいま出せません'; small = C.type === 'plus' ? '先に武器をえらぶと、いっしょに出せます' : '攻められたときに守りとして使います'; }
       break;
@@ -6280,15 +6602,14 @@ function renderActs(G, me, view) {
     case 'card':
       if (C.type === 'weapon') {
         if (C.all) b = abtn('cancel', 'やめる') + abtn('attack', '相手全員を攻める', 'btn-gold', !targetsFor(G, me, C).length);
-        else if (randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('attack', 'ランダムな相手を攻める', 'btn-gold', !targetsFor(G, me, C).length);
+        else if (randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('attack', C.fx === 'rand' ? '運まかせで攻める' : 'ランダムなだれかを攻める', 'btn-gold', !targetsFor(G, me, C).length);
         else b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('attack', esc(pname(G, ui.target)) + 'を攻める', 'btn-gold'));
       } else if (C.type === 'spell') {
         const ok = !whyNot(G, me, C) || whyNot(G, me, C) === 'target';
         if (!ok) b = abtn('cancel', 'やめる');
-        else if (C.tgt === 'enemy' && randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('spell', 'ランダムな相手にかける', 'btn-gold', !targetsFor(G, me, C).length);
-        else if (C.tgt === 'self') b = abtn('cancel', 'やめる') + abtn('spell', '術を使う', 'btn-gold');
+        else if (aimOf(C) === 'harm' && randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('spell', 'ランダムなだれかにかける', 'btn-gold', !targetsFor(G, me, C).length);
         else if (C.tgt === 'all') b = abtn('cancel', 'やめる') + abtn('spell', '相手全員にかける', 'btn-gold', !targetsFor(G, me, C).length);
-        else if (C.tgt === 'ally') b = abtn('cancel', 'やめる') + (ui.target == null || ui.target === me.pid ? abtn('spellself', '自分に使う', 'btn-gold') : abtn('spell', esc(pname(G, ui.target)) + 'に使う', 'btn-gold'));
+        else if (helpCard(C)) b = abtn('cancel', 'やめる') + (ui.target == null || ui.target === me.pid ? abtn('spellself', '自分に使う', 'btn-gold') : abtn('spell', esc(pname(G, ui.target)) + 'に使う', 'btn-gold'));
         else b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('spell', esc(pname(G, ui.target)) + 'にかける', 'btn-gold'));
       } else if (C.type === 'item' && C.eff === 'sell') {
         const ware = ui.ware != null ? me.hand.find(h => h.u === ui.ware) : null;
@@ -6296,9 +6617,14 @@ function renderActs(G, me, view) {
       } else if (C.type === 'item' && C.eff === 'refine') {
         b = abtn('cancel', 'やめる') + abtn('refine', '精錬', 'btn-gold', refPool() !== 0 || !(ui.ref.hp || ui.ref.mp || ui.ref.gold), refPool() ? 'あと ' + refPool() + ' 分ける' : '');
       } else if (C.type === 'item' && needsTarget(C)) {
-        b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('item', esc(pname(G, ui.target)) + (C.eff === 'usurp' ? 'の札を見る' : 'に使う'), 'btn-gold'));
-      } else if (C.type === 'item') b = abtn('cancel', 'やめる') + abtn('item', '使う', 'btn-gold');
-      else if (C.type === 'summon') b = abtn('cancel', 'やめる') + abtn('summon', '呼ぶ', 'btn-gold', !!whyNot(G, me, C), '霊力 ' + summonCost(me, C));
+        b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('item', esc(pname(G, ui.target)) + (C.eff === 'usurp' ? 'の札を見る' : C.eff === 'hpswap' ? 'と入れかえる' : 'に使う'), 'btn-gold'));
+      } else if (C.type === 'item' && helpCard(C)) b = abtn('cancel', 'やめる') + abtn('item', ui.target == null || ui.target === me.pid ? '自分に使う' : esc(pname(G, ui.target)) + 'に使う', 'btn-gold');
+      else if (C.type === 'item') b = abtn('cancel', 'やめる') + abtn('item', '使う', 'btn-gold');
+      else if (C.type === 'summon') {
+        const self = ui.target == null || ui.target === me.pid;
+        const dis = !!whyNot(G, me, C) || (self && guardOf(me).noSummon);
+        b = abtn('cancel', 'やめる') + abtn('summon', self ? '呼ぶ' : esc(pname(G, ui.target)) + 'に呼ぶ', 'btn-gold', dis, '霊力 ' + summonCost(me, C));
+      }
       else b = abtn('cancel', 'やめる');
       break;
     case 'defend': {
@@ -6378,11 +6704,11 @@ function actTap(e) {
     case 'shopcancel': sfx('tap'); resetSel(); renderGame(); return;
     case 'trade': send({ t: 'shop', buy: ui.buy, sell: ui.sell.slice() }); return;
     case 'attack': if (C) send({ t: 'attack', ws: [ui.sel].concat(ui.ws), adds: ui.adds.slice(), to: C.all ? undefined : ui.target }); return;
-    case 'spell': if (C) send({ t: 'spell', s: ui.sel, to: C.tgt === 'self' || C.tgt === 'all' ? undefined : ui.target }); return;
+    case 'spell': if (C) send({ t: 'spell', s: ui.sel, to: aimOf(C) === 'all' || randomTarget(G, C) ? undefined : ui.target }); return;
     case 'spellself': if (C) send({ t: 'spell', s: ui.sel, to: me.pid }); return;
-    case 'item': send({ t: 'item', i: ui.sel, to: needsTarget(C) ? ui.target : undefined, c: C && C.eff === 'sell' ? ui.ware : undefined }); return;
+    case 'item': send({ t: 'item', i: ui.sel, to: needsTarget(C) || helpCard(C) ? (ui.target != null ? ui.target : undefined) : undefined, c: C && C.eff === 'sell' ? ui.ware : undefined }); return;
     case 'refine': send({ t: 'item', i: ui.sel, d: Object.assign({}, ui.ref) }); return;
-    case 'summon': send({ t: 'summon', s: ui.sel }); return;
+    case 'summon': send({ t: 'summon', s: ui.sel, to: ui.target != null ? ui.target : undefined }); return;
     case 'buy': sfx('tap'); send({ t: 'usurp', buy: true }); return;
     case 'nobuy': sfx('tap'); send({ t: 'usurp', buy: false }); return;
     case 'take': sfx('tap'); send({ t: 'defend', cards: [] }); return;
@@ -6447,7 +6773,7 @@ function handTap(e) {
     resetSel();
     ui.sel = u;
     const ts = targetPids(G, me, HC);
-    if (ts.length === 1 && HC.tgt !== 'ally') ui.target = ts[0];
+    if (ts.length === 1 && aimOf(HC) === 'harm') ui.target = ts[0];
     if (HC.type === 'weapon' && C && C.type === 'weapon' && !C.elem && !HC.elem) toast('属性のない武器どうしは重ねられません（追撃札だけ足せます）');
     renderGame(); return;
   }
@@ -6472,7 +6798,7 @@ function seatTap(e) {
   sfx('tap');
   if (view === 'card' && valid.length) {
     const p = G.players[pid];
-    toast('この相手はえらべません' + (p.st.mist ? '（霧隠れ中）' : !p.alive ? '（成仏）' : me && sameTeam(me, p) ? (p.pid === me.pid ? '' : '（味方）') : ''));
+    toast('この人はえらべません' + (p.st.mist && p.pid !== me.pid ? '（霧隠れ中）' : !p.alive ? '（成仏）' : C && C.type === 'summon' && guardOf(p).noSummon ? '（龍神には霊獣をつけられません）' : C && C.eff === 'jobutsu' ? '（霊獣を連れていません）' : C && C.eff === 'usurp' ? '（手札がありません）' : me && p.pid === me.pid ? '（自分には使えない札です）' : ''));
     return;
   }
   if (view === 'defend' || view === 'shop' || view === 'card') return;
@@ -6566,7 +6892,7 @@ function logText(G, e, me) {
     case 'weather': { const w = WEATHER[e.w]; return w ? (e.voice != null ? '天の声（' + N(e.voice) + 'の霊）で' : '') + '天候が「' + esc(w.name) + '」に（' + esc(w.text) + '）' : ''; }
     case 'hexcast': return N(e.by) + 'の霊が' + N(e.to) + 'に呪術をかけた（次の番のはじめに効く）';
     case 'hex': { const X = HEX_OF(e.fx); return N(e.by) + 'の霊の呪術：' + N(e.to) + 'に' + (e.good ? '吉' : '凶') + '「' + X.name + '」（' + esc(hexWord(G, e)) + '）'; }
-    case 'declare': return N(e.by) + 'が' + (e.cards || [e.card]).concat(e.adds || []).map(cn).join('＋') + (e.elem ? '（' + e.elem + '）' : '') + 'で' + (e.targets.length > 1 ? '相手全員' : N(e.targets[0])) + 'を' + (CARD[e.card].type === 'spell' ? '狙う' : '攻める');
+    case 'declare': return (e.slip != null ? 'すっぽ抜け！' : '') + (e.crit ? '会心の一撃！' : '') + N(e.by) + 'が' + (e.cards || [e.card]).concat(e.adds || []).map(cn).join('＋') + (e.elem ? '（' + e.elem + '）' : '') + 'で' + (e.targets.length > 1 ? '相手全員' : N(e.targets[0])) + 'を' + (CARD[e.card].type === 'spell' ? '狙う' : '攻める') + (e.slip != null ? '（ねらいは' + N(e.slip) + 'だった）' : '');
     case 'bounce': return '攻めが' + N(e.to) + 'へはね返った' + (e.atk ? '（' + e.atk + '）' : '');
     case 'stray': return N(e.from) + 'が弾いた流れ弾が' + N(e.to) + 'へ' + (e.atk ? '（' + e.atk + '）' : '');
     case 'resolve': return e.results.map(r => {
@@ -6583,13 +6909,16 @@ function logText(G, e, me) {
     case 'ko': return N(e.p) + 'は成仏した' + (e.reward ? '（' + N(e.by) + 'が小判' + e.reward + '両を手に入れた）' : '');
     case 'item':
       if (CARD[e.card] && CARD[e.card].eff === 'jobutsu') return N(e.by) + 'が成仏札を' + N(e.to) + 'の' + esc(bname(e.b)) + 'に使った→' + (e.ok ? '成仏した' : '成仏しなかった');
-      return N(e.by) + 'は' + cn(e.card) + 'を使った' + (e.hp ? '（体力＋' + e.hp + '）' : e.mp ? '（霊力＋' + e.mp + '）' : e.gold ? '（小判＋' + e.gold + '）' : e.kiai ? '（気合）' : '');
-    case 'spell': return N(e.by) + 'は' + cn(e.card) + (e.v ? '（' + N(e.to) + 'の体力＋' + e.v + '）' : 'で霧に隠れた');
+      return N(e.by) + 'は' + cn(e.card) + 'を' + (e.to != null && e.to !== e.by ? N(e.to) + 'に' : '') + '使った' + (e.hp ? '（体力＋' + e.hp + '）' : e.mp ? '（霊力＋' + e.mp + '）' : e.gold ? '（小判＋' + e.gold + '）' : e.kiai ? '（気合）' : '');
+    case 'spell': return N(e.by) + 'は' + cn(e.card) + (e.v ? '（' + N(e.to) + 'の体力＋' + e.v + '）' : e.to != null && e.to !== e.by ? 'で' + N(e.to) + 'を霧に隠した' : 'で霧に隠れた');
+    case 'hpswap': return N(e.by) + 'が狸の化け葉で' + N(e.to) + 'と体力を入れかえた（' + e.ha + '⇄' + e.hb + '）';
+    case 'fukuwarai': return N(e.by) + 'の福笑いで、全員の手札がまざって配り直された';
+    case 'happen': return 'ハプニング「' + esc(HAPPEN_OF(e.id).name) + '」：' + happenWord(G, e, me);
     case 'shop': return N(e.by) + 'はよろず屋で' + (e.bought ? cn(e.bought) + 'を買った' : '') + (e.sold.length ? (e.bought ? '、' : '') + '札を' + e.sold.length + '枚売った（＋' + e.gain + '両）' : '');
     case 'omikuji': { const O = OMIKUJI.find(o => o.id === e.r); return N(e.p) + (e.timeout ? 'は時間切れでおみくじ：' : 'のおみくじは') + (O ? O.name : '') + '（' + omikujiWord(e) + '）'; }
     case 'swapped': return e.n ? N(e.p) + 'は札を' + e.n + '枚入れかえた' : N(e.p) + 'は札を入れかえなかった';
     case 'curse': return N(e.p) + 'は呪いで体力−' + e.dmg;
-    case 'summon': return N(e.by) + 'は霊獣「' + esc(bname(e.b)) + '」を呼んだ' + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : '');
+    case 'summon': return N(e.by) + 'は霊獣「' + esc(bname(e.b)) + '」を' + (e.to != null && e.to !== e.by ? N(e.to) + 'につけた' : '呼んだ') + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : '');
     case 'assist': return esc(bname(e.b)) + 'のアシスト：' + esc(assistWord(G, e, me));
     case 'beastgone': return N(e.p) + 'の霊獣「' + esc(bname(e.b)) + '」は成仏した';
     case 'shell': return N(e.p) + 'は甲羅でダメージを' + e.cut + '減らした';

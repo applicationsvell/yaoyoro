@@ -25,7 +25,7 @@ const ssSet = (k, v) => { try { if (v == null) sessionStorage.removeItem(k); els
 function newRoom(code, mode, profile) {
   return {
     v: 1, code, mode, host: myCid, ver: 1, at: Date.now(), created: Date.now(), phase: 'lobby',
-    settings: { teams: 0, turnSec: mode === 'local' ? 0 : 60, defSec: mode === 'local' ? 0 : 20 },
+    settings: { teams: 0, turnSec: mode === 'local' ? 0 : 60, defSec: mode === 'local' ? 0 : 20, chaos: 1 },
     seats: [{ cid: myCid, name: profile.name, guardian: profile.guardian, team: 0, cpu: false }],
     game: null, closed: false,
   };
@@ -128,6 +128,7 @@ class Host {
           if (a.teams) R.seats.forEach((s, i) => { s.team = i % a.teams; });
         }
         if ([0, 30, 60, 90].includes(a.turnSec)) { R.settings.turnSec = a.turnSec; R.settings.defSec = a.turnSec ? Math.max(15, Math.round(a.turnSec / 3)) : 0; }
+        if ([0, 1, 2].includes(a.chaos)) R.settings.chaos = a.chaos;
         break;
       }
       case 'start': {
@@ -221,7 +222,7 @@ function animMs(G, from) {
     if (e.s <= from) break;
     switch (e.k) {
       case 'refill': ms += 200 * e.n + 120; break;
-      case 'declare': ms += stage((e.cards || []).length + (e.adds || []).length, 2800, 1800); break;
+      case 'declare': ms += stage((e.cards || []).length + (e.adds || []).length, 2800, 1800) + (e.slip != null ? 1200 : 0) + (e.crit ? 1400 : 0); break;
       case 'resolve': {
         const R = e.results || [];
         /* 1人ずつ順番に：守りの札を見せて、ダメージを出す */
@@ -244,6 +245,9 @@ function animMs(G, from) {
       case 'weather': ms += e.voice != null ? 1700 : 1300; break;
       case 'assist': ms += 3000; break;   /* 霊獣の絵を2秒見せてから効く */
       case 'summon': ms += 1850; break;
+      case 'hpswap': ms += stage(1, 2600, 1750) + 1550; break;
+      case 'fukuwarai': ms += stage(1, 2600, 1750) + 2100; break;
+      case 'happen': ms += 2800 + (e.id === 'nagareboshi' ? 200 * (e.got || 0) : e.id === 'irekawari' ? 400 : 0); break;
       default: break;
     }
   }

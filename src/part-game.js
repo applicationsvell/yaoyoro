@@ -236,12 +236,14 @@ function atkFinal(G, d, me) {
   const nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
   const vals = atkParts(d).filter(x => x.v != null).map(x => x.v);
   const sum = vals.reduce((s, v) => s + v, 0);
-  const kiai = d.kiai ? 5 : 0, boost = d.boost || 0, other = (d.base || 0) - sum - kiai - boost;
+  const base0 = d.crit ? Math.round((d.base || 0) / 2) : d.base || 0;
+  const kiai = d.kiai ? 5 : 0, boost = d.boost || 0, other = base0 - sum - kiai - boost;
   const bon = [];
   if (kiai) bon.push(['気合', kiai]);
   if (boost) bon.push(['白虎', boost]);
   if (other) bon.push([C.type === 'spell' ? '式神・天候' : '式神・天候', other]);
-  const formula = vals.length > 1 || bon.length ? vals.join(' ＋ ') + bon.map(([l, v]) => (v > 0 ? ' ＋ ' : ' − ') + l + Math.abs(v)).join('') + ' ＝ <b>' + d.base + '</b>' : '';
+  let formula = vals.length > 1 || bon.length ? vals.join(' ＋ ') + bon.map(([l, v]) => (v > 0 ? ' ＋ ' : ' − ') + l + Math.abs(v)).join('') + ' ＝ <b>' + base0 + '</b>' : '';
+  if (d.crit) formula = (formula ? '（' + formula.replace(/<\/?b>/g, '') + '）' : base0) + ' × 2 会心 ＝ <b>' + d.base + '</b>';
   const ts = d.targets || [];
   if (ts.length === 1) {
     const t = ts[0], T = G.players[t], f = (d.aff || {})[t] || 0, fin = (d.atk || {})[t];
@@ -267,7 +269,7 @@ function boardHTML(G, d, me, o) {
   const hid = o.anim ? ' hid' : '';
   const ts = d.targets || [];
   const to = ts.length > 1 ? '相手全員' : ts.length ? nm(ts[0]) : '';
-  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
+  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.slip != null ? 'すっぽ抜け（ねらいは' + nm(d.slip) + '）' : '', d.crit ? '会心の一撃' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
   return '<div class="bt bt2" data-bt="' + btKey(G, d) + '">' +
     '<div class="bt-head">' + (A ? embHTML(A.guardian, 34) : '') + '<div class="bt-who"><span><b>' + nm(d.by) + '</b>の' + (C.type === 'spell' ? '術' : '攻め') + '</span>' +
       (d.elem ? '<span class="elchip el-' + d.elem + '">' + crestSVG(d.elem) + d.elem + '</span>' : '') + (to ? '<span class="bt-to">→ ' + to + '</span>' : '') + (extra ? '<small>' + extra + '</small>' : '') + '</div></div>' +
@@ -316,13 +318,27 @@ async function playBoard(G, d, me) {
     if (!box) { await wait(TEMPO.atk[0]); return; }
     const n = box.querySelector('.bt-n'), x = box.querySelector('.bt-x'), w = box.querySelector('.bt-w');
     const F = atkFinal(G, d, me), C = CARD[d.card];
+    const myPid = me ? me.pid : -1, nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
     let sum = 0;
     await wait(200);
     await stageReveal(box, i => { if (parts[i].v != null && n) { sum += parts[i].v; n.textContent = sum; bumpEl(n); } });
-    if (n && F.dmg) { n.textContent = F.num; n.classList.add('fin'); bumpEl(n); }
+    if (d.slip != null) {
+      /* ハプニング：すっぽ抜け。ねらった人とはちがう人に飛んでいく */
+      telop('すっぽ抜けた！<small>' + nm(d.slip) + 'をねらったのに、' + nm((d.targets || [])[0]) + 'へ飛んでいく</small>', 'chaos', 1700);
+      sfx('deflect'); shakeEl(box, 'hit', 420);
+      await wait(1200);
+    }
+    if (n && F.dmg) { n.textContent = d.crit ? Math.round(d.base / 2) : F.num; n.classList.add('fin'); bumpEl(n); }
     if (x) x.classList.remove('hid');
     if (w) w.classList.remove('hid');
     sfx(C.type === 'spell' ? 'spell' : (d.targets || []).length > 1 ? 'allatk' : 'sword');
+    if (d.crit && n) {
+      /* ハプニング：会心の一撃。攻撃が2倍 */
+      await wait(500);
+      telop('会心の一撃！<small>攻撃が2倍</small>', 'chaos', 1400);
+      n.textContent = F.num; bumpEl(n); sfx('bighit'); flash('#ffe08a');
+      await wait(900);
+    }
     await stageHold(t0, TEMPO.atk[0], TEMPO.atk[1]);
     ui.lastBt = btKey(G, d);
   } finally { pres.board = false; }
@@ -507,7 +523,8 @@ async function playEvent(e, r, fast) {
       if (e.by === myPid) hvTake([e.card]); else seatCount(e.by, -1);
       if (fast) { sfx('summon'); return; }
       const B = BEAST[e.b];
-      beastCut(e.b, nm(e.by) + 'が霊獣を呼んだ' + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : ''), esc(B ? B.name : ''), B ? 'アシスト：' + esc(B.text) : '', 1900);
+      const other = e.to != null && e.to !== e.by;
+      beastCut(e.b, nm(e.by) + (other ? 'が' + nm(e.to) + 'に霊獣をつけた' : 'が霊獣を呼んだ') + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : ''), esc(B ? B.name : ''), B ? 'アシスト：' + esc(B.text) : '', 1900);
       sfx('summon');
       await wait(1850);
       return;
@@ -656,16 +673,17 @@ async function playEvent(e, r, fast) {
         await wait(900);
         return;
       }
-      /* 札を舞台に出して2秒見せてから、効果が出る */
+      /* 札を舞台に出して2秒見せてから、効果が出る（えらんだ人に効く。自分・味方・相手のだれでも） */
       const IW = itemWord(e);
-      await useStage(G, me, { by: e.by, cards: [e.card], title: 'の道具', word: IW.word, cls: IW.cls, sfx: 'select' });
-      if (e.hp) { popAt(pos, '+' + e.hp, 'heal'); hpAdd(e.by, e.hp); }
-      if (e.mp) popAt(pos, '霊力+' + e.mp, 'mp', e.hp ? 250 : 0);
-      if (e.gold) popAt(pos, '+' + e.gold + '両', 'gold', 120);
-      if (e.mp || e.gold) resNow(r, e.by);
-      if (e.kiai) popAt(pos, '気合', 'word');
-      if (e.cured) popAt(pos, '浄め', 'word', 200);
-      if (pos && e.hp) FXC.sparks(pos.x, pos.y, 10, ['#9fe0a2', '#fff3d2', '#ffffff']);
+      const to = e.to != null ? e.to : e.by, tpos = seatPos(to);
+      await useStage(G, me, { by: e.by, to, cards: [e.card], title: 'の道具', word: IW.word, cls: IW.cls, sfx: 'select', sub: to !== e.by && G.players[to] && G.players[e.by] && !sameTeam(G.players[to], G.players[e.by]) ? '相手に使った！' : '' });
+      if (e.hp) { popAt(tpos, '+' + e.hp, 'heal'); hpAdd(to, e.hp); }
+      if (e.mp) popAt(tpos, '霊力+' + e.mp, 'mp', e.hp ? 250 : 0);
+      if (e.gold) popAt(tpos, '+' + e.gold + '両', 'gold', 120);
+      if (e.mp || e.gold) resNow(r, to);
+      if (e.kiai) popAt(tpos, '気合', 'word');
+      if (e.cured) popAt(tpos, '浄め', 'word', 200);
+      if (tpos && e.hp) FXC.sparks(tpos.x, tpos.y, 10, ['#9fe0a2', '#fff3d2', '#ffffff']);
       sfx(e.kiai ? 'power' : e.gold && !e.hp ? 'coin' : 'heal');
       await wait(1100);
       return;
@@ -774,9 +792,100 @@ async function playEvent(e, r, fast) {
       await wait(450);
       return;
     }
+    case 'hpswap': {
+      if (e.by === myPid) hvTake([e.card]); else seatCount(e.by, -1);
+      if (fast) { hpAdd(e.by, e.hb - e.ha); hpAdd(e.to, e.ha - e.hb); return; }
+      if (e.to === myPid) vibrate([60, 40, 60]);
+      await useStage(G, me, { by: e.by, to: e.to, cards: [e.card], title: 'の道具', word: '体力入れかえ！', cls: 'bad', sub: nm(e.by) + ' ' + e.ha + ' ⇄ ' + e.hb + ' ' + nm(e.to), sfx: 'spell' });
+      const a = seatPos(e.by), b = seatPos(e.to);
+      flyCard(a, b, 380); flyCard(b, a, 380);
+      sfx('reflect');
+      await wait(420);
+      popAt(a, (e.hb >= e.ha ? '+' : '−') + Math.abs(e.hb - e.ha), e.hb >= e.ha ? 'heal' : ''); hpAdd(e.by, e.hb - e.ha);
+      popAt(b, (e.ha >= e.hb ? '+' : '−') + Math.abs(e.ha - e.hb), e.ha >= e.hb ? 'heal' : ''); hpAdd(e.to, e.ha - e.hb);
+      shakeEl(seatEl(e.by), 'hit', 520); shakeEl(seatEl(e.to), 'hit', 520);
+      await wait(1100);
+      return;
+    }
+    case 'fukuwarai': {
+      if (e.by === myPid) hvTake([e.card]); else seatCount(e.by, -1);
+      const mine = me ? (e.deal || {})[me.pid] : null;
+      if (fast) { if (me && mine) { hvTakeIf(h => !isSpellId(h.c), 99); hvGive(mine); } return; }
+      await useStage(G, me, { by: e.by, cards: [e.card], title: 'の道具', word: '福笑い！', cls: 'gold', sub: '全員の手札をまぜて配り直す', sfx: 'paper' });
+      /* 全員の札が、まん中に集まって、また配られる */
+      const mid = deckPos();
+      G.players.filter(p => p.alive).forEach((p, i) => { const pp = seatPos(p.pid); setTimeout(() => { flyCard(pp, mid, 260); setTimeout(() => flyCard(mid, pp, 260), 520 * SPEED); }, i * 90 * SPEED); });
+      sfx('paper');
+      await wait(500);
+      if (me && mine) { hvTakeIf(h => !isSpellId(h.c), 99); await wait(250); hvGive(mine); sfx('draw'); }
+      await wait(900);
+      if (me && mine) popAt(seatPos(me.pid), '手札が入れかわった', 'word');
+      await wait(400);
+      return;
+    }
+    case 'happen': await playHappen(e, r, fast); return;
     case 'left': toast(pname(G, e.p) + 'さんが抜けたので、CPUが代わりに戦います'); return;
     default: return;
   }
+}
+/* ---------- ハプニング（巡のはじめ） ---------- */
+const HAPPEN_SEAL = { nezumi: '鼠', nagareboshi: '星', jishin: '震', matsuri: '祭', yomeiri: '嫁', irekawari: '魂', iede: '獣', takarakuji: '籤' };
+const HAPPEN_OF = id => HAPPENINGS.find(h => h.id === id) || HAPPENINGS[0];
+/* 何が起きたかをひとことで */
+function happenWord(G, e, me) {
+  const myPid = me ? me.pid : -1, nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
+  switch (e.id) {
+    case 'nezumi': return nm(e.from) + 'の小判' + e.v + '両が、' + nm(e.to) + 'のもとへ';
+    case 'nagareboshi': return nm(e.to) + 'に星が落ちた！札を' + (e.got || 0) + '枚引く';
+    case 'jishin': return '全員の体力−3';
+    case 'matsuri': return '全員の体力＋5';
+    case 'yomeiri': return '手札を1枚ずつ、となりの人へ渡した';
+    case 'irekawari': return nm(e.a) + '（' + e.ha + '）と' + nm(e.b) + '（' + e.hb + '）の体力が入れかわった！';
+    case 'iede': return (e.moves || []).map(m => esc(bname(m.b)) + 'が' + (m.t < 0 ? '龍神のもとにいられず去った' : nm(m.t) + 'のもとへ')).join('、') || '霊獣が引っこした';
+    case 'takarakuji': return nm(e.to) + 'が当たり！小判＋' + (e.v || 0) + '両';
+  }
+  return '';
+}
+async function playHappen(e, r, fast) {
+  const G = r.game, me = mePlayer(r), myPid = me ? me.pid : -1;
+  const H = HAPPEN_OF(e.id);
+  /* 手札の動き（狐の嫁入り）は、見せる見せないにかかわらず数を合わせる */
+  const moveCards = () => (e.moves || []).forEach(m => {
+    if (e.id !== 'yomeiri') return;
+    if (m.f === myPid) hvTake([m.c]); else seatCount(m.f, -1);
+    if (m.t === myPid) hvGive([m.c]); else if (m.t >= 0) seatCount(m.t, 1);
+  });
+  if (fast) {
+    moveCards();
+    if (e.id === 'jishin') (e.hits || []).forEach(x => hpAdd(x.p, -x.d));
+    if (e.id === 'matsuri') (e.heals || []).forEach(x => hpAdd(x.p, x.v));
+    if (e.id === 'irekawari') { hpAdd(e.a, e.hb - e.ha); hpAdd(e.b, e.ha - e.hb); }
+    return;
+  }
+  cutIn('<div class="cards"><span class="hp-seal">' + (HAPPEN_SEAL[e.id] || '変') + '</span></div><div class="ctext"><div class="cwho">ハプニング！</div>' +
+    '<div class="cname">' + esc(H.name) + '</div><div class="cto">' + happenWord(G, e, me) + '</div></div>', 2100);
+  sfx(e.id === 'jishin' ? 'bighit' : e.id === 'matsuri' || e.id === 'takarakuji' ? 'daikichi' : 'summon');
+  if (e.id === 'jishin') { shakeEl($('shell'), 'shake-big', 900); vibrate([60, 40, 60]); }
+  await wait(1900);
+  const pos = pid => seatPos(pid);
+  switch (e.id) {
+    case 'nezumi': flyCard(pos(e.from), pos(e.to), 420); popAt(pos(e.from), '−' + e.v + '両', 'word curse'); popAt(pos(e.to), '+' + e.v + '両', 'gold', 380); resNow(r, e.from); resNow(r, e.to); sfx('coin'); break;
+    case 'nagareboshi': popAt(pos(e.to), '札＋' + (e.got || 0), 'word draw'); if (e.to === myPid) await hvDraw(e.got || 0); else await seatDraw(G, e.to, e.got || 0, 0); break;
+    case 'jishin': (e.hits || []).forEach((x, i) => { if (x.d) { popAt(pos(x.p), '−' + x.d, '', i * 80); hpAdd(x.p, -x.d); shakeEl(seatEl(x.p), 'hit', 520); } }); if ((e.hits || []).some(x => x.p === myPid && x.d)) flash('#ff3b2a'); break;
+    case 'matsuri': (e.heals || []).forEach((x, i) => { if (x.v) { popAt(pos(x.p), '+' + x.v, 'heal', i * 80); hpAdd(x.p, x.v); } }); sfx('heal'); break;
+    case 'yomeiri': (e.moves || []).forEach((m, i) => { setTimeout(() => flyCard(pos(m.f), m.t >= 0 ? pos(m.t) : deckPos(), 360), i * 110 * SPEED); }); sfx('paper'); moveCards(); break;
+    case 'irekawari': {
+      flyCard(pos(e.a), pos(e.b), 380); flyCard(pos(e.b), pos(e.a), 380); sfx('reflect');
+      await wait(400);
+      const d = e.hb - e.ha;
+      popAt(pos(e.a), (d >= 0 ? '+' : '−') + Math.abs(d), d >= 0 ? 'heal' : ''); hpAdd(e.a, d);
+      popAt(pos(e.b), (d <= 0 ? '+' : '−') + Math.abs(d), d <= 0 ? 'heal' : ''); hpAdd(e.b, -d);
+      break;
+    }
+    case 'iede': (e.moves || []).forEach(m => { flyCard(pos(m.f), m.t >= 0 ? pos(m.t) : null, 420); if (m.t >= 0) popAt(pos(m.t), bname(m.b) + 'が来た', 'word', 380); else popAt(pos(m.f), bname(m.b) + 'が去った', 'word curse', 200); }); sfx('assist'); $('gOpp').__h = null; break;
+    case 'takarakuji': popAt(pos(e.to), '+' + (e.v || 0) + '両', 'gold'); resNow(r, e.to); sfx('coin'); if (pos(e.to)) FXC.sparks(pos(e.to).x, pos(e.to).y, 14, ['#e8d199', '#fff3d2', '#c0503a']); break;
+  }
+  await wait(900);
 }
 function afterRender(evs, r) {
   const G = r.game, me = mePlayer(r);
@@ -842,20 +951,21 @@ function viewOf(G, me) {
   if (isMyAct(G, me)) return ui.shop ? 'shop' : ui.sel != null ? 'card' : 'mine';
   return 'wait';
 }
+/* えらべる人（札はだれにでも使える：自分・味方・相手） */
 function targetPids(G, me, C) {
   if (!me || !C || !isMyAct(G, me)) return [];
   if (randomTarget(G, C)) return [];
-  if (C.type === 'weapon' && !C.all) return targetsFor(G, me, C).map(p => p.pid);
-  if (C.type === 'spell' && (C.tgt === 'enemy' || C.tgt === 'ally')) {
-    if (me.st.seal > 0 || me.mp < spellCost(G, me, C)) return [];
-    return targetsFor(G, me, C).map(p => p.pid);
-  }
-  if (C.type === 'item' && (C.tgt === 'beast' || C.tgt === 'enemy' || C.tgt === 'foe')) return targetsFor(G, me, C).map(p => p.pid);
-  return [];
+  const aim = aimOf(C);
+  if (aim === 'all' || aim === 'none') return [];
+  if (C.type === 'spell' && (wKind(G, 'nospell') || me.st.seal > 0 || me.mp < spellCost(G, me, C))) return [];
+  if (C.type === 'summon' && me.mp < summonCost(me, C)) return [];
+  return targetsFor(G, me, C).map(p => p.pid);
 }
-/* 相手をえらぶ必要がある札（春一番のあいだは、武器と術の相手はランダム） */
-const needsTarget = C => !!C && !(shown && randomTarget(shown.game, C)) && ((C.type === 'weapon' && !C.all) || (C.type === 'spell' && C.tgt === 'enemy') || (C.type === 'item' && (C.tgt === 'beast' || C.tgt === 'enemy' || C.tgt === 'foe')));
-const WHY = { rain: '梅雨のあいだは術が使えません', sealed: '封印されているので、いまは術を使えません', nosummon: '龍神は霊獣を呼べません', nosell: '売りつける札が手札にありません', target: 'いま使える相手がいません' };
+/* 相手をえらばないと使えない札（よいことをする札は、えらばなければ自分に使う） */
+const needsTarget = C => !!C && !(shown && randomTarget(shown.game, C)) && aimOf(C) === 'harm';
+/* よいことをする札（自分か、えらんだだれかに使う） */
+const helpCard = C => aimOf(C) === 'help';
+const WHY = { rain: '梅雨のあいだは術が使えません', sealed: '封印されているので、いまは術を使えません', nosummon: '龍神には霊獣をつけられません', nosell: '売りつける札が手札にありません', target: 'いま使える相手がいません' };
 /* 武器をえらんでいるときに、いっしょに出せる札。追撃札はいつでも。武器どうしは「同じ属性」で「全体でない」ときだけ */
 function addable(me, C, h) {
   if (!C || C.type !== 'weapon' || h.u === ui.sel) return false;
@@ -936,7 +1046,7 @@ function renderGame() {
 }
 const WX_COLOR = { haru: '#9cc995', enten: '#f39467', jinari: '#dcae5c', shuso: '#e9e6dd', tsuyu: '#93b4e6', nagi: '#a8c6c1', ennichi: '#f1b45d', mangetsu: '#f4e6b6', arashi: '#bcc7d3' };
 function weatherShort(w) {
-  return { random: '相手がランダム', power: (w.bonus > 0 ? 'ダメージ＋' : 'ダメージ−') + Math.abs(w.bonus || 0), onecard: '守り1枚まで', nospell: '術が使えない', fair: '半額・棚5枚', moon: '術の霊力−' + (w.cut || 1), storm: '札＋1枚', calm: '変化なし' }[w.kind] || '変化なし';
+  return { random: '味方にも当たる', power: (w.bonus > 0 ? 'ダメージ＋' : 'ダメージ−') + Math.abs(w.bonus || 0), onecard: '守り1枚まで', nospell: '術が使えない', fair: '半額・棚5枚', moon: '術の霊力−' + (w.cut || 1), storm: '札＋1枚', calm: '変化なし' }[w.kind] || '変化なし';
 }
 function renderOpp(G, me, view) {
   const others = G.players.filter(p => !me || p.pid !== me.pid);
@@ -961,7 +1071,7 @@ function renderOpp(G, me, view) {
   const valid = new Set(view === 'dead' && ui.ghost === 'hex' && me && !hexUsed(G, me) ? hexTargets(G, me).map(p => p.pid) : targetPids(G, me, C));
   /* 属性のある攻めをえらんでいるときは、相手ごとの相性を席に出す */
   const affs = {};
-  if (C && me) others.forEach(p => { if (p.alive && !sameTeam(p, me)) { const f = affFor(G, C, p); if (f != null) affs[p.pid] = f; } });
+  if (C && me && aimOf(C) !== 'help') others.forEach(p => { if (p.alive && (aimOf(C) === 'harm' || !sameTeam(p, me))) { const f = affFor(G, C, p); if (f != null) affs[p.pid] = f; } });
   setHTML(box, others.map(p => seatHTML(G, p, valid, affs[p.pid])).join(''));
 }
 /* 体力に上限はない。バーは「はじめの体力」を目安にして、超えた分は金色で見せる */
@@ -1145,11 +1255,12 @@ function centerCard(G, me) {
     const bonus = base - parts.reduce((x, y) => x + y, 0);
     const sum = (parts.length > 1 || bonus ? parts.join('＋') + (bonus ? (bonus > 0 ? '＋' : '−') + Math.abs(bonus) + '（式神・天候・気合）' : '') + '＝' : '') + '<b>' + base + '</b>';
     if (C.all) now = '相手全員に 攻撃 ' + sum + '　相手の式神によって相性で変わります';
-    else if (rndT) now = '攻撃 ' + sum + '<br>春一番：攻める相手はランダムで決まります';
+    else if (rndT) now = '攻撃 ' + sum + '<br>' + (C.fx === 'rand' ? '暴れ独楽：自分以外のだれかに当たります（味方のことも！）' : '春一番：攻める相手はランダムで決まります（味方に当たることも！）');
     else if (ui.target == null) now = '攻撃 ' + sum + '<br>攻める相手をタップしてください';
     else {
       const t = G.players[ui.target], f = affinity(C.elem, guardOf(t).elem);
       now = esc(t.name) + 'に 攻撃 ' + sum + (f ? '　→　' + affTxt(f) + ' <b>' + applyAff(base, f) + '</b>' : '');
+      if (sameTeam(t, me)) now += '<br><span class="bad">' + esc(t.name) + 'は味方です！それでも攻めますか？</span>';
       if (fireImmune(t, C.elem)) now += '<br><span class="bad">九尾の狐は火の攻撃ではダメージを受けません</span>';
     }
     now += affSummary(G, me, C);
@@ -1164,13 +1275,12 @@ function centerCard(G, me) {
       now = '霊力 <b>' + cost + '</b> を使います' + (cost !== C.mp ? '（もとは' + C.mp + '）' : '');
       if (C.eff === 'dmg' || C.eff === 'drain') {
         const base = Math.max(0, C.val + atkBonus(G, me, C.elem, false));
-        if (rndT) now += '<br>ダメージ ' + base + '　春一番：相手はランダムで決まります';
-        else if (ui.target != null) { const f = affinity(C.elem, guardOf(G.players[ui.target]).elem); now += '<br>' + esc(pname(G, ui.target)) + 'に <b>' + applyAff(base, f) + '</b> ダメージ' + (f ? '　' + affTxt(f) : ''); }
+        if (rndT) now += '<br>ダメージ ' + base + '　春一番：相手はランダムで決まります（味方に当たることも！）';
+        else if (ui.target != null) { const f = affinity(C.elem, guardOf(G.players[ui.target]).elem); now += '<br>' + esc(pname(G, ui.target)) + 'に <b>' + applyAff(base, f) + '</b> ダメージ' + (f ? '　' + affTxt(f) : '') + (sameTeam(G.players[ui.target], me) ? '　<span class="bad">（味方です！）</span>' : ''); }
         else now += '<br>ダメージ ' + base + (C.tgt === 'all' ? '（相手全員）' : '　相手をタップしてください');
         now += affSummary(G, me, C);
-      } else if (C.tgt === 'ally' && ui.target != null) now += '<br>' + (ui.target === me.pid ? '自分' : esc(pname(G, ui.target))) + 'に使います';
-      else if (C.tgt === 'ally') now += '<br>自分か味方をタップ（自分のところをタップでもOK）';
-      else if (C.tgt === 'enemy') now += rndT ? '<br>春一番：かける相手はランダムで決まります' : ui.target != null ? '<br>' + esc(pname(G, ui.target)) + 'にかけます' : '<br>かける相手をタップしてください';
+      } else if (helpCard(C)) now += '<br>' + (ui.target != null && ui.target !== me.pid ? esc(pname(G, ui.target)) + 'に使います' + (sameTeam(G.players[ui.target], me) ? '（味方）' : '（相手）') : '自分に使います') + '<br><span class="c-hint">ほかの人をタップすると、その人に使えます（味方にも相手にも）</span>';
+      else if (C.tgt !== 'all') now += rndT ? '<br>春一番：かける相手はランダムで決まります（味方に当たることも！）' : ui.target != null ? '<br>' + esc(pname(G, ui.target)) + 'にかけます' + (sameTeam(G.players[ui.target], me) ? '　<span class="bad">（味方です！）</span>' : '') : '<br>かける相手をタップしてください';
     }
     now += '<br><span class="c-hint">術札は使っても手札に残ります。霊力があれば次の番もまた使えます</span>';
   } else if (C.type === 'item' && C.eff === 'jobutsu') {
@@ -1195,12 +1305,21 @@ function centerCard(G, me) {
         now += '<br>' + esc(t.name) + 'は 小判' + g + (m ? '・霊力' + m : '') + (h ? '・体力' + Math.min(h, t.hp) : '') + 'で払います' + (h >= t.hp ? '　<span class="bad">払いきれずに成仏！</span>' : '');
       }
     }
-  } else if (C.type === 'item') now = '自分に使います';
-  else if (C.type === 'summon') {
+  } else if (C.type === 'item' && C.eff === 'hpswap') {
+    if (!targetsFor(G, me, C).length) { now = 'いまえらべる人がいません'; warn = true; }
+    else if (ui.target == null) now = '体力を入れかえる人をタップしてください（いまのあなたの体力 <b>' + me.hp + '</b>）';
+    else { const t = G.players[ui.target]; now = esc(t.name) + 'と体力を入れかえます<br>あなた ' + me.hp + ' → <b>' + t.hp + '</b>　／　' + esc(t.name) + ' ' + t.hp + ' → <b>' + me.hp + '</b>' + (sameTeam(t, me) ? '<br><span class="bad">（味方です！）</span>' : ''); }
+  } else if (C.type === 'item' && C.eff === 'shuffle') now = '全員の手札（術札はのぞく）を集めてまぜ、もとの枚数ずつ配り直します。<br>あなたの手札も、だれかの札と入れかわります';
+  else if (C.type === 'item') {
+    const t = ui.target != null ? G.players[ui.target] : me;
+    now = (t === me ? '自分に使います' : esc(t.name) + 'に使います' + (sameTeam(t, me) ? '（味方）' : '（相手）')) + '<br><span class="c-hint">ほかの人をタップすると、その人に使えます（味方にも相手にも）</span>';
+  } else if (C.type === 'summon') {
     const cost = summonCost(me, C);
-    if (why === 'nosummon') { now = WHY.nosummon; warn = true; }
+    const t = ui.target != null ? G.players[ui.target] : me;
+    if (why === 'target') { now = 'いま霊獣をつけられる人がいません'; warn = true; }
     else if (me.mp < cost) { now = '霊力が足りません（必要 ' + cost + '・いま ' + me.mp + '）'; warn = true; }
-    else now = '霊力 <b>' + cost + '</b> を使って呼びます。どの霊獣が出るかはお楽しみ' + (me.beast ? '<br>いまの霊獣「' + esc(bname(me.beast)) + '」と入れかわります' : '');
+    else if (t === me && guardOf(me).noSummon) now = '霊力 <b>' + cost + '</b> を使って呼びます。<br>龍神は霊獣を連れられないので、霊獣をつける人をタップしてください（味方にも相手にも）';
+    else now = '霊力 <b>' + cost + '</b> を使って呼び、' + (t === me ? '自分' : esc(t.name)) + 'につけます。どの霊獣が出るかはお楽しみ' + (t.beast ? '<br>いまの霊獣「' + esc(bname(t.beast)) + '」と入れかわります' : '') + '<br><span class="c-hint">ほかの人をタップすると、その人につけられます（味方にも相手にも）</span>';
   }
   else if (C.type === 'plus') { now = '武器といっしょに出す札です。先に武器の札をタップしてください'; warn = true; }
   else if (C.type === 'armor') { now = '守りの札です。攻められたときに使います'; warn = true; }
@@ -1465,14 +1584,15 @@ function renderGuide(G, me, view) {
       if (C.type === 'weapon') {
         const more = me.hand.some(h => addable(me, C, h) && !ui.ws.includes(h.u) && !ui.adds.includes(h.u));
         if (C.all) { text = '相手全員に攻めます'; small = more ? '「＋足せる」札を重ねると強くなる' : '下のボタンで決まり'; }
-        else if (randomTarget(G, C)) { text = '春一番：相手はランダムで決まります'; small = more ? '「＋足せる」札を重ねると強くなる' : '下のボタンで攻めます'; }
-        else if (ui.target == null) { text = '攻める相手をタップ'; small = more ? '「＋足せる」札を重ねると強くなる' : '光っている相手をえらべます'; }
+        else if (randomTarget(G, C)) { text = C.fx === 'rand' ? 'だれに当たるかは運まかせ' : '春一番：相手はランダムで決まります'; small = (more ? '「＋足せる」札を重ねると強くなる。' : '') + '味方に当たることも！'; }
+        else if (ui.target == null) { text = '攻める相手をタップ'; small = more ? '「＋足せる」札を重ねると強くなる' : '光っている人をえらべます（味方も）'; }
         else { text = '「' + esc(pname(G, ui.target)) + 'を攻める」で決まり'; small = more ? 'まだ札を重ねられます' : ''; }
       } else if (C.type === 'spell') {
         const cost = spellCost(G, me, C);
         if (wKind(G, 'nospell') || me.st.seal > 0 || me.mp < cost) { text = 'この術はいま使えません'; small = wKind(G, 'nospell') ? '梅雨のあいだは術が使えません' : 'ほかの札をえらぶか、「やめる」'; }
-        else if (C.tgt === 'enemy' && randomTarget(G, C)) { text = '春一番：かける相手はランダム'; small = '下のボタンで術を使います'; }
-        else if ((C.tgt === 'enemy' || C.tgt === 'ally') && ui.target == null) { text = C.tgt === 'ally' ? '自分か味方をタップ' : '術をかける相手をタップ'; small = C.tgt === 'ally' ? '「自分に使う」でもOK' : '光っている相手をえらべます'; }
+        else if (aimOf(C) === 'harm' && randomTarget(G, C)) { text = '春一番：かける相手はランダム'; small = '味方に当たることも！'; }
+        else if (helpCard(C) && ui.target == null) { text = '使う人をタップ（だれでも）'; small = '「自分に使う」でもOK'; }
+        else if (aimOf(C) === 'harm' && ui.target == null) { text = '術をかける相手をタップ'; small = '光っている人をえらべます（味方も）'; }
         else { text = '下のボタンで術を使います'; }
       } else if (C.type === 'item' && C.eff === 'sell') {
         if (whyNot(G, me, C)) { text = 'この道具はいま使えません'; small = WHY[whyNot(G, me, C)] || ''; }
@@ -1482,14 +1602,16 @@ function renderGuide(G, me, view) {
       } else if (C.type === 'item' && C.eff === 'refine') {
         seal = '精'; text = '「−5」で減らして「＋5」で分ける'; small = refPool() ? 'あと ' + refPool() + ' 分けられます' : '分け終わったら「精錬」';
       } else if (C.type === 'item' && needsTarget(C)) {
-        if (!targetsFor(G, me, C).length) { text = 'この道具はいま使えません'; small = C.eff === 'jobutsu' ? '霊獣を連れた相手がいません' : '手札のある相手がいません'; }
-        else if (ui.target == null) { text = C.eff === 'jobutsu' ? '霊獣を連れた相手をタップ' : '札を見る相手をタップ'; small = '光っている相手をえらべます'; }
+        if (!targetsFor(G, me, C).length) { text = 'この道具はいま使えません'; small = C.eff === 'jobutsu' ? '霊獣を連れた人がいません' : C.eff === 'usurp' ? '手札のある人がいません' : 'えらべる人がいません'; }
+        else if (ui.target == null) { text = C.eff === 'jobutsu' ? '霊獣を連れた人をタップ' : C.eff === 'hpswap' ? '体力を入れかえる人をタップ' : '札を見る人をタップ'; small = '光っている人をえらべます（味方も）'; }
         else text = '下のボタンで使います';
-      } else if (C.type === 'item') { text = '「使う」で使います'; }
+      } else if (C.type === 'item' && C.eff === 'shuffle') { text = '「使う」で全員の手札をまぜます'; small = 'だれの札がだれに行くかは運まかせ'; }
+      else if (C.type === 'item') { text = ui.target == null || ui.target === me.pid ? '自分に使うなら「自分に使う」' : '下のボタンで使います'; small = 'ほかの人をタップすると、その人に使えます（味方にも相手にも）'; }
       else if (C.type === 'summon') {
-        if (guardOf(me).noSummon) { text = '龍神は霊獣を呼べません'; small = 'ほかの札をえらぶか、「やめる」'; }
-        else if (me.mp < summonCost(me, C)) { text = '霊力が足りません'; small = 'おみくじの中吉や霊力の道具で霊力をふやせます'; }
-        else { text = '「呼ぶ」で霊獣を呼びます'; small = '霊獣は1人1体。番のはじめに、ときどき助けてくれます'; }
+        if (me.mp < summonCost(me, C)) { text = '霊力が足りません'; small = 'おみくじの中吉や霊力の道具で霊力をふやせます'; }
+        else if (whyNot(G, me, C)) { text = 'いま霊獣をつけられる人がいません'; small = 'ほかの札をえらぶか、「やめる」'; }
+        else if (guardOf(me).noSummon && (ui.target == null || ui.target === me.pid)) { text = '霊獣をつける人をタップ'; small = '龍神は霊獣を連れられません。味方にも相手にもつけられます'; }
+        else { text = '「呼ぶ」で霊獣を呼びます'; small = 'ほかの人をタップすると、その人につけられます'; }
       }
       else { text = 'この札はいま出せません'; small = C.type === 'plus' ? '先に武器をえらぶと、いっしょに出せます' : '攻められたときに守りとして使います'; }
       break;
@@ -1535,15 +1657,14 @@ function renderActs(G, me, view) {
     case 'card':
       if (C.type === 'weapon') {
         if (C.all) b = abtn('cancel', 'やめる') + abtn('attack', '相手全員を攻める', 'btn-gold', !targetsFor(G, me, C).length);
-        else if (randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('attack', 'ランダムな相手を攻める', 'btn-gold', !targetsFor(G, me, C).length);
+        else if (randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('attack', C.fx === 'rand' ? '運まかせで攻める' : 'ランダムなだれかを攻める', 'btn-gold', !targetsFor(G, me, C).length);
         else b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('attack', esc(pname(G, ui.target)) + 'を攻める', 'btn-gold'));
       } else if (C.type === 'spell') {
         const ok = !whyNot(G, me, C) || whyNot(G, me, C) === 'target';
         if (!ok) b = abtn('cancel', 'やめる');
-        else if (C.tgt === 'enemy' && randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('spell', 'ランダムな相手にかける', 'btn-gold', !targetsFor(G, me, C).length);
-        else if (C.tgt === 'self') b = abtn('cancel', 'やめる') + abtn('spell', '術を使う', 'btn-gold');
+        else if (aimOf(C) === 'harm' && randomTarget(G, C)) b = abtn('cancel', 'やめる') + abtn('spell', 'ランダムなだれかにかける', 'btn-gold', !targetsFor(G, me, C).length);
         else if (C.tgt === 'all') b = abtn('cancel', 'やめる') + abtn('spell', '相手全員にかける', 'btn-gold', !targetsFor(G, me, C).length);
-        else if (C.tgt === 'ally') b = abtn('cancel', 'やめる') + (ui.target == null || ui.target === me.pid ? abtn('spellself', '自分に使う', 'btn-gold') : abtn('spell', esc(pname(G, ui.target)) + 'に使う', 'btn-gold'));
+        else if (helpCard(C)) b = abtn('cancel', 'やめる') + (ui.target == null || ui.target === me.pid ? abtn('spellself', '自分に使う', 'btn-gold') : abtn('spell', esc(pname(G, ui.target)) + 'に使う', 'btn-gold'));
         else b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('spell', esc(pname(G, ui.target)) + 'にかける', 'btn-gold'));
       } else if (C.type === 'item' && C.eff === 'sell') {
         const ware = ui.ware != null ? me.hand.find(h => h.u === ui.ware) : null;
@@ -1551,9 +1672,14 @@ function renderActs(G, me, view) {
       } else if (C.type === 'item' && C.eff === 'refine') {
         b = abtn('cancel', 'やめる') + abtn('refine', '精錬', 'btn-gold', refPool() !== 0 || !(ui.ref.hp || ui.ref.mp || ui.ref.gold), refPool() ? 'あと ' + refPool() + ' 分ける' : '');
       } else if (C.type === 'item' && needsTarget(C)) {
-        b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('item', esc(pname(G, ui.target)) + (C.eff === 'usurp' ? 'の札を見る' : 'に使う'), 'btn-gold'));
-      } else if (C.type === 'item') b = abtn('cancel', 'やめる') + abtn('item', '使う', 'btn-gold');
-      else if (C.type === 'summon') b = abtn('cancel', 'やめる') + abtn('summon', '呼ぶ', 'btn-gold', !!whyNot(G, me, C), '霊力 ' + summonCost(me, C));
+        b = abtn('cancel', 'やめる') + (ui.target == null ? abtn('none', '相手をえらんでください', 'btn-gold', true) : abtn('item', esc(pname(G, ui.target)) + (C.eff === 'usurp' ? 'の札を見る' : C.eff === 'hpswap' ? 'と入れかえる' : 'に使う'), 'btn-gold'));
+      } else if (C.type === 'item' && helpCard(C)) b = abtn('cancel', 'やめる') + abtn('item', ui.target == null || ui.target === me.pid ? '自分に使う' : esc(pname(G, ui.target)) + 'に使う', 'btn-gold');
+      else if (C.type === 'item') b = abtn('cancel', 'やめる') + abtn('item', '使う', 'btn-gold');
+      else if (C.type === 'summon') {
+        const self = ui.target == null || ui.target === me.pid;
+        const dis = !!whyNot(G, me, C) || (self && guardOf(me).noSummon);
+        b = abtn('cancel', 'やめる') + abtn('summon', self ? '呼ぶ' : esc(pname(G, ui.target)) + 'に呼ぶ', 'btn-gold', dis, '霊力 ' + summonCost(me, C));
+      }
       else b = abtn('cancel', 'やめる');
       break;
     case 'defend': {
@@ -1633,11 +1759,11 @@ function actTap(e) {
     case 'shopcancel': sfx('tap'); resetSel(); renderGame(); return;
     case 'trade': send({ t: 'shop', buy: ui.buy, sell: ui.sell.slice() }); return;
     case 'attack': if (C) send({ t: 'attack', ws: [ui.sel].concat(ui.ws), adds: ui.adds.slice(), to: C.all ? undefined : ui.target }); return;
-    case 'spell': if (C) send({ t: 'spell', s: ui.sel, to: C.tgt === 'self' || C.tgt === 'all' ? undefined : ui.target }); return;
+    case 'spell': if (C) send({ t: 'spell', s: ui.sel, to: aimOf(C) === 'all' || randomTarget(G, C) ? undefined : ui.target }); return;
     case 'spellself': if (C) send({ t: 'spell', s: ui.sel, to: me.pid }); return;
-    case 'item': send({ t: 'item', i: ui.sel, to: needsTarget(C) ? ui.target : undefined, c: C && C.eff === 'sell' ? ui.ware : undefined }); return;
+    case 'item': send({ t: 'item', i: ui.sel, to: needsTarget(C) || helpCard(C) ? (ui.target != null ? ui.target : undefined) : undefined, c: C && C.eff === 'sell' ? ui.ware : undefined }); return;
     case 'refine': send({ t: 'item', i: ui.sel, d: Object.assign({}, ui.ref) }); return;
-    case 'summon': send({ t: 'summon', s: ui.sel }); return;
+    case 'summon': send({ t: 'summon', s: ui.sel, to: ui.target != null ? ui.target : undefined }); return;
     case 'buy': sfx('tap'); send({ t: 'usurp', buy: true }); return;
     case 'nobuy': sfx('tap'); send({ t: 'usurp', buy: false }); return;
     case 'take': sfx('tap'); send({ t: 'defend', cards: [] }); return;
@@ -1702,7 +1828,7 @@ function handTap(e) {
     resetSel();
     ui.sel = u;
     const ts = targetPids(G, me, HC);
-    if (ts.length === 1 && HC.tgt !== 'ally') ui.target = ts[0];
+    if (ts.length === 1 && aimOf(HC) === 'harm') ui.target = ts[0];
     if (HC.type === 'weapon' && C && C.type === 'weapon' && !C.elem && !HC.elem) toast('属性のない武器どうしは重ねられません（追撃札だけ足せます）');
     renderGame(); return;
   }
@@ -1727,7 +1853,7 @@ function seatTap(e) {
   sfx('tap');
   if (view === 'card' && valid.length) {
     const p = G.players[pid];
-    toast('この相手はえらべません' + (p.st.mist ? '（霧隠れ中）' : !p.alive ? '（成仏）' : me && sameTeam(me, p) ? (p.pid === me.pid ? '' : '（味方）') : ''));
+    toast('この人はえらべません' + (p.st.mist && p.pid !== me.pid ? '（霧隠れ中）' : !p.alive ? '（成仏）' : C && C.type === 'summon' && guardOf(p).noSummon ? '（龍神には霊獣をつけられません）' : C && C.eff === 'jobutsu' ? '（霊獣を連れていません）' : C && C.eff === 'usurp' ? '（手札がありません）' : me && p.pid === me.pid ? '（自分には使えない札です）' : ''));
     return;
   }
   if (view === 'defend' || view === 'shop' || view === 'card') return;
@@ -1821,7 +1947,7 @@ function logText(G, e, me) {
     case 'weather': { const w = WEATHER[e.w]; return w ? (e.voice != null ? '天の声（' + N(e.voice) + 'の霊）で' : '') + '天候が「' + esc(w.name) + '」に（' + esc(w.text) + '）' : ''; }
     case 'hexcast': return N(e.by) + 'の霊が' + N(e.to) + 'に呪術をかけた（次の番のはじめに効く）';
     case 'hex': { const X = HEX_OF(e.fx); return N(e.by) + 'の霊の呪術：' + N(e.to) + 'に' + (e.good ? '吉' : '凶') + '「' + X.name + '」（' + esc(hexWord(G, e)) + '）'; }
-    case 'declare': return N(e.by) + 'が' + (e.cards || [e.card]).concat(e.adds || []).map(cn).join('＋') + (e.elem ? '（' + e.elem + '）' : '') + 'で' + (e.targets.length > 1 ? '相手全員' : N(e.targets[0])) + 'を' + (CARD[e.card].type === 'spell' ? '狙う' : '攻める');
+    case 'declare': return (e.slip != null ? 'すっぽ抜け！' : '') + (e.crit ? '会心の一撃！' : '') + N(e.by) + 'が' + (e.cards || [e.card]).concat(e.adds || []).map(cn).join('＋') + (e.elem ? '（' + e.elem + '）' : '') + 'で' + (e.targets.length > 1 ? '相手全員' : N(e.targets[0])) + 'を' + (CARD[e.card].type === 'spell' ? '狙う' : '攻める') + (e.slip != null ? '（ねらいは' + N(e.slip) + 'だった）' : '');
     case 'bounce': return '攻めが' + N(e.to) + 'へはね返った' + (e.atk ? '（' + e.atk + '）' : '');
     case 'stray': return N(e.from) + 'が弾いた流れ弾が' + N(e.to) + 'へ' + (e.atk ? '（' + e.atk + '）' : '');
     case 'resolve': return e.results.map(r => {
@@ -1838,13 +1964,16 @@ function logText(G, e, me) {
     case 'ko': return N(e.p) + 'は成仏した' + (e.reward ? '（' + N(e.by) + 'が小判' + e.reward + '両を手に入れた）' : '');
     case 'item':
       if (CARD[e.card] && CARD[e.card].eff === 'jobutsu') return N(e.by) + 'が成仏札を' + N(e.to) + 'の' + esc(bname(e.b)) + 'に使った→' + (e.ok ? '成仏した' : '成仏しなかった');
-      return N(e.by) + 'は' + cn(e.card) + 'を使った' + (e.hp ? '（体力＋' + e.hp + '）' : e.mp ? '（霊力＋' + e.mp + '）' : e.gold ? '（小判＋' + e.gold + '）' : e.kiai ? '（気合）' : '');
-    case 'spell': return N(e.by) + 'は' + cn(e.card) + (e.v ? '（' + N(e.to) + 'の体力＋' + e.v + '）' : 'で霧に隠れた');
+      return N(e.by) + 'は' + cn(e.card) + 'を' + (e.to != null && e.to !== e.by ? N(e.to) + 'に' : '') + '使った' + (e.hp ? '（体力＋' + e.hp + '）' : e.mp ? '（霊力＋' + e.mp + '）' : e.gold ? '（小判＋' + e.gold + '）' : e.kiai ? '（気合）' : '');
+    case 'spell': return N(e.by) + 'は' + cn(e.card) + (e.v ? '（' + N(e.to) + 'の体力＋' + e.v + '）' : e.to != null && e.to !== e.by ? 'で' + N(e.to) + 'を霧に隠した' : 'で霧に隠れた');
+    case 'hpswap': return N(e.by) + 'が狸の化け葉で' + N(e.to) + 'と体力を入れかえた（' + e.ha + '⇄' + e.hb + '）';
+    case 'fukuwarai': return N(e.by) + 'の福笑いで、全員の手札がまざって配り直された';
+    case 'happen': return 'ハプニング「' + esc(HAPPEN_OF(e.id).name) + '」：' + happenWord(G, e, me);
     case 'shop': return N(e.by) + 'はよろず屋で' + (e.bought ? cn(e.bought) + 'を買った' : '') + (e.sold.length ? (e.bought ? '、' : '') + '札を' + e.sold.length + '枚売った（＋' + e.gain + '両）' : '');
     case 'omikuji': { const O = OMIKUJI.find(o => o.id === e.r); return N(e.p) + (e.timeout ? 'は時間切れでおみくじ：' : 'のおみくじは') + (O ? O.name : '') + '（' + omikujiWord(e) + '）'; }
     case 'swapped': return e.n ? N(e.p) + 'は札を' + e.n + '枚入れかえた' : N(e.p) + 'は札を入れかえなかった';
     case 'curse': return N(e.p) + 'は呪いで体力−' + e.dmg;
-    case 'summon': return N(e.by) + 'は霊獣「' + esc(bname(e.b)) + '」を呼んだ' + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : '');
+    case 'summon': return N(e.by) + 'は霊獣「' + esc(bname(e.b)) + '」を' + (e.to != null && e.to !== e.by ? N(e.to) + 'につけた' : '呼んだ') + (e.old ? '（' + esc(bname(e.old)) + 'と入れかわり）' : '');
     case 'assist': return esc(bname(e.b)) + 'のアシスト：' + esc(assistWord(G, e, me));
     case 'beastgone': return N(e.p) + 'の霊獣「' + esc(bname(e.b)) + '」は成仏した';
     case 'shell': return N(e.p) + 'は甲羅でダメージを' + e.cut + '減らした';
