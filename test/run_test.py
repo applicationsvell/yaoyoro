@@ -159,7 +159,8 @@ def bot_step(page, stats):
     if s['can'] and any(h['sel'] for h in s['hand']):
         n = page.locator('#gOpp .seat.can').count()
         if n:
-            tap(page, '#gOpp .seat.can', random.randrange(n))
+            # 数えたあとに描き直されたり、合戦が終わって結果画面へ移ったりすることがある（そのときは次の回でやり直す）
+            tap(page, '#gOpp .seat.can', random.randrange(n), must=False)
         return 'target'
     if 'cancel' in acts and not acts['cancel']['dis']:
         tap(page, '#gActs [data-act=cancel]')
