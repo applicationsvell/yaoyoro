@@ -151,6 +151,8 @@ def scenario(p, browser, name, size, pad, mobile):
     if not before:
         problems.append('簒奪の品定めにならなかった')
         before = {'gold': 0, 'price': 0}
+    # 「簒奪札を使う → 見つけた札を見せる」の演出が終わると、買うボタンが出る
+    page.wait_for_selector('#gActs [data-act=buy]', timeout=20000)
     T.tap(page, '#gActs [data-act=buy]')
     wait_for(page, 'G.phase !== "usurp"', 8)
     after = G(page, 'const v = G.log.filter(e => e.k === "usurped").pop(); return { gold: me.gold, n: me.hand.length, vic: G.players[v.to].gold, buy: v.buy };')

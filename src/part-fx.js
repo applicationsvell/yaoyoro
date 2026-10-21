@@ -23,11 +23,11 @@ function cardText(C) {
     case 'weapon': {
       let t = (C.all ? '相手全員に' : C.fx === 'rand' ? '自分以外のだれかにランダムで（味方に当たることも！）' : 'えらんだ1人に（味方もえらべる）') + (C.elem ? C.elem + 'の' : '') + '攻撃' + C.atk + '。' + (C.elem ? guardRule(C.elem) : '属性なし。' + guardRule(null));
       if (C.all) t += '。ほかの武器とは重ねられない（追撃札は足せる）';
-      else t += C.elem ? '。' + C.elem + 'の武器どうし重ねられる' : '。追撃札だけ足せる';
+      else t += C.elem ? '。' + C.elem + 'の武器どうし重ねられる（追撃札を足すと属性なしになる）' : '。追撃札だけ足せる';
       if (C.fx === 'draw') t += '。ダメージが通ったら札を1枚引く';
       return t;
     }
-    case 'plus': return 'どの武器にも足せる。攻撃＋' + C.atk;
+    case 'plus': return 'どの武器にも足せる。攻撃＋' + C.atk + '。属性の武器に足すと、属性なしの攻めになる（相性なし・どの守札でも守れる）';
     case 'armor':
       if (C.special === 'reflect') return '攻撃や術を、そっくり相手にはね返す。はね返された人も鏡を持っていれば、またはね返せる。属性に関係なく使える';
       if (C.special === 'deflect') return '攻撃や術を弾く。弾いた攻めは流れ弾になって、自分もふくめた全員の中からランダムに選ばれた1人に飛ぶ（飛んだ先の人は守札で守れる）。属性に関係なく使える';

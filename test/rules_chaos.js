@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const src = fs.readFileSync(path.join(__dirname, '../src/part-engine.js'), 'utf8');
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../src/cards.json'), 'utf8'));
-const E = new Function(src + '\nreturn { loadData, newGame, act, tick, targetsFor, randomTarget, whyNot, happening, aimOf, cpuChoose, CARD: () => CARD, HAPPENINGS };')();
+const E = new Function(src + '\nreturn { loadData, newGame, act, tick, targetsFor, randomTarget, whyNot, happening, aimOf, cpuChoose, defOptions, CARD: () => CARD, HAPPENINGS };')();
 E.loadData(data);
 let bad = 0, ok = 0;
 const check = (cond, msg) => { if (cond) ok++; else { bad++; console.log('  ×', msg); } };
@@ -223,6 +223,33 @@ console.log('== CPU：味方を回復する・味方を攻めない');
   }
   check(heal > 100, 'CPUが弱った味方を回復しない ' + heal);
   check(ff === 0, 'CPUが味方を攻めた');
+}
+
+console.log('== 追撃札を足すと属性なし');
+{
+  const G = game({ settings: { chaos: 0 } });
+  ['kitsune', 'gama', 'gama', 'gama'].forEach((g, i) => { G.players[i].guardian = g; });
+  const w = give(G, 0, 'hiya'), k = give(G, 0, 'kiai');
+  check(!E.act(G, 0, { t: 'attack', ws: [w], adds: [k], to: 1 }, 2000), '火矢＋気合で攻められない');
+  const d = last(G, 'declare');
+  check(d.elem === null, '追撃札を足しても属性が残っている: ' + d.elem);
+  /* 九尾の狐の火の力（＋5）は乗らない。式神の力＋3だけ：4＋3＋3＝10 */
+  check(d.base === 10, '属性なしなのに火の力が乗っている: ' + d.base);
+  const a = give(G, 1, 'domaru');
+  check(E.defOptions(G, G.players[1]).some(h => h.u === a), '属性なしになったのに、ふつうの守札で守れない');
+}
+{
+  const G = game({ settings: { chaos: 0 } });
+  const w = give(G, 0, 'hiya');
+  E.act(G, 0, { t: 'attack', ws: [w], adds: [], to: 1 }, 2000);
+  check(last(G, 'declare').elem === '火', '追撃札なしの火矢が火の攻めになっていない');
+  const a = give(G, 1, 'domaru');
+  check(!E.defOptions(G, G.players[1]).some(h => h.u === a), '火の攻めを、ふつうの守札で守れてしまう');
+}
+{
+  const G = game({ settings: { chaos: 0 } });
+  const w1 = give(G, 0, 'hiya'), w2 = give(G, 0, 'homura'), k = give(G, 0, 'toishi');
+  check(!E.act(G, 0, { t: 'attack', ws: [w1, w2], adds: [k], to: 1 }, 2000) && last(G, 'declare').elem === null, '重ね打ち＋追撃札で属性が残っている');
 }
 
 console.log('\n==== 問題', bad, '件（確かめた数', ok + bad, '）');

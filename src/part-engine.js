@@ -590,9 +590,11 @@ function attackCheck(G, p, wsU, addsU) {
   if (adds.some(x => !x || CARD[x.c].type !== 'plus')) return 'bad';
   return null;
 }
+/* 追撃札を足した攻めは、属性なしになる（どの守札でも守れる・相性なし） */
+const attackElem = (Ws, addsN) => (addsN ? null : Ws[0].elem || null);
 function attackBase(G, p, wsU, addsU) {
   const Ws = wsU.map(u => CARD[handCard(p, u).c]);
-  return Math.max(0, Ws.reduce((s, W) => s + W.atk, 0) + addsU.reduce((s, u) => s + CARD[handCard(p, u).c].atk, 0) + atkBonus(G, p, Ws[0].elem, true) + (p.st.kiai > 0 ? 5 : 0) + (p.st.boost || 0));
+  return Math.max(0, Ws.reduce((s, W) => s + W.atk, 0) + addsU.reduce((s, u) => s + CARD[handCard(p, u).c].atk, 0) + atkBonus(G, p, attackElem(Ws, addsU.length), true) + (p.st.kiai > 0 ? 5 : 0) + (p.st.boost || 0));
 }
 function startDefend(G, P, now) {
   G.pend = P;
@@ -628,7 +630,7 @@ function doAttack(G, p, a, now) {
   removeCards(G, p, wsU.concat(addsU)).forEach(c => G.discard.push(c));
   useCount(G, p.pid, wsU.length + addsU.length);
   const atk = {}, aff = {};
-  const elem = lead.elem || null;
+  const elem = addsU.length ? null : lead.elem || null;   /* 追撃札を足すと属性なし */
   targets.forEach(t => { aff[t.pid] = affinity(elem, guardOf(t).elem); atk[t.pid] = applyAff(base, aff[t.pid]); });
   const draws = Ws.filter(W => W.fx === 'draw').length;
   startDefend(G, { kind: 'attack', by: p.pid, card: lead.id, cards: Ws.map(W => W.id), adds: addIds, elem, base, atk, aff, kiai, boost, draws, crit, slip,
@@ -1003,10 +1005,16 @@ function cpuChoose(G, pid) {
     sets.push(sorted.slice(0, 2));
     if (sorted.length > 2) sets.push(sorted);
   });
+  /* 属性の武器は、追撃札を足す（属性なしになる）か足さないかの両方を見積もる */
+  const plans = [];
   sets.forEach(set => {
-    const W = set[0].C, elem = W.elem || null;
+    const W = set[0].C, wsum = set.reduce((s, x) => s + x.C.atk, 0);
+    if (W.elem && pluses.length) { plans.push([set, false]); plans.push([set, true]); }
+    else plans.push([set, pluses.length > 0 && (wsum >= 5 || W.all)]);
+  });
+  plans.forEach(([set, usePlus]) => {
+    const W = set[0].C, elem = usePlus ? null : W.elem || null;
     const wsum = set.reduce((s, x) => s + x.C.atk, 0);
-    const usePlus = wsum >= 5 || W.all;
     const base = Math.max(0, wsum + (usePlus ? plusSum : 0) + atkBonus(G, p, elem, true) + (p.st.kiai ? 5 : 0) + (p.st.boost || 0));
     const adds = usePlus ? pluses.map(y => y.h.u) : [];
     const ws = set.map(x => x.h.u);

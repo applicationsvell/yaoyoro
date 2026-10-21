@@ -1430,9 +1430,11 @@ function attackCheck(G, p, wsU, addsU) {
   if (adds.some(x => !x || CARD[x.c].type !== 'plus')) return 'bad';
   return null;
 }
+/* 追撃札を足した攻めは、属性なしになる（どの守札でも守れる・相性なし） */
+const attackElem = (Ws, addsN) => (addsN ? null : Ws[0].elem || null);
 function attackBase(G, p, wsU, addsU) {
   const Ws = wsU.map(u => CARD[handCard(p, u).c]);
-  return Math.max(0, Ws.reduce((s, W) => s + W.atk, 0) + addsU.reduce((s, u) => s + CARD[handCard(p, u).c].atk, 0) + atkBonus(G, p, Ws[0].elem, true) + (p.st.kiai > 0 ? 5 : 0) + (p.st.boost || 0));
+  return Math.max(0, Ws.reduce((s, W) => s + W.atk, 0) + addsU.reduce((s, u) => s + CARD[handCard(p, u).c].atk, 0) + atkBonus(G, p, attackElem(Ws, addsU.length), true) + (p.st.kiai > 0 ? 5 : 0) + (p.st.boost || 0));
 }
 function startDefend(G, P, now) {
   G.pend = P;
@@ -1468,7 +1470,7 @@ function doAttack(G, p, a, now) {
   removeCards(G, p, wsU.concat(addsU)).forEach(c => G.discard.push(c));
   useCount(G, p.pid, wsU.length + addsU.length);
   const atk = {}, aff = {};
-  const elem = lead.elem || null;
+  const elem = addsU.length ? null : lead.elem || null;   /* 追撃札を足すと属性なし */
   targets.forEach(t => { aff[t.pid] = affinity(elem, guardOf(t).elem); atk[t.pid] = applyAff(base, aff[t.pid]); });
   const draws = Ws.filter(W => W.fx === 'draw').length;
   startDefend(G, { kind: 'attack', by: p.pid, card: lead.id, cards: Ws.map(W => W.id), adds: addIds, elem, base, atk, aff, kiai, boost, draws, crit, slip,
@@ -1843,10 +1845,16 @@ function cpuChoose(G, pid) {
     sets.push(sorted.slice(0, 2));
     if (sorted.length > 2) sets.push(sorted);
   });
+  /* 属性の武器は、追撃札を足す（属性なしになる）か足さないかの両方を見積もる */
+  const plans = [];
   sets.forEach(set => {
-    const W = set[0].C, elem = W.elem || null;
+    const W = set[0].C, wsum = set.reduce((s, x) => s + x.C.atk, 0);
+    if (W.elem && pluses.length) { plans.push([set, false]); plans.push([set, true]); }
+    else plans.push([set, pluses.length > 0 && (wsum >= 5 || W.all)]);
+  });
+  plans.forEach(([set, usePlus]) => {
+    const W = set[0].C, elem = usePlus ? null : W.elem || null;
     const wsum = set.reduce((s, x) => s + x.C.atk, 0);
-    const usePlus = wsum >= 5 || W.all;
     const base = Math.max(0, wsum + (usePlus ? plusSum : 0) + atkBonus(G, p, elem, true) + (p.st.kiai ? 5 : 0) + (p.st.boost || 0));
     const adds = usePlus ? pluses.map(y => y.h.u) : [];
     const ws = set.map(x => x.h.u);
@@ -2739,11 +2747,11 @@ function cardText(C) {
     case 'weapon': {
       let t = (C.all ? '相手全員に' : C.fx === 'rand' ? '自分以外のだれかにランダムで（味方に当たることも！）' : 'えらんだ1人に（味方もえらべる）') + (C.elem ? C.elem + 'の' : '') + '攻撃' + C.atk + '。' + (C.elem ? guardRule(C.elem) : '属性なし。' + guardRule(null));
       if (C.all) t += '。ほかの武器とは重ねられない（追撃札は足せる）';
-      else t += C.elem ? '。' + C.elem + 'の武器どうし重ねられる' : '。追撃札だけ足せる';
+      else t += C.elem ? '。' + C.elem + 'の武器どうし重ねられる（追撃札を足すと属性なしになる）' : '。追撃札だけ足せる';
       if (C.fx === 'draw') t += '。ダメージが通ったら札を1枚引く';
       return t;
     }
-    case 'plus': return 'どの武器にも足せる。攻撃＋' + C.atk;
+    case 'plus': return 'どの武器にも足せる。攻撃＋' + C.atk + '。属性の武器に足すと、属性なしの攻めになる（相性なし・どの守札でも守れる）';
     case 'armor':
       if (C.special === 'reflect') return '攻撃や術を、そっくり相手にはね返す。はね返された人も鏡を持っていれば、またはね返せる。属性に関係なく使える';
       if (C.special === 'deflect') return '攻撃や術を弾く。弾いた攻めは流れ弾になって、自分もふくめた全員の中からランダムに選ばれた1人に飛ぶ（飛んだ先の人は守札で守れる）。属性に関係なく使える';
@@ -4766,6 +4774,7 @@ function howHTML(k) {
       '<h3>手札の並び</h3><p>手札はいつも左から<b>術札 → 攻撃の札 → 守札 → その他</b>の順に並び、同じ組の中は<b>数値の小さい順</b>です。左はしの紫のわくが「術札ゾーン」です。</p>';
     case 'turn': return '<h3>札はだれにでも使える</h3><p>武器・術・道具・召喚札は、<b>自分・味方・相手のだれにでも</b>使えます。おにぎりで味方の体力を回復したり、霊獣を味方につけたり。わざと相手を回復させても、味方を攻めてもかまいません（味方を攻めるときは確認が出ます）。</p>' +
       '<h3>攻める</h3>' + ex(F('katana') + P + F('kiai'), '武器をタップして、攻める人をタップ。<b>追撃</b>の札はどの武器にも足せます。太刀（攻7）＋気合（＋3）で攻撃10。') +
+      ex(F('hiya') + P + F('kiai'), '<b>属性の武器に追撃札を足すと、属性なしの攻めになります</b>。火矢（火4）＋気合（＋3）は、属性なしの攻撃7（相性なし・相手はどの守札でも守れる）。') +
       '<h3>重ね打ち（属性の武器だけ）</h3>' + ex(F('hiya') + P + F('homura'), '<b>同じ属性の武器どうしは何枚でも重ねられます</b>。火矢（4）＋焔の太刀（7）で火の攻撃11。') +
       ex(F('katana') + F('naginata'), '<b>属性のない武器は重ねられません</b>（1回に1枚。追撃札だけ足せます）。そのかわり、相手はどの守札でも守れてしまいます。') +
       ex(F('kaensha') + F('yabusuma'), '「全体」と書いた武器や術は、相手全員に当たります。全体の武器はほかの武器と重ねられません。') +
@@ -5217,7 +5226,7 @@ function boardHTML(G, d, me, o) {
   const hid = o.anim ? ' hid' : '';
   const ts = d.targets || [];
   const to = ts.length > 1 ? '相手全員' : ts.length ? nm(ts[0]) : '';
-  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.slip != null ? 'すっぽ抜け（ねらいは' + nm(d.slip) + '）' : '', d.crit ? '会心の一撃' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
+  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.slip != null ? 'すっぽ抜け（ねらいは' + nm(d.slip) + '）' : '', d.crit ? '会心の一撃' : '', C.type === 'weapon' && C.elem && !d.elem && (d.adds || []).length ? '追撃札で属性なし' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
   return '<div class="bt bt2" data-bt="' + btKey(G, d) + '">' +
     '<div class="bt-head">' + (A ? embHTML(A.guardian, 34) : '') + '<div class="bt-who"><span><b>' + nm(d.by) + '</b>の' + (C.type === 'spell' ? '術' : '攻め') + '</span>' +
       (d.elem ? '<span class="elchip el-' + d.elem + '">' + crestSVG(d.elem) + d.elem + '</span>' : '') + (to ? '<span class="bt-to">→ ' + to + '</span>' : '') + (extra ? '<small>' + extra + '</small>' : '') + '</div></div>' +
@@ -5958,13 +5967,16 @@ function sortKey(C) {
 }
 function cmpKey(a, b) { for (let i = 0; i < a.length; i++) { if (a[i] < b[i]) return -1; if (a[i] > b[i]) return 1; } return 0; }
 function sortHand(hand) { return hand.slice().sort((x, y) => cmpKey(sortKey(CARD[x.c]), sortKey(CARD[y.c])) || x.u - y.u); }
+/* えらんでいる攻めの属性。武器に追撃札を足していると属性なし */
+const selElem = C => (!C ? null : C.type === 'weapon' && ui.sel != null && ui.adds.length ? null : C.elem || null);
 /* 相手の式神に対する、この札の相性（属性のある攻め・ダメージ術だけ）。null は関係なし */
 function affFor(G, C, t) {
-  if (!C || !C.elem) return null;
+  const el = selElem(C);
+  if (!el) return null;
   const dmg = C.type === 'weapon' || (C.type === 'spell' && (C.eff === 'dmg' || C.eff === 'drain'));
   if (!dmg) return null;
-  if (fireImmune(t, C.elem)) return 'immune';
-  return affinity(C.elem, guardOf(t).elem);
+  if (fireImmune(t, el)) return 'immune';
+  return affinity(el, guardOf(t).elem);
 }
 /* 式神の弱点（この属性の攻めが1.2倍） */
 function weakChip(p) {
@@ -6126,7 +6138,7 @@ function renderHand(G, me, view) {
     } else if (view === 'card') {
       if (h.u === ui.sel) o.sel = true;
       else if (ui.ws.includes(h.u) || ui.adds.includes(h.u)) o.add = true;
-      else if (addable(me, C, h)) { o.pick = true; o.badge = '＋足せる'; }
+      else if (addable(me, C, h)) { o.pick = true; o.badge = HC.type === 'plus' && C && C.elem ? '＋無属性' : '＋足せる'; }
       else if (C && C.type === 'weapon') o.off = true;
     } else if (view === 'mine') {
       o.off = HC.type === 'armor' || HC.type === 'plus' || !canUse(G, me, h);
@@ -6199,7 +6211,7 @@ function inspectHTML(C, now, opts) {
 }
 /* 属性の攻めをえらんだとき：どの相手に効くか（1.2倍・半分・効かない）をまとめて出す */
 function affSummary(G, me, C) {
-  if (!C || !C.elem) return '';
+  if (!selElem(C)) return '';
   const up = [], down = [], imm = [];
   enemiesOf(G, me).forEach(t => { const f = affFor(G, C, t); if (f === 'immune') imm.push(t); else if (f > 0) up.push(t); else if (f < 0) down.push(t); });
   const nm = a => a.map(t => esc(t.name)).join('・');
@@ -6227,15 +6239,18 @@ function centerCard(G, me) {
     else if (rndT) now = '攻撃 ' + sum + '<br>' + (C.fx === 'rand' ? '暴れ独楽：自分以外のだれかに当たります（味方のことも！）' : '春一番：攻める相手はランダムで決まります（味方に当たることも！）');
     else if (ui.target == null) now = '攻撃 ' + sum + '<br>攻める相手をタップしてください';
     else {
-      const t = G.players[ui.target], f = affinity(C.elem, guardOf(t).elem);
+      const el = selElem(C);
+      const t = G.players[ui.target], f = affinity(el, guardOf(t).elem);
       now = esc(t.name) + 'に 攻撃 ' + sum + (f ? '　→　' + affTxt(f) + ' <b>' + applyAff(base, f) + '</b>' : '');
       if (sameTeam(t, me)) now += '<br><span class="bad">' + esc(t.name) + 'は味方です！それでも攻めますか？</span>';
-      if (fireImmune(t, C.elem)) now += '<br><span class="bad">九尾の狐は火の攻撃ではダメージを受けません</span>';
+      if (fireImmune(t, el)) now += '<br><span class="bad">九尾の狐は火の攻撃ではダメージを受けません</span>';
     }
     now += affSummary(G, me, C);
+    const el = selElem(C);
+    if (C.elem && ui.adds.length) now += '<br><span class="bad">追撃札を足したので、<b>属性なし</b>の攻めになります（相性なし・どの守札でも守れる）</span>';
     const more = me.hand.filter(h => addable(me, C, h) && !ui.ws.includes(h.u) && !ui.adds.includes(h.u)).length;
-    if (more) now += '<br><span class="c-hint">「＋足せる」の札をタップすると重ねて強くできます' + (C.elem ? '' : '（属性のない武器に足せるのは追撃札だけ）') + '</span>';
-    now += '<br><span class="c-hint">' + (C.elem ? '相手は' + C.elem + 'の守札か' + strongerOf(C.elem) + 'の守札（' + C.elem + 'に強い）でしか守れません' : '属性がないので、相手はどの守札でも守れます') + '</span>';
+    if (more) now += '<br><span class="c-hint">「＋足せる」の札をタップすると重ねて強くできます' + (C.elem ? (ui.adds.length ? '' : '（追撃札を足すと属性なしになります）') : '（属性のない武器に足せるのは追撃札だけ）') + '</span>';
+    now += '<br><span class="c-hint">' + (el ? '相手は' + el + 'の守札か' + strongerOf(el) + 'の守札（' + el + 'に強い）でしか守れません' : '属性がないので、相手はどの守札でも守れます') + '</span>';
   } else if (C.type === 'spell') {
     const cost = spellCost(G, me, C);
     if (why === 'rain' || why === 'sealed') { now = WHY[why]; warn = true; }

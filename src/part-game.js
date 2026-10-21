@@ -269,7 +269,7 @@ function boardHTML(G, d, me, o) {
   const hid = o.anim ? ' hid' : '';
   const ts = d.targets || [];
   const to = ts.length > 1 ? '相手全員' : ts.length ? nm(ts[0]) : '';
-  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.slip != null ? 'すっぽ抜け（ねらいは' + nm(d.slip) + '）' : '', d.crit ? '会心の一撃' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
+  const extra = [d.chain ? '照魔の鏡ではね返った攻め' : '', d.stray ? (d.from != null ? esc(pname(G, d.from)) + 'が' : '') + '弾いた流れ弾' : '', d.slip != null ? 'すっぽ抜け（ねらいは' + nm(d.slip) + '）' : '', d.crit ? '会心の一撃' : '', C.type === 'weapon' && C.elem && !d.elem && (d.adds || []).length ? '追撃札で属性なし' : '', d.kiai ? '気合入り' : '', d.boost ? '白虎の力' : ''].filter(Boolean).join('・');
   return '<div class="bt bt2" data-bt="' + btKey(G, d) + '">' +
     '<div class="bt-head">' + (A ? embHTML(A.guardian, 34) : '') + '<div class="bt-who"><span><b>' + nm(d.by) + '</b>の' + (C.type === 'spell' ? '術' : '攻め') + '</span>' +
       (d.elem ? '<span class="elchip el-' + d.elem + '">' + crestSVG(d.elem) + d.elem + '</span>' : '') + (to ? '<span class="bt-to">→ ' + to + '</span>' : '') + (extra ? '<small>' + extra + '</small>' : '') + '</div></div>' +
@@ -1010,13 +1010,16 @@ function sortKey(C) {
 }
 function cmpKey(a, b) { for (let i = 0; i < a.length; i++) { if (a[i] < b[i]) return -1; if (a[i] > b[i]) return 1; } return 0; }
 function sortHand(hand) { return hand.slice().sort((x, y) => cmpKey(sortKey(CARD[x.c]), sortKey(CARD[y.c])) || x.u - y.u); }
+/* えらんでいる攻めの属性。武器に追撃札を足していると属性なし */
+const selElem = C => (!C ? null : C.type === 'weapon' && ui.sel != null && ui.adds.length ? null : C.elem || null);
 /* 相手の式神に対する、この札の相性（属性のある攻め・ダメージ術だけ）。null は関係なし */
 function affFor(G, C, t) {
-  if (!C || !C.elem) return null;
+  const el = selElem(C);
+  if (!el) return null;
   const dmg = C.type === 'weapon' || (C.type === 'spell' && (C.eff === 'dmg' || C.eff === 'drain'));
   if (!dmg) return null;
-  if (fireImmune(t, C.elem)) return 'immune';
-  return affinity(C.elem, guardOf(t).elem);
+  if (fireImmune(t, el)) return 'immune';
+  return affinity(el, guardOf(t).elem);
 }
 /* 式神の弱点（この属性の攻めが1.2倍） */
 function weakChip(p) {
@@ -1178,7 +1181,7 @@ function renderHand(G, me, view) {
     } else if (view === 'card') {
       if (h.u === ui.sel) o.sel = true;
       else if (ui.ws.includes(h.u) || ui.adds.includes(h.u)) o.add = true;
-      else if (addable(me, C, h)) { o.pick = true; o.badge = '＋足せる'; }
+      else if (addable(me, C, h)) { o.pick = true; o.badge = HC.type === 'plus' && C && C.elem ? '＋無属性' : '＋足せる'; }
       else if (C && C.type === 'weapon') o.off = true;
     } else if (view === 'mine') {
       o.off = HC.type === 'armor' || HC.type === 'plus' || !canUse(G, me, h);
@@ -1251,7 +1254,7 @@ function inspectHTML(C, now, opts) {
 }
 /* 属性の攻めをえらんだとき：どの相手に効くか（1.2倍・半分・効かない）をまとめて出す */
 function affSummary(G, me, C) {
-  if (!C || !C.elem) return '';
+  if (!selElem(C)) return '';
   const up = [], down = [], imm = [];
   enemiesOf(G, me).forEach(t => { const f = affFor(G, C, t); if (f === 'immune') imm.push(t); else if (f > 0) up.push(t); else if (f < 0) down.push(t); });
   const nm = a => a.map(t => esc(t.name)).join('・');
@@ -1279,15 +1282,18 @@ function centerCard(G, me) {
     else if (rndT) now = '攻撃 ' + sum + '<br>' + (C.fx === 'rand' ? '暴れ独楽：自分以外のだれかに当たります（味方のことも！）' : '春一番：攻める相手はランダムで決まります（味方に当たることも！）');
     else if (ui.target == null) now = '攻撃 ' + sum + '<br>攻める相手をタップしてください';
     else {
-      const t = G.players[ui.target], f = affinity(C.elem, guardOf(t).elem);
+      const el = selElem(C);
+      const t = G.players[ui.target], f = affinity(el, guardOf(t).elem);
       now = esc(t.name) + 'に 攻撃 ' + sum + (f ? '　→　' + affTxt(f) + ' <b>' + applyAff(base, f) + '</b>' : '');
       if (sameTeam(t, me)) now += '<br><span class="bad">' + esc(t.name) + 'は味方です！それでも攻めますか？</span>';
-      if (fireImmune(t, C.elem)) now += '<br><span class="bad">九尾の狐は火の攻撃ではダメージを受けません</span>';
+      if (fireImmune(t, el)) now += '<br><span class="bad">九尾の狐は火の攻撃ではダメージを受けません</span>';
     }
     now += affSummary(G, me, C);
+    const el = selElem(C);
+    if (C.elem && ui.adds.length) now += '<br><span class="bad">追撃札を足したので、<b>属性なし</b>の攻めになります（相性なし・どの守札でも守れる）</span>';
     const more = me.hand.filter(h => addable(me, C, h) && !ui.ws.includes(h.u) && !ui.adds.includes(h.u)).length;
-    if (more) now += '<br><span class="c-hint">「＋足せる」の札をタップすると重ねて強くできます' + (C.elem ? '' : '（属性のない武器に足せるのは追撃札だけ）') + '</span>';
-    now += '<br><span class="c-hint">' + (C.elem ? '相手は' + C.elem + 'の守札か' + strongerOf(C.elem) + 'の守札（' + C.elem + 'に強い）でしか守れません' : '属性がないので、相手はどの守札でも守れます') + '</span>';
+    if (more) now += '<br><span class="c-hint">「＋足せる」の札をタップすると重ねて強くできます' + (C.elem ? (ui.adds.length ? '' : '（追撃札を足すと属性なしになります）') : '（属性のない武器に足せるのは追撃札だけ）') + '</span>';
+    now += '<br><span class="c-hint">' + (el ? '相手は' + el + 'の守札か' + strongerOf(el) + 'の守札（' + el + 'に強い）でしか守れません' : '属性がないので、相手はどの守札でも守れます') + '</span>';
   } else if (C.type === 'spell') {
     const cost = spellCost(G, me, C);
     if (why === 'rain' || why === 'sealed') { now = WHY[why]; warn = true; }
