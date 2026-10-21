@@ -60,7 +60,7 @@ def run(p, browser):
     # ---- 1) おにぎりを味方に
     my_turn(page)
     me = give(page, ['onigiri', 'shokan', 'abaregoma', 'bakeha', 'fukuwarai', 'katana'])
-    ally = page.evaluate('me => { const G = window.__yao.G(); const m = G.players[me]; const a = G.players.find(p => p.pid !== me && p.team === m.team); a.hp = 9; if (a.guardian === 'ryujin') a.guardian = 'gama';   /* 龍神には霊獣をつけられないので */ window.__yao.changed(); return a.pid; }', me)
+    ally = page.evaluate('me => { const G = window.__yao.G(); const m = G.players[me]; const a = G.players.find(p => p.pid !== me && p.team === m.team); a.hp = 9; if (a.guardian === "ryujin") a.guardian = "gama";   /* 龍神には霊獣をつけられないので */ window.__yao.changed(); return a.pid; }', me)
     page.wait_for_timeout(500)
     tap_card(page, 'onigiri')
     T.shot(page, 'cv_02_onigiri_self')

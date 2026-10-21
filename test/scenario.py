@@ -237,7 +237,8 @@ def scenario(p, browser, name, size, pad, mobile):
         T.shot(page, f'{name}_s13_seat_beast')
     # 押し売り：小判5・霊力10・体力20の相手に金の刀（30両）を売りつける → 小判5・霊力10・体力15で払う
     if my_turn(page):
-        push(page, 'me.gold = 10; const t = G.players.find(p => p.cpu && p.alive); t.gold = 5; t.mp = 10; t.hp = 20; t.st.mist = 0; window.__t = t.pid')
+        # 縁日（半額）のあいだは値段が変わるので、天候を「凪」にしておく
+        push(page, 'G.weather = "nagi"; me.gold = 10; const t = G.players.find(p => p.cpu && p.alive); t.gold = 5; t.mp = 10; t.hp = 20; t.st.mist = 0; window.__t = t.pid')
         give(page, ['oshiuri', 'kinnokatana', 'seiren', 'katana', 'hiya'])
         page.wait_for_timeout(300)
         tap_card(page, 'oshiuri')
