@@ -3,17 +3,21 @@
 # 第10版：道具は5枚ずつ、体力を回復する道具（おにぎり・三色団子・薬湯・仙桃）は8枚ずつに増やした
 # 第12版：召喚札は20枚。体力・霊力・小判の道具は＋5と＋10が20枚、＋15と＋20が10枚
 # 第13版：札はだれにでも使える。ハプニング札（暴れ独楽・狸の化け葉・福笑い）を追加（ハプニング「なし」の部屋では入らない）
+# 第14版：道具が多すぎて攻めも守りもできない → 道具を減らして守札を増やした（道具35%→19%、守札20%→29%）
 import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
-N = 4        # 武器・防具・術・追撃・召喚は4枚
-N_ITEM = 5   # 道具は5枚（下の表にあるものはその枚数）
+N = 4         # 武器・術・追撃は4枚
+N_ARMOR = 6   # 防具は6枚（属性の防具と結界札は8枚）
+N_ITEM = 4    # 道具は4枚（下の表にあるものはその枚数）
 COUNT = {
-    'shokan': 20,                                                       # 召喚札
-    'onigiri': 20, 'dango': 20, 'yakuto': 10, 'sento': 10,              # 体力＋5・＋10・＋15・＋20
-    'reisui': 20, 'reiyaku': 20, 'magatama': 10, 'hoju': 10,            # 霊力＋5・＋10・＋15・＋20
-    'zenibukuro': 20, 'koban': 20, 'senryobako': 10, 'kozuchi': 10,     # 小判＋5・＋10・＋15・＋20
+    'shokan': 10,                                                       # 召喚札
+    'onigiri': 10, 'dango': 10, 'yakuto': 6, 'sento': 6,                # 体力＋5・＋10・＋15・＋20
+    'reisui': 6, 'reiyaku': 6, 'magatama': 4, 'hoju': 4,                # 霊力＋5・＋10・＋15・＋20
+    'zenibukuro': 6, 'koban': 6, 'senryobako': 4, 'kozuchi': 4,         # 小判＋5・＋10・＋15・＋20
     'bakeha': 3, 'fukuwarai': 3,                                        # ハプニング札（道具）
+    'kagami': 4, 'hauchiwa': 4, 'migawari': 4, 'minokasa': 4,           # 特別な守り（強いので4枚のまま）
 }
+ELEM_ARMOR = 8   # 属性の防具・結界札（属性の攻めを守れる札が少なかったので多めに）
 cards = []
 
 
@@ -27,7 +31,7 @@ def W(id, name, yomi, atk, price, elem=None, all=False, fx=None, chaos=False):
 
 
 def A(id, name, yomi, d, price, elem=None, special=None, magic=False):
-    c = {'id': id, 'name': name, 'yomi': yomi, 'type': 'armor', 'price': price, 'n': N}
+    c = {'id': id, 'name': name, 'yomi': yomi, 'type': 'armor', 'price': price, 'n': COUNT.get(id, ELEM_ARMOR if (elem or magic) else N_ARMOR)}
     if d is not None: c['def'] = d
     if elem: c['elem'] = elem
     if special: c['special'] = special
@@ -225,9 +229,15 @@ out = {'version': 4, 'guardians': guards, 'weathers': weathers, 'beasts': B, 'ca
 json.dump(out, open(os.path.join(HERE, 'cards.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=0)
 ids = [c['id'] for c in cards]
 assert len(ids) == len(set(ids)), 'dup id'
-assert all(c['n'] == COUNT.get(c['id'], N_ITEM if c['type'] == 'item' else N) for c in cards)
+def want(c):
+    if c['type'] == 'item': return COUNT.get(c['id'], N_ITEM)
+    if c['type'] == 'armor': return COUNT.get(c['id'], ELEM_ARMOR if (c.get('elem') or c.get('magic')) else N_ARMOR)
+    return COUNT.get(c['id'], N)
+assert all(c['n'] == want(c) for c in cards)
 w = [c for c in cards if c['type'] == 'weapon']
 nw = sum(1 for c in w if not c.get('elem'))
 print('札の種類', len(cards), '枚数', sum(c['n'] for c in cards), '武器の種類', len(w), '無属性', nw, '(%d%%)' % (100 * nw / len(w)))
+tot = sum(c['n'] for c in cards)
 for t in ['weapon', 'plus', 'armor', 'spell', 'item', 'summon']:
-    print(' ', t, sum(1 for c in cards if c['type'] == t), '種類')
+    n = sum(c['n'] for c in cards if c['type'] == t)
+    print(' ', t, sum(1 for c in cards if c['type'] == t), '種類', n, '枚', '%.1f%%' % (100 * n / tot))

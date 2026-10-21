@@ -226,14 +226,14 @@ function animMs(G, from) {
       case 'resolve': {
         const R = e.results || [];
         /* 1人ずつ順番に：守りの札を見せて、ダメージを出す */
-        R.forEach(x => { const n = (x.cards || []).length; ms += (n ? stage(n, 2600, 1950) : 1800) + (x.how === 'deflect' ? 1500 : 1400); });
+        R.forEach(x => { const n = (x.cards || []).length; ms += (n ? stage(n, 2600, 1950) : 1800) + (x.how === 'deflect' ? 1500 : 1400) + (x.status === 'steal' ? stage(1, 2000, 1750) : 0); });
         break;
       }
       case 'item': case 'spell': ms += stage(1, 2600, 1750) + 1100; break;
       case 'refine': ms += stage(1, 2600, 1750) + 1100; break;
       case 'sold': ms += stage(2, 2600, 1750) + 1100; break;
-      case 'usurp': ms += stage(1, 2600, 1750); break;
-      case 'usurped': ms += e.buy ? stage(1, 2200, 1750) + 1000 : 1000; break;
+      case 'usurp': ms += stage(1, 2600, 1750) + (e.card ? stage(1, 2200, 1750) : 0); break;
+      case 'usurped': ms += stage(1, e.buy ? 2200 : 1800, 1750) + 600; break;
       case 'shop': ms += ((e.sold || []).length || e.bought ? stage(Math.min(5, (e.sold || []).length + (e.bought ? 1 : 0)), 2300, 1750) : 0) + 900; break;
       case 'bounce': case 'stray': ms += stage(2, 2400, 1750); break;
       case 'omikuji': ms += 1950; break;

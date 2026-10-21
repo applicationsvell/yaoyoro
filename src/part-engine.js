@@ -703,7 +703,7 @@ function doItem(G, p, a, now) {
     G.pend = { kind: 'usurp', by: p.pid, targets: [t.pid], u: pickH.u, c: pickH.c, price: priceOf(G, pickH.c), at: now, resp: {} };
     G.phase = 'usurp';
     G.deadline = G.settings.defSec ? now + G.settings.defSec * 1000 : 0;
-    logE(G, { k: 'usurp', by: p.pid, to: t.pid, item: I.id });
+    logE(G, { k: 'usurp', by: p.pid, to: t.pid, item: I.id, card: pickH.c, price: G.pend.price });
     return null;
   }
   if (I.eff === 'sell') { doSell(G, p, t, sell); endTurn(G, now); return null; }
@@ -937,7 +937,7 @@ function applyStatus(G, eff, from, to, r) {
       const h = L[Math.floor(rnd(G) * L.length)];
       to.hand.splice(to.hand.indexOf(h), 1);
       from.hand.push(h); r.stolen = h.c; r.thief = from.pid;
-    }
+    } else r.why = !L.length ? 'empty' : handN(from) >= HAND_MAX ? 'full' : 'self';
   }
 }
 

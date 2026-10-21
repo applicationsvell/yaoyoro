@@ -544,7 +544,7 @@ async function playEvent(e, r, fast) {
       else if (e.eff === 'mp') { popAt(pos, '霊力+' + e.v, 'mp', d); resNow(r, e.p); }
       else if (e.eff === 'draw') { popAt(pos, '札＋' + (e.v || 0), 'word', d); if (e.p === myPid) hvGive(HV.added.slice(0, e.v || 0).map(h => h.c)); else seatCount(e.p, e.v || 0); }
       else if (e.eff === 'cleanse') { popAt(pos, e.cured ? '浄め' : '+' + (e.v || 0), e.cured ? 'word' : 'heal', d); if (!e.cured && e.v) setTimeout(() => hpAdd(e.p, e.v), d * SPEED); }
-      else if (e.eff === 'discard' && to) { popAt(to, e.self ? 'しまった！札を1枚失った' : '札を1枚失った', 'word curse', d); if (e.to === myPid) hvTake([e.card]); else seatCount(e.to, -1); }
+      else if (e.eff === 'discard' && to) { popAt(to, (e.self ? 'しまった！' : '') + '「' + ((CARD[e.card] || {}).name || '札') + '」を失った', 'word curse', d); if (e.to === myPid) hvTake([e.card]); else seatCount(e.to, -1); }
       else if (e.eff === 'gold') { popAt(pos, '+' + e.v + '両', 'gold', d); resNow(r, e.p); }
       else if (e.eff === 'reaper') {
         setTimeout(() => { (e.all || []).forEach((pid, i) => { const hp = (e.hits || [])[i]; popAt(seatPos(pid), '−' + (hp || 0), '', i * 120); hpAdd(pid, -(hp || 0)); shakeEl(seatEl(pid), 'hit', 520); }); hpAdd(e.p, -(e.selfHit || 0)); sfx('bighit'); if ((e.all || []).includes(myPid)) flash('#ff3b2a'); }, d);
@@ -577,8 +577,13 @@ async function playEvent(e, r, fast) {
       if (e.by === myPid) hvTake([e.item]); else seatCount(e.by, -1);
       if (fast) { sfx('usurp'); return; }
       if (e.to === myPid) vibrate(50);
-      await useStage(G, me, { by: e.by, to: e.to, cards: [e.item], title: 'の簒奪', word: '手札を1枚品定め', cls: 'bad', sub: '小判で買い取るかを決めます', sfx: 'usurp' });
-      if (e.to === myPid) toast(pname(G, e.by) + 'があなたの札を品定めしています');
+      /* ① 簒奪札を使う → ② 見つけた札を全員に見せる → （買うかどうか考える）→ ③ 結果 */
+      await useStage(G, me, { by: e.by, to: e.to, cards: [e.item], title: 'の簒奪', word: '手札を1枚のぞく', cls: 'bad', sub: nm(e.to) + 'の手札からランダムに1枚', sfx: 'usurp' });
+      if (e.card) {
+        await useStage(G, me, { by: e.by, to: e.to, cards: [e.card], badges: [(e.price || 0) + '両'], title: 'が見つけた札', word: '「' + esc(CARD[e.card].name) + '」', cls: 'gold',
+          sub: nm(e.to) + 'の札　値段 ' + (e.price || 0) + '両<br>' + nm(e.by) + 'が買うかどうか決めます', sfx: 'select', hold: 2200 });
+      }
+      if (e.to === myPid) toast(pname(G, e.by) + 'があなたの「' + (e.card ? CARD[e.card].name : '札') + '」を品定めしています');
       return;
     }
     case 'sold': {
@@ -621,13 +626,16 @@ async function playEvent(e, r, fast) {
         if (e.to === myPid) hvTake([e.card]); else seatCount(e.to, -1);
       }
       if (fast) return;
+      /* ③ 買ったか、買わなかったか */
       if (e.buy) {
-        await useStage(G, me, { by: e.by, to: e.to, cards: [e.card], title: 'の簒奪', word: e.price + '両で買い取った', cls: 'gold', sfx: 'coin', hold: 2200 });
+        await useStage(G, me, { by: e.by, to: e.to, cards: [e.card], badges: ['買った'], title: 'の簒奪', word: e.price + '両で買い取った！', cls: 'gold', sub: '「' + esc(CARD[e.card].name) + '」は' + nm(e.by) + 'のものに。小判' + e.price + '両は' + nm(e.to) + 'へ', sfx: 'coin', hold: 2200 });
         popAt(seatPos(e.by), CARD[e.card].name + 'を買い取った', 'word');
         popAt(seatPos(e.to), '+' + e.price + '両', 'gold', 200);
         resNow(r, e.by); resNow(r, e.to);
-      } else { popAt(seatPos(e.by), '買わなかった', 'word'); sfx('tap'); }
-      await wait(1000);
+      } else {
+        await useStage(G, me, { by: e.by, to: e.to, cards: [e.card], badges: ['戻した'], title: 'の簒奪', word: '買わなかった', sub: '「' + esc(CARD[e.card].name) + '」は' + nm(e.to) + 'の手札に戻った', sfx: 'tap', hold: 1800 });
+      }
+      await wait(600);
       return;
     }
     case 'guard': {
@@ -653,6 +661,12 @@ async function playEvent(e, r, fast) {
         await playDefBoard(G, e, res, me, n > 1 ? { i, n } : null);
         showResult(G, e, res, me, false);
         await wait(res.how === 'deflect' ? 1500 : 1400);
+        /* 札をうばったときは、何をうばったかをまん中に出す */
+        if (res.status === 'steal') {
+          const thief = res.thief != null ? res.thief : e.by;
+          await useStage(G, me, { by: thief, to: res.on, cards: res.stolen ? [res.stolen] : [CARD[e.card] ? e.card : 'kamikakushi'], badges: [res.stolen ? 'うばった' : null], title: 'の' + esc((CARD[e.card] || {}).name || '術'),
+            word: res.stolen ? '「' + esc(CARD[res.stolen].name) + '」をうばった！' : 'うばえなかった', cls: res.stolen ? 'bad' : '', sub: res.stolen ? nm(res.on) + 'の手札から' : res.why === 'full' ? nm(thief) + 'の手札がいっぱい（12枚）' : res.why === 'empty' ? nm(res.on) + 'の手札にうばえる札がない' : '', sfx: res.stolen ? 'steal' : 'tap', hold: 2000 });
+        }
       }
       return;
     }
@@ -873,7 +887,14 @@ async function playHappen(e, r, fast) {
     case 'nagareboshi': popAt(pos(e.to), '札＋' + (e.got || 0), 'word draw'); if (e.to === myPid) await hvDraw(e.got || 0); else await seatDraw(G, e.to, e.got || 0, 0); break;
     case 'jishin': (e.hits || []).forEach((x, i) => { if (x.d) { popAt(pos(x.p), '−' + x.d, '', i * 80); hpAdd(x.p, -x.d); shakeEl(seatEl(x.p), 'hit', 520); } }); if ((e.hits || []).some(x => x.p === myPid && x.d)) flash('#ff3b2a'); break;
     case 'matsuri': (e.heals || []).forEach((x, i) => { if (x.v) { popAt(pos(x.p), '+' + x.v, 'heal', i * 80); hpAdd(x.p, x.v); } }); sfx('heal'); break;
-    case 'yomeiri': (e.moves || []).forEach((m, i) => { setTimeout(() => flyCard(pos(m.f), m.t >= 0 ? pos(m.t) : deckPos(), 360), i * 110 * SPEED); }); sfx('paper'); moveCards(); break;
+    case 'yomeiri': {
+      (e.moves || []).forEach((m, i) => { setTimeout(() => flyCard(pos(m.f), m.t >= 0 ? pos(m.t) : deckPos(), 360), i * 110 * SPEED); });
+      sfx('paper'); moveCards();
+      const gave = (e.moves || []).find(m => m.f === myPid), got = (e.moves || []).find(m => m.t === myPid);
+      if (gave) popAt(pos(myPid), '「' + CARD[gave.c].name + '」を渡した', 'word', 300);
+      if (got) popAt(pos(myPid) ? { x: pos(myPid).x, y: pos(myPid).y - 28 } : null, '「' + CARD[got.c].name + '」が来た', 'word', 900);
+      break;
+    }
     case 'irekawari': {
       flyCard(pos(e.a), pos(e.b), 380); flyCard(pos(e.b), pos(e.a), 380); sfx('reflect');
       await wait(400);
@@ -1499,6 +1520,12 @@ function centerLook(G, me) {
 }
 function centerTable(G, me, view) {
   const cur = G.players[G.cur];
+  /* 簒奪：見つけた札を、みんなに見せたまま「買うかどうか」を待つ */
+  if (G.phase === 'usurp' && G.pend && CARD[G.pend.c]) {
+    const P = G.pend, myPid = me ? me.pid : -1, nm = pid => (pid === myPid ? 'あなた' : esc(pname(G, pid)));
+    return '<div class="c-body c-stg">' + useHTML(G, me, { by: P.by, to: P.targets[0], cards: [P.c], badges: [P.price + '両'], title: 'が見つけた札', word: '「' + esc(CARD[P.c].name) + '」', cls: 'gold',
+      sub: nm(P.targets[0]) + 'の札　値段 ' + P.price + '両<br>' + nm(P.by) + 'が買うかどうか考えています…' }).replace(/ hid/g, '') + '</div>';
+  }
   /* 守りを待っているあいだは、出された札と合計をそのまま見せておく */
   if (G.phase === 'defend' && G.pend && CARD[G.pend.card]) {
     const P = G.pend, tn = P.targets.length > 1 ? '相手全員' : me && P.targets[0] === me.pid ? 'あなた' : esc(pname(G, P.targets[0]));
@@ -1523,7 +1550,8 @@ function centerTable(G, me, view) {
     const d = ev.k === 'declare' ? ev : G.log.slice().reverse().find(x => x.k === 'declare' && x.s < ev.s);
     if (d) cards = (d.cards || [d.card]).concat(d.adds || []);
   } else if (ev && (ev.k === 'item' || ev.k === 'spell' || ev.k === 'summon' || ev.k === 'bounce' || ev.k === 'stray')) cards = [ev.card];
-  else if (ev && ev.k === 'usurped' && ev.buy) cards = [ev.card];
+  else if (ev && ev.k === 'usurped') cards = [ev.card];
+  else if (ev && ev.k === 'usurp') cards = ev.card ? ['sandatsu', ev.card] : ['sandatsu'];
   else if (ev && ev.k === 'sold') cards = ['oshiuri', ev.card];
   else if (ev && ev.k === 'shop' && ev.bought) cards = [ev.bought];
   const res = ev ? logText(G, ev, me) : '合戦のはじまり';
@@ -1932,7 +1960,7 @@ function assistWord(G, e, me) {
     case 'mp': return N(e.p) + 'の霊力＋' + (e.v || 0);
     case 'draw': return N(e.p) + 'が札を' + (e.v || 0) + '枚引いた';
     case 'cleanse': return e.cured ? N(e.p) + 'の呪い・封印をはらった' : N(e.p) + 'の体力＋' + (e.v || 0);
-    case 'discard': return e.to == null ? '捨てる札がなかった' : e.self ? 'しまった！' + N(e.p) + 'の札を1枚捨ててしまった' : N(e.to) + 'の札を1枚捨てさせた';
+    case 'discard': return e.to == null ? '捨てる札がなかった' : e.self ? 'しまった！' + N(e.p) + 'の「' + esc((CARD[e.card] || {}).name || '') + '」を捨ててしまった' : N(e.to) + 'の「' + esc((CARD[e.card] || {}).name || '') + '」を捨てさせた';
     case 'gold': return N(e.p) + 'の小判＋' + (e.v || 0) + '両';
     case 'reaper': return '相手全員に5ダメージ、' + N(e.p) + 'にも' + (e.selfHit || 0) + 'ダメージ';
   }
@@ -1954,10 +1982,10 @@ function logText(G, e, me) {
       if (r.how === 'null') return N(r.t) + 'は身代わり人形で無傷';
       if (r.how === 'reflect') return N(r.t) + 'が照魔の鏡ではね返した';
       if (r.how === 'immune') return N(r.t) + 'に火は効かなかった';
-      if (r.how === 'deflect') return N(r.t) + (r.auto ? 'が幻惑で弾いた→' : 'が羽団扇で弾いた→') + N(r.to) + (r.vdmg ? 'に' + r.vdmg + 'ダメージ' : r.status ? (r.status === 'curse' ? 'が呪われた' : r.status === 'seal' ? 'が封印された' : r.stolen ? 'が札を1枚うばわれた' : 'に当たった') : 'に当たった');
+      if (r.how === 'deflect') return N(r.t) + (r.auto ? 'が幻惑で弾いた→' : 'が羽団扇で弾いた→') + N(r.to) + (r.vdmg ? 'に' + r.vdmg + 'ダメージ' : r.status ? (r.status === 'curse' ? 'が呪われた' : r.status === 'seal' ? 'が封印された' : r.stolen ? 'が「' + cn(r.stolen) + '」をうばわれた' : 'に当たった') : 'に当たった');
       if (r.how === 'dodge') return N(r.t) + 'は隠れ蓑でかわした';
       if (r.how === 'evade') return N(r.t) + 'はひらりとかわした';
-      if (r.status) return N(r.on) + (r.status === 'curse' ? 'は呪われた' : r.status === 'seal' ? 'は封印された' : r.stolen ? 'は札を1枚うばわれた' : 'から札はうばえなかった');
+      if (r.status) return N(r.on) + (r.status === 'curse' ? 'は呪われた' : r.status === 'seal' ? 'は封印された' : r.stolen ? 'は「' + cn(r.stolen) + '」をうばわれた' : 'から札はうばえなかった');
       if (r.how === 'block') return N(r.t) + 'は防ぎきった';
       return N(r.t) + 'に' + r.dmg + 'ダメージ' + (r.aff > 0 ? '（相性◎）' : '') + (r.miss ? '（隠れ蓑は外れた）' : '') + (r.heal ? '、' + N(e.by) + 'が' + r.heal + '回復' : '');
     }).join('、');
@@ -1978,10 +2006,10 @@ function logText(G, e, me) {
     case 'beastgone': return N(e.p) + 'の霊獣「' + esc(bname(e.b)) + '」は成仏した';
     case 'shell': return N(e.p) + 'は甲羅でダメージを' + e.cut + '減らした';
     case 'fxdraw': return N(e.p) + 'は攻めが通ったので札を' + e.n + '枚引いた';
-    case 'usurp': return N(e.by) + 'が簒奪札で' + N(e.to) + 'の札を品定め';
+    case 'usurp': return N(e.by) + 'が簒奪札で' + N(e.to) + 'の手札から' + (e.card ? '「' + cn(e.card) + '」（' + (e.price || 0) + '両）を見つけた' : '札を品定め');
     case 'sold': return N(e.by) + 'が' + N(e.to) + 'に' + cn(e.card) + 'を' + e.price + '両で押し売り（' + [e.paid.gold ? '小判' + e.paid.gold : '', e.paid.mp ? '霊力' + e.paid.mp : '', e.paid.hp ? '体力' + e.paid.hp : ''].filter(Boolean).join('・') + 'で払った）' + (e.dead ? '→払いきれずに成仏' : '');
     case 'refine': return N(e.by) + 'は精錬した（' + [['hp', '体力'], ['mp', '霊力'], ['gold', '小判']].filter(([k]) => e.d[k]).map(([k, l]) => l + (e.d[k] > 0 ? '＋' : '−') + Math.abs(e.d[k])).join('、') + '）';
-    case 'usurped': return e.buy ? N(e.by) + 'は' + N(e.to) + 'から' + cn(e.card) + 'を' + e.price + '両で買い取った' : N(e.by) + 'は' + (me && (me.pid === e.by || me.pid === e.to) ? cn(e.card) + 'を' : '') + '買わなかった';
+    case 'usurped': return e.buy ? N(e.by) + 'は' + N(e.to) + 'から「' + cn(e.card) + '」を' + e.price + '両で買い取った' : N(e.by) + 'は「' + cn(e.card) + '」を買わなかった（' + N(e.to) + 'に戻った）';
     case 'left': return N(e.p) + 'が抜けた（CPUが代打）';
     case 'defTimeout': return '守りの時間切れ';
     case 'win': return '勝負あり';

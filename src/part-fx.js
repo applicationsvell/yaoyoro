@@ -533,6 +533,9 @@ function popAt(pos, text, cls, delay) {
     el.textContent = text;
     el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px';
     $('fx').appendChild(el);
+    /* 長いことばが画面の端で切れないように、内側に寄せる */
+    const w = el.offsetWidth, vw = $('fx').clientWidth || window.innerWidth;
+    if (w && vw) el.style.left = Math.max(w / 2 + 6, Math.min(vw - w / 2 - 6, pos.x)) + 'px';
     setTimeout(() => el.remove(), 1400);
   }, delay || 0);
 }
