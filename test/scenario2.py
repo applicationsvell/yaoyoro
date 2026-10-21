@@ -30,6 +30,9 @@ def start(p, browser, size, pad, mobile, speed=1):
     T.tap(page, '#btnPractice')
     T.set_profile(page, 'たつや', 0)
     page.wait_for_selector('#lobbyStart', timeout=4000)
+    # 場面テストはねらいどおりに動かしたいので、ハプニングなし（ハプニングは rules_chaos.js と chaos_vis.py で確かめる）
+    T.tap(page, '#segChaos button', 0)
+    page.wait_for_timeout(200)
     T.tap(page, '#lobbyStart')
     page.wait_for_selector('#scrGame:not([hidden])', timeout=5000)
     page.wait_for_timeout(3500)

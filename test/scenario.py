@@ -40,6 +40,8 @@ def start(p, browser, size, pad, mobile, speed=0.35):
     T.tap(page, '#btnPractice')
     T.set_profile(page, 'たつや', 0)
     page.wait_for_selector('#lobbyStart', timeout=4000)
+    T.tap(page, '#segChaos button', 0)   # ハプニングなし（ねらいどおりに動かすため）
+    page.wait_for_timeout(200)
     T.tap(page, '#lobbyStart')
     page.wait_for_selector('#scrGame:not([hidden])', timeout=5000)
     page.wait_for_timeout(2500)

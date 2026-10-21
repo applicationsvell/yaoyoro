@@ -29,7 +29,7 @@ def scenario(p, browser, name, size, pad, mobile):
         problems.append(f'[{name}] 自分の番が来ない')
         return
     tgt = G(page, 'const t = G.players.find(p => p.cpu && p.alive); t.hp = 4; t.st.mist = 0; t.hand = t.hand.filter(h => window.__yao.CARD[h.c].type !== "armor"); t.guardian = "kitsune"; return t.pid;')
-    push(page, 'G.players.forEach(p => { if (p.cpu && p.pid !== ' + str(tgt) + ') p.hp = 90; }); me.hand.push({ u: G.uid++, c: "katana" })')
+    push(page, 'G.weather = "nagi"; G.players.forEach(p => { if (p.cpu && p.pid !== ' + str(tgt) + ') p.hp = 90; }); me.hand.push({ u: G.uid++, c: "katana" })')
     page.wait_for_timeout(500)
     page.evaluate('t => { window.__tgt = t; }', tgt)
     page.evaluate(WATCH)
